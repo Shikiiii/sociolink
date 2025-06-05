@@ -500,58 +500,200 @@ const LandingPage = () => {
 
         {/* Floating mood switcher */}
         <motion.div
-          className="fixed bottom-8 right-8 z-50"
-          initial={{ opacity: 0, scale: 0 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 1.2 }}
+          className="fixed bottom-20 right-8 z-[9999]" // Much higher z-index
+          initial={{ opacity: 0, scale: 0, y: 100 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ delay: 1.2, type: "spring", damping: 20 }}
         >
           <div className="relative group pointer-events-auto">
-            {/* Progress ring */}
+            {/* Floating glow effect */}
+            <motion.div
+              className="absolute inset-0 rounded-full blur-xl opacity-30"
+              style={{
+                background: `radial-gradient(circle, ${currentMood.colors.primary}, ${currentMood.colors.secondary})`,
+              }}
+              animate={{
+                scale: [1, 1.2, 1],
+                opacity: [0.3, 0.5, 0.3],
+              }}
+              transition={{
+                duration: 3,
+                repeat: Infinity,
+                ease: "easeInOut"
+              }}
+            />
+
+            {/* Progress ring with enhanced styling */}
             <svg 
-              className="absolute inset-0 w-14 h-14 -rotate-90 transition-opacity duration-200 pointer-events-none"
-              style={{ opacity: isHolding ? 1 : 0 }}
+              className="absolute inset-0 w-16 h-16 -rotate-90 transition-all duration-300 pointer-events-none"
+              style={{ 
+                opacity: isHolding ? 1 : 0.4,
+                transform: isHolding ? 'scale(1.1) rotate(-90deg)' : 'scale(1) rotate(-90deg)'
+              }}
             >
-              <circle cx="28" cy="28" r="26" stroke="currentColor" strokeWidth="1" fill="none" className="text-muted-foreground/20" />
+              <circle 
+                cx="32" cy="32" r="30" 
+                stroke="currentColor" 
+                strokeWidth="1.5" 
+                fill="none" 
+                className="text-border/40" 
+              />
               <motion.circle
-                cx="28" cy="28" r="26"
+                cx="32" cy="32" r="30"
                 stroke={currentMood.colors.primary}
-                strokeWidth="2"
+                strokeWidth="3"
                 fill="none" 
                 strokeLinecap="round"
                 style={{ 
                   pathLength: holdProgress,
-                  strokeDasharray: "0 1"
+                  strokeDasharray: "0 1",
+                  filter: 'drop-shadow(0 0 6px currentColor)'
                 }}
               />
             </svg>
 
-            <Button
-            onMouseDown={handleMoodChange}
-            onMouseUp={handleMoodEnd}
-            onMouseLeave={handleMoodEnd}
-            onTouchStart={handleMoodChange}
-            onTouchEnd={handleMoodEnd}
-            className="w-14 h-14 rounded-full glass-card hover-lift stable-layout relative z-10"
-            style={{
-                borderColor: `${currentMood.colors.primary}20`
-            }}
-            >
+            {/* Enhanced main button */}
             <motion.div
-                animate={{ 
-                rotate: isHolding ? 180 : 0,
-                scale: isHolding ? 1.1 : 1 
-                }}
-                transition={{ duration: 0.3 }}
-                style={{ color: currentMood.colors.primary }}
+              className="relative"
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
             >
-                {isVibrant ? <Wind className="w-5 h-5" /> : <Sparkles className="w-5 h-5" />}
-            </motion.div>
-            </Button>
+              <Button
+                onMouseDown={handleMoodChange}
+                onMouseUp={handleMoodEnd}
+                onMouseLeave={handleMoodEnd}
+                onTouchStart={handleMoodChange}
+                onTouchEnd={handleMoodEnd}
+                className="w-16 h-16 rounded-full relative z-10 border-2 transition-all duration-300 overflow-hidden group/btn"
+                style={{
+                  background: `linear-gradient(135deg, ${currentMood.colors.primary}15, ${currentMood.colors.secondary}15)`,
+                  borderColor: `${currentMood.colors.primary}40`,
+                  backdropFilter: 'blur(20px)',
+                }}
+              >
+                {/* Button background glow */}
+                <motion.div
+                  className="absolute inset-0 rounded-full opacity-0 group-hover/btn:opacity-20 transition-opacity duration-300"
+                  style={{
+                    background: `linear-gradient(135deg, ${currentMood.colors.primary}, ${currentMood.colors.secondary})`,
+                  }}
+                />
 
-            {/* Tooltip */}
-            <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-popover border rounded-lg text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-              Hold to switch vibe
-            </div>
+                {/* Icon with enhanced animation */}
+                <motion.div
+                  className="relative z-10"
+                  animate={{ 
+                    rotate: isHolding ? 360 : 0,
+                    scale: isHolding ? 1.2 : 1 
+                  }}
+                  transition={{ 
+                    duration: isHolding ? 1.2 : 0.3,
+                    ease: isHolding ? "linear" : "easeOut"
+                  }}
+                  style={{ color: currentMood.colors.primary }}
+                >
+                  <motion.div
+                    animate={{
+                      filter: isHolding 
+                        ? `drop-shadow(0 0 8px ${currentMood.colors.primary})`
+                        : 'drop-shadow(0 0 0px transparent)'
+                    }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    {isVibrant ? (
+                      <Wind className="w-6 h-6" />
+                    ) : (
+                      <Sparkles className="w-6 h-6" />
+                    )}
+                  </motion.div>
+                </motion.div>
+
+                {/* Ripple effect on interaction */}
+                <AnimatePresence>
+                  {isHolding && (
+                    <motion.div
+                      className="absolute inset-0 rounded-full"
+                      style={{
+                        background: `radial-gradient(circle, ${currentMood.colors.primary}30, transparent 70%)`,
+                      }}
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 2, opacity: [0, 1, 0] }}
+                      exit={{ scale: 0, opacity: 0 }}
+                      transition={{ duration: 1.2, ease: "easeOut" }}
+                    />
+                  )}
+                </AnimatePresence>
+              </Button>
+            </motion.div>
+
+            {/* Enhanced tooltip with glass effect - FIXED STYLES */}
+            <motion.div 
+              className="absolute bottom-full mb-4 left-1/2 -translate-x-1/2 px-4 py-2 rounded-xl text-sm whitespace-nowrap transition-all duration-300 pointer-events-none"
+              style={{
+                background: `linear-gradient(135deg, ${currentMood.colors.primary}10, ${currentMood.colors.secondary}10)`,
+                backdropFilter: 'blur(20px)',
+                border: `1px solid ${currentMood.colors.primary}20`,
+              }}
+              initial={{ opacity: 0, y: 10, scale: 0.8 }}
+              whileHover={{ opacity: 1, y: 0, scale: 1 }}
+              animate={{ 
+                opacity: isHolding ? 1 : 0,
+                y: isHolding ? 0 : 10,
+                scale: isHolding ? 1 : 0.8
+              }}
+            >
+              <motion.span
+                style={{ color: currentMood.colors.primary }}
+                className="font-medium"
+              >
+                {isHolding ? `Switching to ${isVibrant ? 'zen' : 'vibrant'} mode...` : 'Hold to switch vibe'}
+              </motion.span>
+              
+              {/* Tooltip arrow - FIXED INDIVIDUAL BORDER PROPERTIES */}
+              <div 
+                className="absolute top-full left-1/2 -translate-x-1/2 w-2 h-2 rotate-45"
+                style={{
+                  background: `linear-gradient(135deg, ${currentMood.colors.primary}10, ${currentMood.colors.secondary}10)`,
+                  borderTopWidth: '0',
+                  borderLeftWidth: '0',
+                  borderRightWidth: '1px',
+                  borderBottomWidth: '1px',
+                  borderStyle: 'solid',
+                  borderColor: `${currentMood.colors.primary}20`,
+                }}
+              />
+            </motion.div>
+
+            {/* Floating particles around button */}
+            <AnimatePresence>
+              {isHolding && (
+                <>
+                  {[...Array(6)].map((_, i) => (
+                    <motion.div
+                      key={i}
+                      className="absolute w-1 h-1 rounded-full pointer-events-none"
+                      style={{
+                        backgroundColor: currentMood.colors.primary,
+                        left: '50%',
+                        top: '50%',
+                      }}
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{
+                        scale: [0, 1, 0],
+                        opacity: [0, 1, 0],
+                        x: [0, (Math.cos(i * 60 * Math.PI / 180) * 40)],
+                        y: [0, (Math.sin(i * 60 * Math.PI / 180) * 40)],
+                      }}
+                      transition={{
+                        duration: 1.2,
+                        delay: i * 0.1,
+                        ease: "easeOut"
+                      }}
+                    />
+                  ))}
+                </>
+              )}
+            </AnimatePresence>
           </div>
         </motion.div>
       </div>
