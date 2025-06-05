@@ -206,7 +206,7 @@ const ProfilePage = () => {
           ...prev,
           links: socials.map((item: any, idx: number) => ({
             id: item.order,
-            title: item.type,
+            title: item.text,
             url: item.link,
             icon: item.type.charAt(0).toUpperCase() + item.type.slice(1)
           }))
