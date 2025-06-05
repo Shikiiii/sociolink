@@ -249,7 +249,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
         }
 
       } catch (err) {
-        alert(err);
+        router.push('/');
         // fallback to mockProfile on error
         setProfile(mockProfile);
       }
@@ -402,15 +402,17 @@ export default function ProfilePage({ params }: { params: { username: string } }
                   transition={{ delay: 0.8 }}
                   className="flex gap-3"
                 >
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={() => router.push('/profile')}
-                    className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-xl px-4 py-3 transition-all duration-300 flex items-center justify-center gap-2"
-                  >
-                    <Settings className="w-4 h-4 text-white" />
-                    <span className="text-white font-medium text-sm">Edit</span>
-                  </motion.button>
+                  {isOwnProfile && (
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => router.push('/profile')}
+                      className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-xl px-4 py-3 transition-all duration-300 flex items-center justify-center gap-2"
+                    >
+                      <Settings className="w-4 h-4 text-white" />
+                      <span className="text-white font-medium text-sm">Edit</span>
+                    </motion.button>
+                  )}
                   
                   <motion.button
                     whileHover={{ scale: 1.05 }}
@@ -555,15 +557,17 @@ export default function ProfilePage({ params }: { params: { username: string } }
                     transition={{ delay: 0.8 }}
                     className="flex gap-4"
                   >
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => router.push('/profile')}
-                      className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-xl px-6 py-4 transition-all duration-300 flex items-center justify-center gap-2"
-                    >
-                      <Settings className="w-5 h-5 text-white" />
-                      <span className="text-white font-medium">Edit</span>
-                    </motion.button>
+                    {isOwnProfile && (
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => router.push('/profile')}
+                        className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-xl px-6 py-4 transition-all duration-300 flex items-center justify-center gap-2"
+                      >
+                        <Settings className="w-5 h-5 text-white" />
+                        <span className="text-white font-medium">Edit</span>
+                      </motion.button>
+                    )}
                     
                     <motion.button
                       whileHover={{ scale: 1.05 }}
@@ -642,7 +646,14 @@ export default function ProfilePage({ params }: { params: { username: string } }
                 className="pt-8 text-center"
               >
                 <p className={`text-sm transition-colors duration-300 ${textColors.muted}`}>
-                  Powered by <span className={`font-semibold ${textColors.gradient}`}>SocioLink</span>
+                  Powered by{' '}
+                  <button
+                    type="button"
+                    className={`font-semibold ${textColors.gradient} focus:outline-none cursor-pointer hover:underline`}
+                    onClick={() => router.push('/')}
+                  >
+                    SocioLink
+                  </button>
                 </p>
               </motion.div>
             </motion.div>

@@ -160,6 +160,43 @@ const LandingPage = () => {
   const mouseY = useMotionValue(0)
   const holdProgress = useSpring(0, { damping: 25, stiffness: 200 })
 
+
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+
+  const [isUsernameAvailable, setIsUsernameAvailable] = useState<boolean>(false);
+
+  // Check if user is logged in by looking for access_token cookie
+  useEffect(() => {
+    if (typeof document !== "undefined") {
+      const match = document.cookie.match(/(^| )access_token=([^;]+)/)
+      if (match) {
+        setIsLoggedIn(true)
+      }
+    }
+  }, [])
+
+  // Debounce username check for availability
+  useEffect(() => {
+    if (!username.trim()) {
+      setIsUsernameAvailable(false)
+      return
+    }
+    const handler = setTimeout(() => {
+      fetch(`/api/check_username?username=${encodeURIComponent(username.trim())}`)
+        .then(res => res.json())
+        .then(data => {
+          setIsUsernameAvailable(data.status === "Available")
+          if (data.status === 'Not available') {
+            currentMood.cta = 'Taken.'
+          } else {
+            currentMood.cta = currentMood.emoji === "🌱" ? "Let's go →" : "Hell yes! →"
+          }
+        })
+        .catch(() => setIsUsernameAvailable(false))
+    }, 300)
+    return () => clearTimeout(handler)
+  }, [username])
+
   useEffect(() => {
     setMounted(true)
     
@@ -410,7 +447,12 @@ const LandingPage = () => {
               <div 
                 className="absolute -inset-1 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-300"
                 style={{
-                  background: `linear-gradient(45deg, ${currentMood.colors.primary}, ${currentMood.colors.secondary})`
+                  background:
+                  currentMood.cta === "Taken."
+                    ? "linear-gradient(45deg, #ef4444, #ef4444)" // red glow
+                    : currentMood.cta !== "Taken." && isUsernameAvailable
+                    ? "linear-gradient(45deg, #22c55e, #16a34a)" // green glow
+                    : `linear-gradient(45deg, ${currentMood.colors.primary}, ${currentMood.colors.secondary})`
                 }}
               />
               
@@ -430,10 +472,14 @@ const LandingPage = () => {
                   
                   <Button
                     onClick={handleGetStarted}
-                    disabled={!username.trim()}
+                    disabled={!username.trim() || isUsernameAvailable === false}
                     className="ml-2 rounded-lg px-6 transition-all duration-300"
                     style={{
-                      backgroundColor: username.trim() ? currentMood.colors.primary : undefined,
+                      backgroundColor: !username.trim()
+                      ? undefined
+                      : isUsernameAvailable === false
+                        ? '#ef4444'
+                        : currentMood.colors.primary,
                       color: username.trim() ? '#ffffff' : undefined
                     }}
                   >
