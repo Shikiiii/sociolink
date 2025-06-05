@@ -458,9 +458,11 @@ const LandingPage = () => {
               
               <div className="relative bg-card border rounded-xl p-2 backdrop-blur-sm">
                 <div className="flex items-center">
-                  <span className="px-4 py-3 text-muted-foreground text-sm font-mono">
-                    sociolink.app/
-                  </span>
+                    <span className="px-4 py-3 text-muted-foreground text-sm font-mono">
+                    {typeof window !== "undefined"
+                      ? `${window.location.hostname}/p/`
+                      : "sociolink.app/p/"}
+                    </span>
                   
                   <Input
                     value={username}
