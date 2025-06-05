@@ -81,6 +81,67 @@ const socialPlatforms = [
   { value: 'Patreon', label: 'Patreon', icon: 'DollarSign', color: '#FF424D' }
 ]
 
+const hexToRgb = (hex: string) => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+  return result ? {
+    r: parseInt(result[1], 16),
+    g: parseInt(result[2], 16),
+    b: parseInt(result[3], 16)
+  } : null
+}
+
+// Calculate luminance (brightness)
+const getLuminance = (r: number, g: number, b: number) => {
+  const [rs, gs, bs] = [r, g, b].map(c => {
+    c = c / 255
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
+  })
+  return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs
+}
+
+// Determine if background is bright
+const isBackgroundBright = (profile: any) => {
+  // Handle custom colors
+  if (profile.background?.startsWith('custom-') && profile.customColor) {
+    const rgb = hexToRgb(profile.customColor)
+    if (rgb) {
+      const luminance = getLuminance(rgb.r, rgb.g, rgb.b)
+      return luminance > 0.5
+    }
+  }
+  
+  // Handle preset backgrounds - add known bright ones
+  const brightBackgrounds = [
+    'gradient-3', 'gradient-6', 'gradient-8',
+    'solid-1', 'solid-2', 'solid-4'
+  ]
+  
+  return brightBackgrounds.includes(profile.background)
+}
+
+// Get text colors based on background brightness
+const getTextColors = (profile: any) => {
+  const isBright = isBackgroundBright(profile)
+  
+  return {
+    primary: isBright ? 'text-gray-900' : 'text-white',
+    secondary: isBright ? 'text-gray-700' : 'text-white/80',
+    muted: isBright ? 'text-gray-600' : 'text-white/60',
+    gradient: isBright 
+      ? 'bg-gradient-to-r from-gray-900 via-gray-800 to-gray-700 bg-clip-text text-transparent'
+      : 'bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent',
+    // Enhanced container styles
+    profileCard: isBright 
+      ? 'bg-white/10 backdrop-blur-xl border border-gray-500/30 shadow-2xl ring-1 ring-black/10' 
+      : 'bg-white/5 backdrop-blur-xl border border-white/10',
+    linkCard: isBright 
+      ? 'bg-white/8 border border-gray-500/25 shadow-lg hover:shadow-xl ring-1 ring-black/5' 
+      : 'bg-white/5 border border-white/10',
+    profileGlow: isBright ? 'shadow-[0_0_50px_rgba(0,0,0,0.15)]' : '',
+    linkGlow: isBright ? 'hover:shadow-[0_8px_32px_rgba(0,0,0,0.12)]' : ''
+  }
+}
+
 // Mock profile data
 const mockProfile = {
   name: 'John Doe',
@@ -102,6 +163,9 @@ const mockProfile = {
 export default function ProfilePage({ params }: { params: { username: string } }) {
   const router = useRouter()
   const profile = mockProfile
+
+  const textColors = getTextColors(profile)
+  const isBright = isBackgroundBright(profile)
 
   const getBackgroundClass = (bgId: string) => {
     return backgroundPresets.find(bg => bg.id === bgId)?.class || backgroundPresets[0].class
@@ -139,23 +203,41 @@ export default function ProfilePage({ params }: { params: { username: string } }
 
   return (
     <div className="min-h-screen relative overflow-hidden">
-      {/* Background */}
+      {/* Background - update to handle custom colors and blur properly */}
       {BackgroundComponent ? (
-        <div className="absolute inset-0">
+        <div 
+          className="absolute inset-0"
+          style={{
+            filter: profile.blur > 0 ? `blur(${profile.blur * 0.3}px)` : 'none',
+            transform: profile.blur > 0 ? 'scale(1.1)' : 'scale(1)',
+            transformOrigin: 'center',
+            transition: 'filter 0.2s ease, transform 0.2s ease'
+          }}
+        >
           <BackgroundComponent />
         </div>
+      ) : profile.background?.startsWith('custom-') ? (
+        <div 
+          className="absolute inset-0" 
+          style={{ 
+            backgroundColor: profile.customColor,
+            filter: profile.blur > 0 ? `blur(${profile.blur * 0.3}px)` : 'none',
+            transform: profile.blur > 0 ? 'scale(1.05)' : 'scale(1)',
+            transition: 'filter 0.2s ease, transform 0.2s ease'
+          }}
+        />
       ) : (
-        <div className={`absolute inset-0 ${getBackgroundClass(profile.background)}`} />
+        <div 
+          className={`absolute inset-0 ${getBackgroundClass(profile.background)}`}
+          style={{
+            filter: profile.blur > 0 ? `blur(${profile.blur * 0.3}px)` : 'none',
+            transform: profile.blur > 0 ? 'scale(1.05)' : 'scale(1)',
+            transition: 'filter 0.2s ease, transform 0.2s ease'
+          }}
+        />
       )}
 
       <div className="absolute inset-0 bg-gradient-to-br from-black/30 via-transparent to-black/30" />
-      <div 
-        className="absolute inset-0 z-10"
-        style={{
-          backdropFilter: `blur(${profile.blur}px)`,
-          WebkitBackdropFilter: `blur(${profile.blur}px)`
-        }}
-      />
 
       {/* Content Container */}
       <div className="relative z-20 min-h-screen p-6">
@@ -167,18 +249,19 @@ export default function ProfilePage({ params }: { params: { username: string } }
         >
           {/* Mobile Layout */}
           <div className="flex flex-col items-center justify-center min-h-screen lg:hidden">
-            {/* Profile Card - Mobile */}
+            {/* Profile Card - Mobile with dynamic styling */}
             <motion.div
               initial={{ opacity: 0, y: 50 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
-              className="w-full max-w-md bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 relative overflow-hidden mb-6"
+              className={`w-full max-w-md backdrop-blur-xl rounded-3xl p-8 relative overflow-hidden mb-6 transition-all duration-300 ${textColors.profileCard} ${textColors.profileGlow}`}
             >
+              {/* Conditional gradient effects */}
               <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent rounded-3xl" />
               <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 rounded-3xl blur-xl opacity-50" />
               
               <div className="relative z-10">
-                {/* Avatar */}
+                {/* Avatar - same as before */}
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
@@ -202,23 +285,23 @@ export default function ProfilePage({ params }: { params: { username: string } }
                   </div>
                 </motion.div>
 
-                {/* Profile Info */}
+                {/* Profile Info with dynamic colors */}
                 <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 0.6 }}
                   className="text-center mb-6"
                 >
-                  <h1 className="text-2xl font-bold bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent mb-2">
+                  <h1 className={`text-2xl font-bold mb-2 transition-colors duration-300 ${textColors.gradient}`}>
                     {profile.name}
                   </h1>
-                  <p className="text-white/60 text-sm mb-3">@{profile.username}</p>
-                  <p className="text-white/80 text-sm leading-relaxed">
+                  <p className={`text-sm mb-3 transition-colors duration-300 ${textColors.muted}`}>@{profile.username}</p>
+                  <p className={`text-sm leading-relaxed transition-colors duration-300 ${textColors.secondary}`}>
                     {profile.bio}
                   </p>
                 </motion.div>
 
-                {/* Edit and Share Buttons */}
+                {/* Buttons - keep same styling as they work well */}
                 <motion.div
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
@@ -248,7 +331,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
               </div>
             </motion.div>
 
-            {/* Links Section - Mobile */}
+            {/* Links Section - Mobile with dynamic styling */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -266,12 +349,14 @@ export default function ProfilePage({ params }: { params: { username: string } }
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 1.1 + index * 0.1 }}
                     onClick={() => handleLinkClick(link.url)}
-                    className="group w-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-2xl p-4 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl backdrop-blur-sm relative overflow-hidden"
+                    className={`group w-full backdrop-blur-sm rounded-2xl p-4 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl relative overflow-hidden ${textColors.linkCard} ${textColors.linkGlow}`}
                   >
-                    <div 
-                      className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded-2xl"
-                      style={{ background: `linear-gradient(135deg, ${platform.color}40, transparent)` }}
-                    />
+                    {!isBright && (
+                      <div 
+                        className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded-2xl"
+                        style={{ background: `linear-gradient(135deg, ${platform.color}40, transparent)` }}
+                      />
+                    )}
                     
                     <div className="relative flex items-center gap-4">
                       <div 
@@ -285,16 +370,16 @@ export default function ProfilePage({ params }: { params: { username: string } }
                       </div>
 
                       <div className="flex-1 text-left">
-                        <h3 className="text-white font-semibold text-base mb-1">
+                        <h3 className={`font-semibold text-base mb-1 transition-colors duration-300 ${textColors.primary}`}>
                           {link.title}
                         </h3>
-                        <p className="text-white/60 text-sm truncate">
+                        <p className={`text-sm truncate transition-colors duration-300 ${textColors.muted}`}>
                           {link.url.replace(/^https?:\/\//, '').replace(/^mailto:/, '')}
                         </p>
                       </div>
 
                       <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors flex-shrink-0">
-                        <ExternalLink className="w-4 h-4 text-white/60 group-hover:text-white transition-colors" />
+                        <ExternalLink className={`w-4 h-4 transition-colors ${textColors.muted} group-hover:${textColors.primary}`} />
                       </div>
                     </div>
                   </motion.button>
@@ -309,13 +394,13 @@ export default function ProfilePage({ params }: { params: { username: string } }
               transition={{ delay: 1.6 }}
               className="mt-8 text-center"
             >
-              <p className="text-white/30 text-xs">
-                Powered by <span className="font-semibold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">SocioLink</span>
+              <p className={`text-xs transition-colors duration-300 ${textColors.muted}`}>
+                Powered by <span className={`font-semibold ${textColors.gradient}`}>SocioLink</span>
               </p>
             </motion.div>
           </div>
 
-          {/* Desktop Layout */}
+          {/* Desktop Layout - Apply same dynamic styling */}
           <div className="hidden lg:grid lg:grid-cols-2 lg:gap-12 lg:items-center lg:min-h-screen">
             {/* Left Side - Profile Card */}
             <motion.div
@@ -324,12 +409,12 @@ export default function ProfilePage({ params }: { params: { username: string } }
               transition={{ duration: 0.6, delay: 0.2 }}
               className="flex justify-center"
             >
-              <div className="w-full max-w-md bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 relative overflow-hidden">
+              <div className={`w-full max-w-md backdrop-blur-xl rounded-3xl p-8 relative overflow-hidden transition-all duration-300 ${textColors.profileCard} ${textColors.profileGlow}`}>
                 <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent rounded-3xl" />
                 <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 rounded-3xl blur-xl opacity-50" />
                 
                 <div className="relative z-10">
-                  {/* Avatar */}
+                  {/* Avatar - same as before */}
                   <motion.div
                     initial={{ scale: 0 }}
                     animate={{ scale: 1 }}
@@ -353,23 +438,23 @@ export default function ProfilePage({ params }: { params: { username: string } }
                     </div>
                   </motion.div>
 
-                  {/* Profile Info */}
+                  {/* Profile Info with dynamic colors */}
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.6 }}
                     className="text-center mb-8"
                   >
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent mb-3">
+                    <h1 className={`text-3xl font-bold mb-3 transition-colors duration-300 ${textColors.gradient}`}>
                       {profile.name}
                     </h1>
-                    <p className="text-white/60 text-base mb-4">@{profile.username}</p>
-                    <p className="text-white/80 text-base leading-relaxed">
+                    <p className={`text-base mb-4 transition-colors duration-300 ${textColors.muted}`}>@{profile.username}</p>
+                    <p className={`text-base leading-relaxed transition-colors duration-300 ${textColors.secondary}`}>
                       {profile.bio}
                     </p>
                   </motion.div>
 
-                  {/* Edit and Share Buttons */}
+                  {/* Edit and Share Buttons - same as before */}
                   <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
@@ -400,7 +485,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
               </div>
             </motion.div>
 
-            {/* Right Side - Links */}
+            {/* Right Side - Links with dynamic styling */}
             <motion.div
               initial={{ opacity: 0, x: 50 }}
               animate={{ opacity: 1, x: 0 }}
@@ -418,12 +503,14 @@ export default function ProfilePage({ params }: { params: { username: string } }
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ delay: 1.1 + index * 0.1 }}
                     onClick={() => handleLinkClick(link.url)}
-                    className="group w-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 rounded-2xl p-5 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl backdrop-blur-sm relative overflow-hidden"
+                    className={`group w-full backdrop-blur-sm rounded-2xl p-5 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl relative overflow-hidden ${textColors.linkCard} ${textColors.linkGlow}`}
                   >
-                    <div 
-                      className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded-2xl"
-                      style={{ background: `linear-gradient(135deg, ${platform.color}40, transparent)` }}
-                    />
+                    {!isBright && (
+                      <div 
+                        className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded-2xl"
+                        style={{ background: `linear-gradient(135deg, ${platform.color}40, transparent)` }}
+                      />
+                    )}
                     
                     <div className="relative flex items-center gap-4">
                       <div 
@@ -437,16 +524,16 @@ export default function ProfilePage({ params }: { params: { username: string } }
                       </div>
 
                       <div className="flex-1 text-left">
-                        <h3 className="text-white font-semibold text-lg mb-1">
+                        <h3 className={`font-semibold text-lg mb-1 transition-colors duration-300 ${textColors.primary}`}>
                           {link.title}
                         </h3>
-                        <p className="text-white/60 text-sm truncate">
+                        <p className={`text-sm truncate transition-colors duration-300 ${textColors.muted}`}>
                           {link.url.replace(/^https?:\/\//, '').replace(/^mailto:/, '')}
                         </p>
                       </div>
 
                       <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors flex-shrink-0">
-                        <ExternalLink className="w-5 h-5 text-white/60 group-hover:text-white transition-colors" />
+                        <ExternalLink className={`w-5 h-5 transition-colors ${textColors.muted} group-hover:${textColors.primary}`} />
                       </div>
                     </div>
                   </motion.button>
@@ -460,8 +547,8 @@ export default function ProfilePage({ params }: { params: { username: string } }
                 transition={{ delay: 1.6 }}
                 className="pt-8 text-center"
               >
-                <p className="text-white/30 text-sm">
-                  Powered by <span className="font-semibold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">SocioLink</span>
+                <p className={`text-sm transition-colors duration-300 ${textColors.muted}`}>
+                  Powered by <span className={`font-semibold ${textColors.gradient}`}>SocioLink</span>
                 </p>
               </motion.div>
             </motion.div>
