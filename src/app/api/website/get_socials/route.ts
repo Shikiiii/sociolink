@@ -5,7 +5,7 @@ import { PrismaClient } from '@/generated/prisma/client';
 
 const prisma = new PrismaClient();
 
-export async function POST(req: NextRequest) {
+export async function GET(req: NextRequest) {
     const maybeAuthedReq = await authMiddleware(req as any);
     if (maybeAuthedReq instanceof NextResponse) return maybeAuthedReq;
     // take from maybeAuthedReq.user.user_id, return the website data

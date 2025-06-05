@@ -4,7 +4,7 @@ import { PrismaClient } from '@/generated/prisma/client';
 
 const prisma = new PrismaClient();
 
-export async function POST(req: NextRequest) {
+export async function GET(req: NextRequest) {
     const cookies = req.cookies;
     const token = cookies.get('refresh_token')?.value;
 

@@ -80,6 +80,8 @@ interface Profile {
   bio: string | null,
   avatar: string | null,
   background: string,
+  blur?: number,
+  avatarFile?: File;
   links: {
     id: string,
     title: string,
@@ -161,10 +163,58 @@ const ProfilePage = () => {
     bio: "",
     avatar: "",
     background: "",
+    blur: 0,
     links: [
-      
+
     ]
   });
+  const [isDirty, setIsDirty] = useState<boolean>(false);
+  const [counter, setCounter] = useState<number>(0);
+
+  useEffect(() => {
+    console.log("Profile changed, counter: ", counter);
+    if (counter === 3) {
+      setIsDirty(true);
+    } else {
+      setCounter(prev => prev + 1);
+    }
+  }, [profile])
+
+  const saveChanges = () => {
+    // Save socials (links)
+    fetch('/api/website/edit_socials', {
+      method: 'POST',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+      socials: profile.links.map((link, idx) => ({
+        type: link.icon,
+        link: link.url,
+        order: idx + 1,
+        text: link.title,
+      }))
+      })
+    });
+
+    // Save profile info as FormData (for avatar file support)
+    const formData = new FormData();
+    formData.append('display_name', profile.name ?? '');
+    formData.append('bio', profile.bio ?? '');
+    formData.append('background', profile.background + "|" + String(profile.blur));
+
+    // If avatar is a File object (user uploaded), append it; otherwise, skip
+  if (profile.avatarFile instanceof File) {
+    formData.append('avatar', profile.avatarFile);
+  }
+
+    fetch('/api/website/edit', {
+      method: 'POST',
+      credentials: 'include',
+      body: formData
+    });
+
+    setIsDirty(false);
+  }
 
   useEffect(() => {
     // Check for access_token and refresh_token cookies
@@ -187,9 +237,9 @@ const ProfilePage = () => {
     const fetchWithAuth = async (url: string) => {
       let res = await fetch(url, { credentials: 'include' });
       if (res.status === 401) {
-      // Try to refresh token
-      await fetch('/api/auth/refresh', { credentials: 'include' });
-      res = await fetch(url, { credentials: 'include' });
+        // Try to refresh token
+        await fetch('/api/auth/refresh', { credentials: 'include' });
+        res = await fetch(url, { credentials: 'include' });
       }
       return res;
     };
@@ -201,11 +251,16 @@ const ProfilePage = () => {
 
       if (profileRes.ok) {
         const data = await profileRes.json();
+
+        let [background, blur] = data.data.background !== null && data.data.background !== undefined ? data.data.background.split("|") : [null, 0];
+        if (blur === 'null') blur = 0;
+
         setProfile({
           name: data.data.display_name,
           bio: data.data.bio,
-          avatar: data.avatar,
-          background: data.background,
+          avatar: data.data.avatar,
+          background: background,
+          blur: blur,
           links: []
         });
       }
@@ -216,7 +271,7 @@ const ProfilePage = () => {
         const socials = await socialsRes.json();
         setProfile(prev => ({
           ...prev,
-          links: socials.data.map((item: any, idx: number) => ({
+          links: socials.map((item: any, idx: number) => ({
             id: item.order,
             title: item.type,
             url: item.link,
@@ -242,6 +297,15 @@ const ProfilePage = () => {
   const [selectedMobilePreset, setSelectedMobilePreset] = useState(mobilePresets[0])
   const [showBackgrounds, setShowBackgrounds] = useState(false)
   const [isPreviewMode, setIsPreviewMode] = useState(false) // New state for mobile toggle
+
+  const [selectedBackground, setSelectedBackground] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (selectedBackground === null) return;
+
+    console.log("Changing background...");
+    setIsDirty(true);
+  }, [selectedBackground])
 
   const iconMap = {
     Link,
@@ -272,6 +336,8 @@ const ProfilePage = () => {
         links: [...prev.links, { ...newLink, id: Date.now().toString() }]
       }))
       setNewLink({ title: '', url: '', icon: 'Link' })
+      console.log("Adding link...");
+      setIsDirty(true);
     }
   }
 
@@ -280,6 +346,8 @@ const ProfilePage = () => {
       ...prev,
       links: prev.links.filter(link => link.id !== id)
     }))
+    console.log("Removing link...");
+    setIsDirty(true);
   }
 
   const handleDragEnd = (result: any) => {
@@ -290,24 +358,33 @@ const ProfilePage = () => {
     items.splice(result.destination.index, 0, reorderedItem)
 
     setProfile(prev => ({ ...prev, links: items }))
+    console.log("Handling drag end...");
+    setIsDirty(true);
   }
 
   const handleAvatarUpload = () => {
-    const input = document.createElement('input')
-    input.type = 'file'
-    input.accept = 'image/*'
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+
     input.onchange = (e: any) => {
-      const file = e.target.files[0]
+      const file = e.target.files[0];
       if (file) {
-        const reader = new FileReader()
+        const reader = new FileReader();
         reader.onload = (e) => {
-          setProfile(prev => ({ ...prev, avatar: e.target?.result as string }))
-        }
-        reader.readAsDataURL(file)
+          setProfile(prev => ({
+            ...prev,
+            avatar: e.target?.result as string,    // Base64 for preview
+            avatarFile: file                       // Actual File for backend
+          }));
+        };
+        reader.readAsDataURL(file);
+        setIsDirty(true);
       }
-    }
-    input.click()
-  }
+    };
+
+    input.click();
+  };
 
   const getBackgroundClass = (bgId: string) => {
     return backgroundPresets.find(bg => bg.id === bgId)?.class || backgroundPresets[0].class
@@ -343,6 +420,7 @@ const ProfilePage = () => {
             handleDragEnd={handleDragEnd}
             handleAvatarUpload={handleAvatarUpload}
             iconMap={iconMap}
+            saveChanges={saveChanges}
           />
         </motion.div>
 
@@ -369,43 +447,44 @@ const ProfilePage = () => {
         {/* Mobile Edit/Preview Toggle */}
         <AnimatePresence mode="wait">
           {isPreviewMode ? (
-            <motion.div
-              key="preview"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-              className="h-screen"
-            >
-              <MobileFullPreview 
-                profile={profile}
-                getBackgroundClass={getBackgroundClass}
-                iconMap={iconMap}
-              />
-            </motion.div>
+        <motion.div
+          key="preview"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.3 }}
+          className="h-screen"
+        >
+          <MobileFullPreview 
+            profile={profile}
+            getBackgroundClass={getBackgroundClass}
+            iconMap={iconMap}
+          />
+        </motion.div>
           ) : (
-            <motion.div
-              key="edit"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -20 }}
-              transition={{ duration: 0.3 }}
-              className="min-h-screen bg-card p-4 pb-24"
-            >
-              <MobileEditPanel 
-                profile={profile}
-                setProfile={setProfile}
-                newLink={newLink}
-                setNewLink={setNewLink}
-                showBackgrounds={showBackgrounds}
-                setShowBackgrounds={setShowBackgrounds}
-                addLink={addLink}
-                removeLink={removeLink}
-                handleDragEnd={handleDragEnd}
-                handleAvatarUpload={handleAvatarUpload}
-                iconMap={iconMap}
-              />
-            </motion.div>
+        <motion.div
+          key="edit"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: -20 }}
+          transition={{ duration: 0.3 }}
+          className="min-h-screen bg-card p-4 pb-24"
+        >
+          <MobileEditPanel 
+            profile={profile}
+            setProfile={setProfile}
+            newLink={newLink}
+            setNewLink={setNewLink}
+            showBackgrounds={showBackgrounds}
+            setShowBackgrounds={setShowBackgrounds}
+            addLink={addLink}
+            removeLink={removeLink}
+            handleDragEnd={handleDragEnd}
+            handleAvatarUpload={handleAvatarUpload}
+            iconMap={iconMap}
+            saveChanges={saveChanges}
+          />
+        </motion.div>
           )}
         </AnimatePresence>
 
@@ -420,6 +499,19 @@ const ProfilePage = () => {
           {isPreviewMode ? <Edit className="w-6 h-6" /> : <Eye className="w-6 h-6" />}
         </motion.button>
       </div>
+
+      {/* Dirty State Notification */}
+      {isDirty && (
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0, y: 30 }}
+          transition={{ duration: 0.3 }}
+          className="fixed bottom-28 left-1/2 -translate-x-1/2 bg-yellow-400 text-yellow-900 px-4 py-2 rounded-lg shadow-lg z-50 font-medium"
+        >
+          Changes may not be saved until you click <span className="font-bold">Save Changes</span>.
+        </motion.div>
+      )}
     </div>
   )
 }
@@ -509,7 +601,8 @@ const MobileFullPreview = ({ profile, getBackgroundClass, iconMap }: any) => {
 const EditPanel = ({ 
   profile, setProfile, newLink, setNewLink, isMobileView, setIsMobileView,
   selectedMobilePreset, setSelectedMobilePreset, showBackgrounds, setShowBackgrounds,
-  addLink, removeLink, handleDragEnd, handleAvatarUpload, iconMap 
+  addLink, removeLink, handleDragEnd, handleAvatarUpload, iconMap,
+  saveChanges
 }: any) => (
   <div className="space-y-6">
     {/* Header */}
@@ -591,7 +684,7 @@ const EditPanel = ({
     />
 
     {/* Save Button */}
-    <Button className="w-full" size="lg">
+    <Button className="w-full" size="lg" onClick={saveChanges}>
       Save Changes
     </Button>
   </div>
@@ -600,7 +693,7 @@ const EditPanel = ({
 // Mobile Edit Panel (Full Screen version)
 const MobileEditPanel = ({ 
   profile, setProfile, newLink, setNewLink, showBackgrounds, setShowBackgrounds,
-  addLink, removeLink, handleDragEnd, handleAvatarUpload, iconMap 
+  addLink, removeLink, handleDragEnd, handleAvatarUpload, iconMap, saveChanges
 }: any) => (
   <div className="space-y-6">
     <div className="flex items-center gap-2 mb-6">
@@ -637,7 +730,7 @@ const MobileEditPanel = ({
     />
 
     {/* Save Button */}
-    <Button className="w-full" size="lg">
+    <Button className="w-full" size="lg" onClick={saveChanges}>
       Save Changes
     </Button>
   </div>
@@ -1055,7 +1148,7 @@ const LinksSection = ({ profile, setProfile, newLink, setNewLink, addLink, remov
                   const isEditing = editingLinkId === link.id
                   
                   return (
-                    <Draggable key={link.id} draggableId={link.id} index={index} isDragDisabled={isEditing}>
+                    <Draggable key={String(link.id)} draggableId={String(link.id)} index={index} isDragDisabled={isEditing}>
                       {(provided, snapshot) => (
                         <div
                           ref={provided.innerRef}

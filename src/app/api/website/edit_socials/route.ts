@@ -11,12 +11,12 @@ export async function POST(req: NextRequest) {
     const userId = maybeAuthedReq.user.user_id;
     const body = await req.json();
 
-    if (!Array.isArray(body)) {
+    if (!Array.isArray(body.socials)) {
         return NextResponse.json({ error: 'Input must be an array.' }, { status: 400 });
     }
 
     // Validate all inputs
-    for (const item of body) {
+    for (const item of body.socials) {
         const { type, link, text, order } = item;
         if (typeof type !== 'string' || !type.trim()) {
             return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
@@ -26,6 +26,8 @@ export async function POST(req: NextRequest) {
         }
         if (typeof text !== 'string' || text.length < 3 || text.length > 60) {
             return NextResponse.json({ error: 'Text must be between 3 and 60 characters' }, { status: 400 });
+        } else if (typeof text === null || text.length === 0) {
+            item.text = item.type;
         }
         if (typeof order !== 'number') {
             return NextResponse.json({ error: 'Order must be a number.' }, { status: 400 });
@@ -46,11 +48,11 @@ export async function POST(req: NextRequest) {
     const existingSocials = user.user_website.socials;
 
     // Prepare sets for comparison
-    const inputSet = new Set(body.map((item: any) => `${item.type}|${item.link}|${item.text}`));
+    const inputSet = new Set(body.socials.map((item: any) => `${item.type}|${item.link}|${item.text}`));
     const existingSet = new Set(existingSocials.map(s => `${s.type}|${s.link}|${s.text}`));
 
     // Find socials to add (not in existing)
-    const toAdd = body.filter((item: any) => !existingSet.has(`${item.type}|${item.link}|${item.text}`));
+    const toAdd = body.socials.filter((item: any) => !existingSet.has(`${item.type}|${item.link}|${item.text}`));
 
     // Find socials to remove (not in input)
     const toRemove = existingSocials.filter(s => !inputSet.has(`${s.type}|${s.link}|${s.text}`));
@@ -76,7 +78,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Optionally, update order for existing socials if changed
-    for (const item of body) {
+    for (const item of body.socials) {
         const existing = existingSocials.find(s => s.type === item.type && s.link === item.link && s.text === item.text);
         if (existing && existing.order !== item.order) {
             await prisma.social.update({

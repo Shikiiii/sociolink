@@ -10,7 +10,7 @@ export interface AuthenticatedRequest extends NextRequest {
 }
 
 export async function authMiddleware(req: NextRequest): Promise<AuthenticatedRequest | NextResponse> {
-    const token = req.cookies.get('accessToken')?.value;
+    const token = req.cookies.get('access_token')?.value;
 
     if (!token) {
         return NextResponse.json({ message: 'Unauthorized' }, { status: 401 });
