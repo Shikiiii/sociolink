@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
         if (typeof type !== 'string' || !type.trim()) {
             return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
         }
-        if (typeof link !== 'string' || !/^https?:\/\/[^\s$.?#].[^\s]*$/i.test(link)) {
+        if ((typeof link !== 'string' || !/^https?:\/\/[^\s$.?#].[^\s]*$/i.test(link)) && item.type !== "Mail") {
             return NextResponse.json({ error: 'Invalid link' }, { status: 400 });
         }
         if (typeof text !== 'string' || text.length < 3 || text.length > 60) {

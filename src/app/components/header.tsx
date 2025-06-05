@@ -8,7 +8,9 @@ import {
   Link,
   Sun,
   Moon,
-  LogOut
+  LogOut,
+  User,
+  LucideLogIn
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useRouter } from 'next/navigation'
@@ -17,8 +19,23 @@ const Header = () => {
   const [isVisible, setIsVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
   const [isHovering, setIsHovering] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
   const { theme, setTheme } = useTheme()
   const router = useRouter()
+
+  useEffect(() => {
+    // get access_token from cookies, if its there and it isnt null, then setIsLoggedIn true
+    const accessToken = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('access_token='))
+      ?.split('=')[1]
+
+    if (accessToken && accessToken !== 'null') {
+      setIsLoggedIn(true)
+    } else {
+      setIsLoggedIn(false)
+    }
+  }, [])
 
   useEffect(() => {
     const controlHeader = () => {
@@ -47,9 +64,16 @@ const Header = () => {
     router.push('/profile')
   }
 
-  const handleLogout = () => {
-    // Handle logout logic here
-    console.log('Logging out...')
+  const handleLogout = async () => {
+    // ping api/auth/logout, POST request, include credentials
+    await fetch('/api/auth/logout', {
+      method: 'POST',
+      credentials: 'include',
+    })
+    router.push('/login')
+  }
+
+  const handleLogin = () => {
     router.push('/login')
   }
 
@@ -121,36 +145,46 @@ const Header = () => {
                   </Button>
 
                   {/* Profile Avatar */}
-                  <Button
-                    onClick={handleProfileClick}
-                    variant="ghost"
-                    className="h-10 w-10 p-0 rounded-full hover:scale-105 transition-transform"
-                  >
-                    <Avatar className="w-10 h-10 border-2" style={{ borderColor: 'var(--themed-input-border)' }}>
-                      <AvatarImage src="https://github.com/shadcn.png" />
-                      <AvatarFallback 
-                        className="text-white font-medium"
-                        style={{
-                          backgroundImage: `linear-gradient(135deg, var(--accent-gradient-start) 0%, var(--accent-gradient-end) 100%)`,
-                        }}
-                      >
-                        JD
-                      </AvatarFallback>
-                    </Avatar>
-                  </Button>
+                  <div className="flex items-center">
+                    {isLoggedIn ? (
+                      <>
+                        <Button
+                          onClick={handleProfileClick}
+                          variant="ghost"
+                          className="h-10 w-10 p-0 rounded-full hover:scale-105 transition-transform"
+                        >
+                          <Avatar className="w-10 h-10 border-2" style={{ borderColor: 'var(--themed-input-border)' }}>
+                            <User className="w-4 h-4" />
+                          </Avatar>
+                        </Button>
 
-                  {/* Logout Button */}
-                  <Button
-                    onClick={handleLogout}
-                    variant="ghost"
-                    className="w-10 h-10 rounded-full border text-foreground hover:scale-105 transition-transform hover:text-red-500"
-                    style={{
-                      backgroundColor: 'var(--themed-input-bg)', 
-                      borderColor: 'var(--themed-input-border)',
-                    }}
-                  >
-                    <LogOut className="w-4 h-4" />
-                  </Button>
+                        {/* Logout Button */}
+                        <Button
+                          onClick={handleLogout}
+                          variant="ghost"
+                          className="w-10 h-10 rounded-full border text-foreground hover:scale-105 transition-transform hover:text-red-500"
+                          style={{
+                            backgroundColor: 'var(--themed-input-bg)', 
+                            borderColor: 'var(--themed-input-border)',
+                          }}
+                        >
+                          <LogOut className="w-4 h-4" />
+                        </Button>
+                      </>
+                    ) : (
+                      <div className="flex items-center">
+                        <Button
+                          onClick={handleLogin}
+                          variant="ghost"
+                          className="h-10 w-10 p-0 rounded-full hover:scale-105 transition-transform"
+                        >
+                          <Avatar className="w-10 h-10 border-2" style={{ borderColor: 'var(--themed-input-border)' }}>
+                            <LucideLogIn className="w-4 h-4" />
+                          </Avatar>
+                        </Button>
+                      </div>
+                  )}
+                  </div>
                 </div>
               </div>
             </motion.header>

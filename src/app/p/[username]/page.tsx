@@ -1,6 +1,6 @@
 'use client'
 
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { 
   Instagram, 
@@ -142,13 +142,32 @@ const getTextColors = (profile: any) => {
   }
 }
 
+// Profile and Link interfaces
+interface ProfileLink {
+  id: string
+  title: string
+  url: string
+  icon: string
+}
+
+interface Profile {
+  name: string
+  username: string
+  bio: string
+  avatar: string
+  background: string
+  blur: number
+  customColor?: string
+  links: ProfileLink[]
+}
+
 // Mock profile data
-const mockProfile = {
+const mockProfile: Profile = {
   name: 'John Doe',
   username: 'johndoe',
   bio: 'Digital creator and developer passionate about connecting people through technology.',
   avatar: '',
-  background: 'animated-3',
+  background: 'custom-6366f1',
   blur: 20,
   customColor: '#6366f1', // Add a default customColor property
   links: [
@@ -163,7 +182,81 @@ const mockProfile = {
 
 export default function ProfilePage({ params }: { params: { username: string } }) {
   const router = useRouter()
-  const profile = mockProfile
+  const [profile, setProfile] = useState<Profile>(mockProfile);
+  const [isOwnProfile, setIsOwnProfile] = useState<boolean>(false);
+
+  // take username from the [username] (so like what, link query? path query?)
+
+  useEffect(() => {
+    // Fetch profile data from /api/view using POST with username
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch(`/api/view?username=${encodeURIComponent(params.username)}`, {
+          method: 'GET',
+          headers: { 'Content-Type': 'application/json' },
+        });
+        const data = await res.json();
+
+        // Parse background and blur
+        let [background, blur] = data.website.background
+          ? data.website.background.split('|')
+          : [null, 0];
+        if (blur === 'null' || blur === undefined) blur = 0;
+
+        // Map socials to links
+        const socials = Array.isArray(data.socials) ? data.socials : [];
+        const links = socials.map((item: any, idx: number) => ({
+            id: item.order?.toString() ?? idx.toString(),
+            title: item.text,
+            url: item.link,
+            icon: item.type
+            ? item.type.charAt(0).toUpperCase() + item.type.slice(1)
+            : 'Link',
+        }));
+
+        setProfile({
+          name: data.website.display_name,
+          username: params.username,
+          bio: data.website.bio,
+          avatar: data.website.avatar,
+          background: background || 'solid-1',
+          blur: Number(blur) || 0,
+          links,
+        });
+
+        // take access_token from cookies, take only the payload from it, there should be user_name in it, setUsername to user_name
+        const getCookie = (name: string) => {
+          const value = `; ${document.cookie}`;
+          const parts = value.split(`; ${name}=`);
+          if (parts.length === 2) return parts.pop()?.split(';').shift();
+          return null;
+        };
+
+        const accessToken = getCookie('access_token');
+        if (accessToken) {
+          try {
+            // JWT format: header.payload.signature
+            const payload = accessToken.split('.')[1];
+            if (payload) {
+              const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+              if (decoded.user_name) {
+                if ( decoded.user_name === profile.username ) { setIsOwnProfile(true) };
+              }
+            }
+          } catch (e) {
+            // ignore errors
+          }
+        }
+
+      } catch (err) {
+        alert(err);
+        // fallback to mockProfile on error
+        setProfile(mockProfile);
+      }
+    };
+
+    fetchProfile();
+  }, []);
 
   const textColors = getTextColors(profile)
   const isBright = isBackgroundBright(profile)
