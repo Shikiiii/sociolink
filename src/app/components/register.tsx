@@ -92,6 +92,7 @@ const RegisterPage = () => {
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const router = useRouter()
   const { theme, setTheme } = useTheme()
+  const [error, setError] = useState<string | null>(null);
 
   const isDarkMode = theme === 'dark'
 
@@ -120,27 +121,69 @@ const RegisterPage = () => {
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
     
-    if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match!')
-      return
+    const { username, email, password, confirmPassword } = formData;
+
+    // Username validation
+    const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
+    if (!usernameRegex.test(username)) {
+      setError('Invalid username format.');
+      return;
     }
 
-    if (!agreedToTerms) {
-      alert('Please agree to the Terms of Service and Privacy Policy')
-      return
+    // Email validation
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError('Invalid email format.');
+      return;
     }
+
+    // Password validation
+    const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,100}$/;
+    if (!passwordRegex.test(password)) {
+      setError('Password must be at least 8 characters long, less than 100, and contain at least one letter and one number.');
+      return;
+    }
+
+    // Confirm password
+    if (password !== confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+
+    setError(null);
 
     setIsLoading(true)
     
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false)
-      console.log('Register:', formData)
-    }, 2000)
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          username,
+          email,
+          password
+        })
+      });
+
+      if (res.ok) {
+        router.push('/profile');
+      } else {
+        const data = await res.json();
+        setError(data?.error || 'Registration failed. Please try again.');
+      }
+    } catch (err) {
+        setError('An unexpected error occurred. Please try again.');
+    } finally {
+        setIsLoading(false);
+    }
+
+
   }
 
   const handleSocialLogin = (provider: string) => {
-    console.log(`Register with ${provider}`)
+    router.push('/api/auth/oauth/oauth_' + provider);
   }
 
   // Check if passwords match
@@ -363,11 +406,6 @@ const RegisterPage = () => {
                     </Button>
                   </div>
                 </div>
-                {passwordsDontMatch && (
-                  <p className="text-xs text-red-500">
-                    Passwords do not match
-                  </p>
-                )}
               </div>
 
               {/* Terms agreement */}
@@ -402,10 +440,13 @@ const RegisterPage = () => {
                 </label>
               </div>
 
-              {/* Submit Button */}
+              {/* Error message display */}
+              {error && (
+                <p className="text-sm text-red-500 min-h-[1.5em]">{error}</p>
+              )}
               <Button
                 type="submit"
-                disabled={isLoading || !agreedToTerms || !!passwordsDontMatch}
+                disabled={isLoading || !agreedToTerms}
                 className="w-full font-medium py-5 text-primary-foreground hover:scale-[1.01] transition-transform border-0 disabled:opacity-50 disabled:hover:scale-100"
                 style={{
                   backgroundImage: `linear-gradient(135deg, var(--accent-gradient-start) 0%, var(--accent-gradient-end) 100%)`,

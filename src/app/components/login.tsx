@@ -83,6 +83,7 @@ const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
   const { theme, setTheme } = useTheme()
+  const [error, setError] = useState<string | null>(null);
 
   const isDarkMode = theme === 'dark'
 
@@ -94,15 +95,33 @@ const LoginPage = () => {
     e.preventDefault()
     setIsLoading(true)
     
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false)
-      console.log('Login:', { email, password })
-    }, 2000)
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          email,
+          password
+        })
+      });
+
+      if (res.ok) {
+        router.push('/profile');
+      } else {
+        const data = await res.json();
+        setError(data?.error || 'Registration failed. Please try again.');
+      }
+    } catch (err) {
+        setError('An unexpected error occurred. Please try again.');
+    } finally {
+        setIsLoading(false);
+    }
   }
 
   const handleSocialLogin = (provider: string) => {
-    console.log(`Login with ${provider}`)
+    router.push('/api/auth/oauth/oauth_' + provider);
   }
 
   return (
@@ -275,6 +294,11 @@ const LoginPage = () => {
                   Forgot password?
                 </Button>
               </div>
+
+              {/* Error message display */}
+              {error && (
+                <p className="text-sm text-red-500 min-h-[1.5em]">{error}</p>
+              )}
 
               {/* Submit Button */}
               <Button

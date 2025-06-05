@@ -41,6 +41,7 @@ model Social {
   type             String
   link             String
   text             String
+  order            Int
   websiteId        String
   website          Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
 }

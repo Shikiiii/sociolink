@@ -86,29 +86,24 @@ const OAuthRegisterPage = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
   const [userInfo, setUserInfo] = useState<{
-    name: string
-    email: string
+    token: string,
     provider: 'google' | 'discord'
-    avatar?: string
   } | null>(null)
   const router = useRouter()
   const { theme, setTheme } = useTheme()
+  const [error, setError] = useState<string | null>(null);
 
   const isDarkMode = theme === 'dark'
 
   // Get OAuth info from URL params
   useEffect(() => {
-    const name = searchParams.get('name')
-    const email = searchParams.get('email')
+    const token = searchParams.get('token')
     const provider = searchParams.get('provider') as 'google' | 'discord'
-    const avatar = searchParams.get('avatar')
 
-    if (name && email && provider) {
+    if (token && provider) {
       setUserInfo({
-        name,
-        email,
+        token,
         provider,
-        avatar: avatar || undefined
       })
     }
   }, [searchParams])
@@ -125,27 +120,60 @@ const OAuthRegisterPage = () => {
   }
 
   const handleCompleteRegistration = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (formData.password !== formData.confirmPassword) {
-      alert('Passwords do not match!')
-      return
-    }
+      e.preventDefault()
+      
+      const { password, confirmPassword } = formData;
 
-    if (formData.password.length < 8) {
-      alert('Password must be at least 8 characters long!')
-      return
-    }
+      // Password validation
+      const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,100}$/;
+      if (!passwordRegex.test(password)) {
+        setError('Password must be at least 8 characters long, less than 100, and contain at least one letter and one number.');
+        return;
+      }
 
-    setIsLoading(true)
-    
-    // Simulate API call
-    setTimeout(() => {
-      setIsLoading(false)
-      console.log('Complete OAuth Registration:', { ...userInfo, password: formData.password })
-      // Redirect to dashboard or login
-      router.push('/dashboard')
-    }, 2000)
+      // Confirm password
+      if (password !== confirmPassword) {
+        setError('Passwords do not match.');
+        return;
+      }
+
+      setError(null);
+
+      setIsLoading(true)
+      
+      try {
+        // take token from URL search queries
+        const token = userInfo?.token;
+        const provider = userInfo?.provider;
+        if (!token) {
+          setError('Missing OAuth token. Please try again.');
+          setIsLoading(false);
+          return;
+        }
+
+        const res = await fetch('/api/auth/oauth/finish', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            password,
+            token,
+            provider,
+          })
+        });
+
+        if (res.ok) {
+          router.push('/profile');
+        } else {
+          const data = await res.json();
+          setError(data?.error || 'Registration failed. Please try again.');
+        }
+      } catch (err) {
+          setError('An unexpected error occurred. Please try again.');
+      } finally {
+          setIsLoading(false);
+      }
   }
 
   // Check if passwords match
@@ -166,8 +194,6 @@ const OAuthRegisterPage = () => {
     )
   }
 
-  const ProviderIcon = userInfo.provider === 'google' ? FaGoogle : FaDiscord
-  const providerColor = userInfo.provider === 'google' ? 'text-red-500' : 'text-indigo-500'
 
   return (
     <div className="min-h-screen relative overflow-hidden flex items-center justify-center p-4">
@@ -221,38 +247,6 @@ const OAuthRegisterPage = () => {
           </CardHeader>
 
           <CardContent className="space-y-6 px-6 pb-6">
-            {/* OAuth User Info */}
-            <div 
-              className="flex items-center space-x-4 p-4 rounded-lg border"
-              style={{
-                backgroundColor: 'var(--themed-input-bg)',
-                borderColor: 'var(--themed-input-border)',
-              }}
-            >
-              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-muted">
-                {userInfo.avatar ? (
-                  <img 
-                    src={userInfo.avatar} 
-                    alt={userInfo.name}
-                    className="w-10 h-10 rounded-full"
-                  />
-                ) : (
-                  <ProviderIcon className={`w-5 h-5 ${providerColor}`} />
-                )}
-              </div>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-foreground truncate">
-                  {userInfo.name}
-                </p>
-                <p className="text-xs text-muted-foreground truncate">
-                  {userInfo.email}
-                </p>
-              </div>
-              <div className="flex items-center space-x-1 text-xs text-muted-foreground">
-                <ProviderIcon className={`w-3 h-3 ${providerColor}`} />
-                <span className="capitalize">{userInfo.provider}</span>
-              </div>
-            </div>
 
             {/* Password Setup Form */}
             <form onSubmit={handleCompleteRegistration} className="space-y-4">
@@ -331,17 +325,17 @@ const OAuthRegisterPage = () => {
                     </Button>
                   </div>
                 </div>
-                {passwordsDontMatch && (
-                  <p className="text-xs text-red-500">
-                    Passwords do not match
-                  </p>
-                )}
               </div>
+
+              {/* Error message display */}
+              {error && (
+                <p className="text-sm text-red-500 min-h-[1.5em]">{error}</p>
+              )}
 
               {/* Submit Button */}
               <Button
                 type="submit"
-                disabled={isLoading || !!passwordsDontMatch || formData.password.length < 8}
+                disabled={isLoading || formData.password.length < 8}
                 className="w-full font-medium py-5 text-primary-foreground hover:scale-[1.01] transition-transform border-0 disabled:opacity-50 disabled:hover:scale-100"
                 style={{
                   backgroundImage: `linear-gradient(135deg, var(--accent-gradient-start) 0%, var(--accent-gradient-end) 100%)`,

@@ -5,6 +5,7 @@ import { PrismaClient } from '@/generated/prisma/client';
 import { generateAccessToken, generateRefreshToken } from '@/app/api/auth/token';
 import cookie from 'cookie';
 import axios from 'axios';
+import { NextRequest, NextResponse } from 'next/server';
 
 const prisma = new PrismaClient();
 
@@ -15,7 +16,7 @@ const {
 
 const IMGBB_API_KEY = process.env.IMGBB_API_KEY;
 
-export async function uploadToImgBB__link(imageUrl: string): Promise<string> {
+async function uploadToImgBB__link(imageUrl: string): Promise<string> {
     const imageResponse = await axios.get(imageUrl, { responseType: 'arraybuffer' });
     const base64Image = Buffer.from(imageResponse.data, 'binary').toString('base64');
 
@@ -44,18 +45,13 @@ export async function uploadToImgBB__link(imageUrl: string): Promise<string> {
     }
 }
 
-export default async function handler(req: NextApiRequest, res: NextApiResponse) {
-    if (req.method !== 'POST') {
-        res.setHeader('Allow', ['POST']);
-        return res.status(405).json({ message: `Method ${req.method} Not Allowed` });
-    }
-
-    const { token } = req.body;
-    let { display_name, password } = req.body;
+export async function POST(req: NextRequest) {
+    const body = await req.json();
+    const { token, password } = body;
 
     try {
         if (!token) {
-            return res.status(400).json({ message: 'Missing token.' });
+            return NextResponse.json({ message: 'Missing token.' }, { status: 400 });
         }
 
         const decoded = jwt.verify(token, ACCESS_TOKEN_SECRET as string) as any;
@@ -71,30 +67,24 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         // Email validation
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
         if (!emailRegex.test(email)) {
-            return res.status(400).json({ message: 'Error during OAuth validation: Invalid email format.' });
-        }
-
-        // Display name validation
-        const displayNameRegex = /^[a-zA-Z0-9_ ]{3,20}$/;
-        if (display_name && !displayNameRegex.test(display_name)) {
-            display_name = name;
+            return NextResponse.json({ message: 'Error during OAuth validation: Invalid email format.' }, { status: 400 });
         }
 
         // Password validation
         const passwordRegex = /^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,100}$/;
         if (!passwordRegex.test(password)) {
-            return res.status(400).json({
+            return NextResponse.json({
                 message: 'Error during OAuth validation: Password must be at least 8 characters long, less than 100, and contain at least one letter and one number.'
-            });
+            }, { status: 400 });
         }
 
         // Hash password
         const hashedPassword = password ? await bcrypt.hash(password, 10) : undefined;
 
         if (!hashedPassword) {
-            return res.status(400).json({
+            return NextResponse.json({
                 message: 'Error during OAuth validation: Password is null.'
-            });
+            }, { status: 400 });
         }
 
         // Create user
@@ -126,7 +116,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
                 picture = uploadedPictureUrl;
             } catch (uploadError) {
                 console.error('[IMAGE UPLOAD ERROR]', uploadError);
-                res.status(500).json({ message: 'Error uploading profile picture.' });
+                NextResponse.json({ message: 'Error uploading profile picture.' }, { status: 500 });
                 return;
             }
         }
@@ -148,30 +138,30 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
         const refreshToken = generateRefreshToken(newUser.user_id, newUser.user_name);
         const accessToken = generateAccessToken(newUser.user_id, newUser.user_name);
 
-        res.setHeader('Set-Cookie', [
-            cookie.serialize('refresh_token', refreshToken, {
-                secure: RUNNING_IN === 'production',
-                sameSite: 'strict',
-                maxAge: 7 * 24 * 60 * 60, // seconds
-                path: '/',
-            }),
-            cookie.serialize('access_token', accessToken, {
-                secure: RUNNING_IN === 'production',
-                sameSite: 'strict',
-                maxAge: 6 * 60 * 60, // seconds
-                path: '/',
-            }),
-        ]);
-
-        res.status(201).json({
+        const res = NextResponse.json({
             user: {
                 user_id: newUser.user_id,
                 user_name: newUser.user_name,
             },
             message: 'User registered successfully.'
+        }, { status: 201 });
+
+        res.cookies.set('refresh_token', refreshToken, {
+            secure: RUNNING_IN === 'production',
+            sameSite: 'strict',
+            maxAge: 7 * 24 * 60 * 60, // seconds
+            path: '/',
         });
+        res.cookies.set('access_token', accessToken, {
+            secure: RUNNING_IN === 'production',
+            sameSite: 'strict',
+            maxAge: 6 * 60 * 60, // seconds
+            path: '/',
+        });
+
+        return res;
     } catch (err) {
         console.error('[OAUTH FINISH ERROR]', err);
-        res.status(400).json({ message: 'Invalid or expired token.' });
+        NextResponse.json({ message: 'Invalid or expired token.' }, { status: 400 });
     }
 }
