@@ -190,7 +190,7 @@ const LandingPage = () => {
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [circleTransition, setCircleTransition] = useState({ active: false, x: 0, y: 0 })
   const [isHolding, setIsHolding] = useState(false)
-  const holdTimerRef = useRef<NodeJS.Timeout>()
+  const holdTimerRef = useRef<NodeJS.Timeout | null>(null)
   const router = useRouter()
   const { theme, setTheme } = useTheme()
 
@@ -219,7 +219,7 @@ const LandingPage = () => {
   const oppositePersonalityName = isVibrantPersonality ? 'Zen' : 'Vibrant'
 
   // Personality change handler (hold to switch personality, not theme)
-  const handlePersonalityChangeStart = (event: React.MouseEvent | React.TouchEvent) => {
+    const handlePersonalityChangeStart = (event: React.MouseEvent | React.TouchEvent) => {
     event.preventDefault()
     setIsHolding(true)
     holdProgress.set(0)
@@ -228,9 +228,9 @@ const LandingPage = () => {
     const clientY = 'clientY' in event ? event.clientY : event.touches[0].clientY
     
     setCircleTransition({ active: true, x: clientX, y: clientY })
-    holdProgress.set(1, { duration: 0.8, ease: "linear" })
+    holdProgress.set(1, { duration: 0.8, ease: "linear" } as any)
     holdTimerRef.current = setTimeout(() => triggerPersonalityTransition(), 800)
-  }
+    }
 
   const handlePersonalityChangeEnd = () => {
     if (holdTimerRef.current) clearTimeout(holdTimerRef.current)
@@ -445,25 +445,7 @@ const LandingPage = () => {
         </motion.main>
       </AnimatePresence>
 
-      {/* Controls - Theme Toggle (top right) */}
-      <motion.div
-        className="fixed top-6 right-6 sm:top-8 sm:right-8 z-40"
-        initial={{ opacity: 0, scale: 0 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5, delay: 1.5 }}
-      >
-        <Button
-          onClick={handleThemeToggle}
-          className="w-12 h-12 rounded-full shadow-lg transition-all duration-300 border backdrop-blur-md flex items-center justify-center text-foreground hover:scale-110"
-          style={{
-            backgroundColor: 'var(--themed-input-bg)', 
-            borderColor: 'var(--themed-input-border)',
-            boxShadow: `0 0 15px var(--glow-color-themed)`,
-          }}
-        >
-          {React.createElement(themeConfig.themeIcon, { className: "w-5 h-5" })}
-        </Button>
-      </motion.div>
+
 
       {/* Personality Toggle (bottom right) */}
       <motion.div

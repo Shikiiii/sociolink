@@ -494,19 +494,6 @@ const RegisterPage = () => {
         </div>
       </motion.div>
 
-      {/* Simple Theme Toggle */}
-      <div className="fixed top-6 right-6 z-40">
-        <Button
-          onClick={handleThemeToggle}
-          className="w-10 h-10 rounded-full border text-foreground hover:scale-105 transition-transform"
-          style={{
-            backgroundColor: 'var(--themed-input-bg)', 
-            borderColor: 'var(--themed-input-border)',
-          }}
-        >
-          {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
-        </Button>
-      </div>
     </div>
   )
 }
