@@ -150,6 +150,7 @@ const mockProfile = {
   avatar: '',
   background: 'animated-3',
   blur: 20,
+  customColor: '#6366f1', // Add a default customColor property
   links: [
     { id: '1', title: 'Portfolio', url: 'https://johndoe.dev', icon: 'Link' },
     { id: '2', title: 'Instagram', url: 'https://instagram.com/johndoe', icon: 'Instagram' },
