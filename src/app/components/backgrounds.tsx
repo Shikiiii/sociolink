@@ -53,30 +53,6 @@ export const backgroundPresets = [
     class: 'bg-gradient-to-r from-blue-400 via-teal-500 to-green-500 animate-pulse',
     category: 'Animated'
   },
-  { 
-    id: 'solid-1', 
-    name: 'Deep Blue', 
-    class: 'bg-blue-600',
-    category: 'Solid'
-  },
-  { 
-    id: 'solid-2', 
-    name: 'Purple', 
-    class: 'bg-purple-600',
-    category: 'Solid'
-  },
-  { 
-    id: 'solid-3', 
-    name: 'Emerald', 
-    class: 'bg-emerald-600',
-    category: 'Solid'
-  },
-  { 
-    id: 'solid-4', 
-    name: 'Rose', 
-    class: 'bg-rose-600',
-    category: 'Solid'
-  },
   // INTERACTIVE & ANIMATED BACKGROUNDS - Only components that exist
   { 
     id: 'particles-1', 
