@@ -1,26 +1,191 @@
 @import "tailwindcss";
+@import "tw-animate-css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input); /* Base input background */
+  --color-border: var(--border); /* Base border color */
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+
+  /* New variables for landing page specifics */
+  --main-bg-gradient-start: var(--main-bg-start);
+  --main-bg-gradient-mid: var(--main-bg-mid);
+  --main-bg-gradient-end: var(--main-bg-end);
+  --accent-gradient-start: var(--accent-grad-start);
+  --accent-gradient-end: var(--accent-grad-end);
+  --hero-badge-bg: var(--hero-badge-background);
+  --hero-badge-border: var(--hero-badge-border-color);
+  --themed-input-bg: var(--input-background-themed);
+  --themed-input-border: var(--input-border-themed);
+  --themed-input-placeholder: var(--input-placeholder-themed);
+  --glow-color-themed: var(--glow);
+  --orb-opacity-themed: var(--orb-opacity);
+  --orb-blur-themed: var(--orb-blur);
+  --orb-color-1: var(--orb-c1);
+  --orb-color-2: var(--orb-c2);
+  --orb-color-3: var(--orb-c3);
+  --orb-color-4: var(--orb-c4);
+  --pattern-color-1: var(--pattern-c1);
+  --pattern-color-2: var(--pattern-c2);
+  --transition-circle-bg: var(--accent); /* Use current theme's accent for simplicity */
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  --radius: 0.625rem;
+  /* Existing variables */
+  --background: oklch(1 0 0); /* White */
+  --foreground: oklch(0.145 0 0); /* Near black */
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.145 0 0);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.145 0 0);
+  --primary: oklch(0.205 0 0);
+  --primary-foreground: oklch(0.985 0 0);
+  --secondary: oklch(0.97 0 0);
+  --secondary-foreground: oklch(0.205 0 0);
+  --muted: oklch(0.97 0 0);
+  --muted-foreground: oklch(0.556 0 0);
+  --accent: oklch(0.618 0.179 219.23); /* Calming Blue (Zen Accent) */
+  --accent-foreground: oklch(0.985 0 0);
+  --destructive: oklch(0.577 0.245 27.325);
+  --border: oklch(0.922 0 0);
+  --input: oklch(0.922 0 0);
+  --ring: oklch(0.708 0 0);
+  --chart-1: oklch(0.646 0.222 41.116);
+  --chart-2: oklch(0.6 0.118 184.704);
+  --chart-3: oklch(0.398 0.07 227.392);
+  --chart-4: oklch(0.828 0.189 84.429);
+  --chart-5: oklch(0.769 0.188 70.08);
+  --sidebar: oklch(0.985 0 0);
+  --sidebar-foreground: oklch(0.145 0 0);
+  --sidebar-primary: oklch(0.205 0 0);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.97 0 0);
+  --sidebar-accent-foreground: oklch(0.205 0 0);
+  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-ring: oklch(0.708 0 0);
+
+  /* Landing Page Specific - Light Theme (Zen) */
+  --main-bg-start: oklch(0.95 0.02 200 / 0.7); /* Light, airy blueish */
+  --main-bg-mid: oklch(1 0 0 / 0.8); /* Whiter, transparent */
+  --main-bg-end: oklch(0.93 0.03 210 / 0.6);   /* Light, airy tealish */
+  --accent-grad-start: oklch(0.618 0.179 219.23); /* Zen Accent Blue */
+  --accent-grad-end: oklch(0.58 0.15 225);    /* Slightly darker blue */
+  --hero-badge-background: oklch(1 0 0 / 0.8); /* White, semi-transparent */
+  --hero-badge-border-color: oklch(0.618 0.179 219.23 / 0.5);
+  --input-background-themed: oklch(1 0 0 / 0.65); /* Frosted glass */
+  --input-border-themed: oklch(0.618 0.179 219.23 / 0.4);
+  --input-placeholder-themed: oklch(0.4 0.01 220 / 0.5);
+  --glow: oklch(0.618 0.179 219.23 / 0.25);
+  --orb-opacity: 0.5;
+  --orb-blur: '12px';
+  --orb-c1: oklch(0.618 0.179 219.23 / 0.5); /* Zen Accent Blue */
+  --orb-c2: oklch(0.75 0.15 150 / 0.5);   /* Light Green */
+  --orb-c3: oklch(0.7 0.1 260 / 0.5);    /* Light Purple */
+  --orb-c4: oklch(0.85 0.15 50 / 0.5);    /* Light Yellow */
+  --pattern-c1: oklch(0.618 0.179 219.23);
+  --pattern-c2: oklch(0.75 0.15 150);
+}
+
+.dark {
+  /* Existing dark theme variables */
+  --background: oklch(0.145 0 0); /* Near black */
+  --foreground: oklch(0.985 0 0); /* Near white */
+  --card: oklch(0.205 0 0);
+  --card-foreground: oklch(0.985 0 0);
+  --popover: oklch(0.205 0 0);
+  --popover-foreground: oklch(0.985 0 0);
+  --primary: oklch(0.922 0 0);
+  --primary-foreground: oklch(0.205 0 0);
+  --secondary: oklch(0.269 0 0);
+  --secondary-foreground: oklch(0.985 0 0);
+  --muted: oklch(0.269 0 0);
+  --muted-foreground: oklch(0.708 0 0);
+  --accent: oklch(0.704 0.231 327.27); /* Vibrant Pink (Vibrant Accent) */
+  --accent-foreground: oklch(0.145 0 0);
+  --destructive: oklch(0.704 0.191 22.216);
+  --border: oklch(1 0 0 / 0.1);
+  --input: oklch(1 0 0 / 0.15);
+  --ring: oklch(0.556 0 0);
+  --chart-1: oklch(0.488 0.243 264.376);
+  --chart-2: oklch(0.696 0.17 162.48);
+  --chart-3: oklch(0.769 0.188 70.08);
+  --chart-4: oklch(0.627 0.265 303.9);
+  --chart-5: oklch(0.645 0.246 16.439);
+  --sidebar: oklch(0.205 0 0);
+  --sidebar-foreground: oklch(0.985 0 0);
+  --sidebar-primary: oklch(0.488 0.243 264.376);
+  --sidebar-primary-foreground: oklch(0.985 0 0);
+  --sidebar-accent: oklch(0.269 0 0);
+  --sidebar-accent-foreground: oklch(0.985 0 0);
+  --sidebar-border: oklch(1 0 0 / 0.1);
+  --sidebar-ring: oklch(0.556 0 0);
+
+  /* Landing Page Specific - Dark Theme (Vibrant) */
+  --main-bg-start: oklch(0.2 0.05 290 / 0.7); /* Dark Purpleish */
+  --main-bg-mid: oklch(0.15 0.03 320 / 0.6); /* Darker Pinkish */
+  --main-bg-end: oklch(0.1 0.02 260 / 0.8);   /* Very Dark Blue/Purple */
+  --accent-grad-start: oklch(0.704 0.231 327.27); /* Vibrant Pink */
+  --accent-grad-end: oklch(0.65 0.25 15);      /* Vibrant Orange/Red */
+  --hero-badge-background: oklch(0.1 0.01 0 / 0.4); /* Dark, semi-transparent */
+  --hero-badge-border-color: oklch(0.704 0.231 327.27 / 0.6);
+  --input-background-themed: oklch(0.12 0.01 260 / 0.65); /* Darker glass */
+  --input-border-themed: oklch(0.704 0.231 327.27 / 0.5);
+  --input-placeholder-themed: oklch(0.7 0.02 300 / 0.5);
+  --glow: oklch(0.704 0.231 327.27 / 0.35);
+  --orb-opacity: 0.7;
+  --orb-blur: '15px';
+  --orb-c1: oklch(0.704 0.231 327.27); /* Vibrant Pink */
+  --orb-c2: oklch(0.75 0.28 30);    /* Vibrant Orange */
+  --orb-c3: oklch(0.6 0.2 270);     /* Vibrant Purple */
+  --orb-c4: oklch(0.7 0.22 180);    /* Vibrant Teal */
+  --pattern-c1: oklch(0.704 0.231 327.27);
+  --pattern-c2: oklch(0.75 0.28 30);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  body {
+    @apply bg-background text-foreground;
+    /* Apply main background gradient using CSS variables */
+    background-image: linear-gradient(135deg, var(--main-bg-gradient-start) 0%, var(--main-bg-gradient-mid) 50%, var(--main-bg-gradient-end) 100%);
+    transition: background-image 0.8s ease-in-out; /* Smooth gradient transition */
+  }
 }
