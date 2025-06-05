@@ -295,10 +295,31 @@ export default function ProfilePage({ params }: { params: { username: string } }
 
   const BackgroundComponent = getBackgroundComponent(profile.background)
 
+  const [isCustomColor, setIsCustomColor] = useState<boolean>(false);
+  const [whatCustomColor, setWhatCustomColor] = useState<string | null>(null);
+  useEffect(() => {
+    setIsCustomColor(profile.background.startsWith('custom-'));
+    setWhatCustomColor('#' + profile.background.split("custom-")[1]);
+  }, [profile])
+
+  useEffect(() => {
+    console.log("Custom color useEffect:", whatCustomColor);
+  }, [whatCustomColor]);
+
   return (
     <div className="min-h-screen relative overflow-hidden">
       {/* Background - update to handle custom colors and blur properly */}
-      {BackgroundComponent ? (
+      {isCustomColor ? (
+        <div 
+          className="absolute inset-0" 
+          style={{ 
+            backgroundColor: whatCustomColor ? whatCustomColor : '#f0f0f0',
+            filter: profile.blur > 0 ? `blur(${profile.blur * 0.3}px)` : 'none',
+            transform: profile.blur > 0 ? 'scale(1.05)' : 'scale(1)',
+            transition: 'filter 0.2s ease, transform 0.2s ease'
+            }}
+        />
+      ) : BackgroundComponent ? (
         <div 
           className="absolute inset-0"
           style={{
@@ -310,16 +331,6 @@ export default function ProfilePage({ params }: { params: { username: string } }
         >
           <BackgroundComponent />
         </div>
-      ) : profile.background?.startsWith('custom-') ? (
-        <div 
-          className="absolute inset-0" 
-          style={{ 
-            backgroundColor: profile.customColor,
-            filter: profile.blur > 0 ? `blur(${profile.blur * 0.3}px)` : 'none',
-            transform: profile.blur > 0 ? 'scale(1.05)' : 'scale(1)',
-            transition: 'filter 0.2s ease, transform 0.2s ease'
-          }}
-        />
       ) : (
         <div 
           className={`absolute inset-0 ${getBackgroundClass(profile.background)}`}

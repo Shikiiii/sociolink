@@ -415,21 +415,6 @@ const LoginPage = () => {
                   </div>
                 </div>
 
-                {/* Remember Me */}
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="remember"
-                    className="w-4 h-4 rounded"
-                    style={{ 
-                      accentColor: isDark ? '#60a5fa' : '#2563eb'
-                    }}
-                  />
-                  <Label htmlFor="remember" className="text-sm text-muted-foreground cursor-pointer">
-                    Remember me for 30 days
-                  </Label>
-                </div>
-
                 {/* Error Message */}
                 <AnimatePresence>
                   {error && (

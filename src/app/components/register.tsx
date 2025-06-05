@@ -422,14 +422,19 @@ const RegisterPage = () => {
                       required
                     />
                   </div>
-                  <motion.p 
+                    <motion.p
                     className="text-xs text-muted-foreground"
-                    animate={{ 
-                      color: formData.username ? (isDark ? '#60a5fa' : '#2563eb') : undefined 
+                    animate={{
+                      color: formData.username ? (isDark ? '#60a5fa' : '#2563eb') : undefined
                     }}
-                  >
-                    sociolink.app/<span className="font-mono">{formData.username || 'username'}</span>
-                  </motion.p>
+                    >
+                    {typeof window !== 'undefined' && (
+                      <>
+                      {window.location.origin}/p/
+                      <span className="font-mono">{formData.username || 'username'}</span>
+                      </>
+                    )}
+                    </motion.p>
                 </div>
 
                 {/* Email Field */}

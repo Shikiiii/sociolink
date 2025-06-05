@@ -1385,7 +1385,17 @@ const ProfilePreview = ({ profile, getBackgroundClass, iconMap, isMobile, isDesk
   return (
     <div className="relative w-full h-full overflow-hidden">
       {/* Background - same as before */}
-      {BackgroundComponent ? (
+      {isCustomColor ? (
+        <div 
+          className="absolute inset-0" 
+          style={{ 
+            backgroundColor: `#${profile.background.split("custom-")[1]}`,
+            filter: blurValue > 0 ? `blur(${blurValue * 0.3}px)` : 'none',
+            transform: blurValue > 0 ? 'scale(1.05)' : 'scale(1)',
+            transition: 'filter 0.2s ease, transform 0.2s ease'
+          }}
+        />
+      ) : BackgroundComponent ? (
         <div 
           className="absolute inset-0"
           style={{
@@ -1397,16 +1407,6 @@ const ProfilePreview = ({ profile, getBackgroundClass, iconMap, isMobile, isDesk
         >
           <BackgroundComponent />
         </div>
-      ) : isCustomColor ? (
-        <div 
-          className="absolute inset-0" 
-          style={{ 
-            backgroundColor: profile.customColor,
-            filter: blurValue > 0 ? `blur(${blurValue * 0.3}px)` : 'none',
-            transform: blurValue > 0 ? 'scale(1.05)' : 'scale(1)',
-            transition: 'filter 0.2s ease, transform 0.2s ease'
-          }}
-        />
       ) : (
         <div 
           className={`absolute inset-0 ${getBackgroundClass(profile.background)}`}
