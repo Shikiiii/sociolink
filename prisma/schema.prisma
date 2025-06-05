@@ -1,0 +1,62 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  user_id          String   @id @default(uuid())
+  user_name        String   @unique
+  user_password    String
+  user_email       String   @unique
+  user_website_id  String?   @unique
+  user_website     Website?  @relation("UserWebsite", fields: [user_website_id], references: [id], onDelete: Cascade)
+  oauth_provider   String?
+  oauth_id         String?  @unique
+  oauths           OAuth[]
+}
+
+model Website {
+  id               String   @id @default(uuid())
+  avatar           String?
+  display_name     String?
+  bio              String?
+  background       String?
+  socials          Social[]
+  user             User?    @relation("UserWebsite")
+}
+
+model Social {
+  id               String   @id @default(uuid())
+  type             String
+  link             String
+  text             String
+  websiteId        String
+  website          Website  @relation(fields: [websiteId], references: [id], onDelete: Cascade)
+}
+
+enum Provider {
+  google
+  discord
+}
+
+model OAuth {
+  oauth_id    String   @id @default(uuid())
+  user_id     String   @db.Text
+  provider    Provider
+  external_id String   @unique @db.Text
+  email       String?  @db.Text
+  created_at  DateTime @default(now())
+
+  user        User    @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+}
