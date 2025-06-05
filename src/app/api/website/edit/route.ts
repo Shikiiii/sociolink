@@ -26,7 +26,7 @@ async function uploadToImgBB(file: Blob): Promise<string> {
 }
 
 function validateInput(display_name?: string, bio?: string): string | null {
-    const nameRegex = /^[A-Za-z0-9 ]+$/;
+    const nameRegex = /^[A-Za-z0-9!@#$%^&*()_\-+=\[\]{};:'",.<>/?\\|`~ ]+$/;
     if (display_name && (display_name.length < 3 || display_name.length > 60 || !nameRegex.test(display_name))) {
         return 'Invalid display_name';
     }
