@@ -172,14 +172,17 @@ const ProfilePage = () => {
   const [counter, setCounter] = useState<number>(0);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    console.log("Profile changed, counter: ", counter);
-    if (counter === 3) {
-      setIsDirty(true);
-    } else {
-      setCounter(prev => prev + 1);
-    }
-  }, [profile])
+    const [initialProfile, setInitialProfile] = useState<Profile | null>(null);
+    const [isLoaded, setIsLoaded] = useState(false);
+
+    // Replace the problematic useEffect with this:
+    useEffect(() => {
+    if (!isLoaded) return; // Don't track changes until initial load is complete
+    
+    // Compare current profile with initial profile to determine if dirty
+    const hasChanges = JSON.stringify(profile) !== JSON.stringify(initialProfile);
+    setIsDirty(hasChanges);
+    }, [profile, initialProfile, isLoaded]);
 
   const saveChanges = async () => {
     // Save socials (links)
@@ -221,89 +224,97 @@ const ProfilePage = () => {
     });
 
     if (!e.ok) {
-      const errorJson = await e.json();
-      setError(errorJson.error || "An unexpected error occured and your changes were not saved.");
-      return;
+        const errorJson = await e.json();
+        setError(errorJson.error || "An unexpected error occured and your changes were not saved.");
+        return;
     }
 
+    // After successful save, update initial profile to current state
+    setInitialProfile({ ...profile });
     setIsDirty(false);
-  }
+    }
 
-  useEffect(() => {
+    useEffect(() => {
     // Check for access_token and refresh_token cookies
     const getCookie = (name: string) => {
-      const value = `; ${document.cookie}`;
-      const parts = value.split(`; ${name}=`);
-      if (parts.length === 2) return parts.pop()?.split(';').shift();
-      return null;
+        const value = `; ${document.cookie}`;
+        const parts = value.split(`; ${name}=`);
+        if (parts.length === 2) return parts.pop()?.split(';').shift();
+        return null;
     };
 
     const accessToken = getCookie('access_token');
     const refreshToken = getCookie('refresh_token');
 
     if (!accessToken || !refreshToken) {
-      window.location.href = '/login';
-      return;
+        window.location.href = '/login';
+        return;
     }
 
     // Helper to fetch with auth and handle 401
     const fetchWithAuth = async (url: string) => {
-      let res = await fetch(url, { credentials: 'include' });
-      if (res.status === 401) {
+        let res = await fetch(url, { credentials: 'include' });
+        if (res.status === 401) {
         // Try to refresh token
         await fetch('/api/auth/refresh', { credentials: 'include' });
         res = await fetch(url, { credentials: 'include' });
-      }
-      return res;
+        }
+        return res;
     };
 
     // Fetch profile data
     (async () => {
-      try {
-      const profileRes = await fetchWithAuth('/api/website/get_data');
+        try {
+        const profileRes = await fetchWithAuth('/api/website/get_data');
+        const socialsRes = await fetchWithAuth('/api/website/get_socials');
 
-      if (profileRes.ok) {
-        const data = await profileRes.json();
+        let finalProfile: Profile = {
+            name: "",
+            bio: "",
+            avatar: "",
+            background: "",
+            blur: 0,
+            links: []
+        };
 
-        let [background, blur] = data.data.background !== null && data.data.background !== undefined ? data.data.background.split("|") : [null, 0];
-        if (blur === 'null') blur = 0;
+        if (profileRes.ok) {
+            const data = await profileRes.json();
+            let [background, blur] = data.data.background !== null && data.data.background !== undefined ? data.data.background.split("|") : [null, 0];
+            if (blur === 'null') blur = 0;
 
-        setProfile({
-          name: data.data.display_name,
-          bio: data.data.bio,
-          avatar: data.data.avatar,
-          background: background,
-          blur: blur,
-          links: []
-        });
-      }
+            finalProfile = {
+            name: data.data.display_name,
+            bio: data.data.bio,
+            avatar: data.data.avatar,
+            background: background,
+            blur: blur,
+            links: []
+            };
+        }
 
-      const socialsRes = await fetchWithAuth('/api/website/get_socials');
-
-      if (socialsRes.ok) {
-        const socials = await socialsRes.json();
-        setProfile(prev => ({
-          ...prev,
-          links: socials.map((item: any, idx: number) => ({
+        if (socialsRes.ok) {
+            const socials = await socialsRes.json();
+            const links = socials.map((item: any, idx: number) => ({
             id: item.order,
             title: item.text,
             url: item.link,
             icon: item.type.charAt(0).toUpperCase() + item.type.slice(1)
-          }))
-        }))
+            })).sort((a: any, b: any) => Number(a.id) - Number(b.id));
 
-        // now order the array via the id , so id 1 is first, id 2 is second, etc.
-        setProfile(prev => ({
-          ...prev,
-          links: prev.links.slice().sort((a, b) => Number(a.id) - Number(b.id))
-        }))
-      }
-      } catch (err) {
+            finalProfile.links = links;
+        }
+
+        // Set both current and initial profile, then mark as loaded
+        setProfile(finalProfile);
+        setInitialProfile(finalProfile);
+        setIsLoaded(true);
+
+        } catch (err) {
         // fallback: redirect to login on error
         window.location.href = '/login';
-      }
+        }
     })();
-  }, [])
+    }, [])
 
   const [newLink, setNewLink] = useState({ title: '', url: '', icon: 'Link' })
   const [prevIcon, setPrevIcon] = useState(newLink.icon);
@@ -587,17 +598,23 @@ const ProfilePage = () => {
       </div>
 
       {/* Dirty State Notification */}
-      {isDirty && (
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: 30 }}
-          transition={{ duration: 0.3 }}
-          className="fixed bottom-28 left-1/2 -translate-x-1/2 bg-yellow-400 text-yellow-900 px-4 py-2 rounded-lg shadow-lg z-50 font-medium"
+    {isDirty && (
+    <motion.div
+        initial={{ opacity: 0, y: 30 }}
+        animate={{ opacity: 1, y: 0 }}
+        exit={{ opacity: 0, y: 30 }}
+        transition={{ duration: 0.3 }}
+        className="fixed bottom-28 left-1/2 -translate-x-1/2 bg-yellow-400 text-yellow-900 px-4 py-2 rounded-lg shadow-lg z-50 font-medium"
+    >
+        Changes may not be saved until you click{' '}
+        <button 
+        onClick={saveChanges}
+        className="font-bold underline hover:bg-yellow-500 px-1 rounded transition-colors cursor-pointer"
         >
-          Changes may not be saved until you click <span className="font-bold">Save Changes</span>.
-        </motion.div>
-      )}
+        Save Changes
+        </button>.
+    </motion.div>
+    )}
     </div>
   )
 }

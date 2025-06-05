@@ -1,48 +1,68 @@
-import Link from 'next/link';
-import { FaGithub } from 'react-icons/fa';
+import Link from 'next/link'
+import { FaGithub, FaDiscord } from 'react-icons/fa'
 
 export default function Footer() {
-  const currentYear = new Date().getFullYear();
+  const currentYear = new Date().getFullYear()
 
   return (
-    <footer className="relative z-10 backdrop-blur-md border-t border-opacity-20" 
-      style={{
-        backgroundColor: 'transparent',
-        borderColor: 'var(--themed-input-border)',
-      }}>
-      <div className="container mx-auto px-6 py-3">
-        <div className="flex items-center justify-between text-xs opacity-60 hover:opacity-100 transition-opacity duration-300">
-          {/* Copyright */}
-          <div className="text-muted-foreground">
-            © {currentYear} SocioLink
+    <footer className="relative z-10 backdrop-blur-xl border-t border-border/50 bg-background/80">
+      <div className="p-4 flex justify-between items-center relative z-20">
+        
+        {/* Left side - Logo and Copyright */}
+        <div className="flex items-center space-x-2">
+          <div className="text-lg font-bold">
+            sociolink
           </div>
+          <div className="text-xs text-muted-foreground">
+            © {currentYear}
+          </div>
+        </div>
 
-          {/* Links */}
-          <div className="flex items-center space-x-4">
-            <Link 
-              href="/about" 
-              className="text-muted-foreground hover:text-foreground transition-colors duration-200 hover:opacity-100"
-            >
-              About
-            </Link>
-            <Link 
-              href="/terms" 
-              className="text-muted-foreground hover:text-foreground transition-colors duration-200 hover:opacity-100"
-            >
-              Terms
-            </Link>
-            <a
-              href="https://github.com/Shikiiii/sociolink"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="text-muted-foreground hover:text-foreground transition-colors duration-200 hover:opacity-100"
-              aria-label="GitHub"
-            >
-              <FaGithub className="w-3 h-3" />
-            </a>
-          </div>
+        {/* Right side - Links and Social */}
+        <div className="flex items-center space-x-3">
+          <Link 
+            href="/about" 
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors relative group"
+          >
+            About
+            <span className="absolute bottom-0 left-0 w-0 h-px bg-foreground transition-all duration-300 group-hover:w-full"></span>
+          </Link>
+          <Link 
+            href="/terms" 
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors relative group"
+          >
+            Terms
+            <span className="absolute bottom-0 left-0 w-0 h-px bg-foreground transition-all duration-300 group-hover:w-full"></span>
+          </Link>
+          <Link 
+            href="/privacy" 
+            className="text-xs text-muted-foreground hover:text-foreground transition-colors relative group"
+          >
+            Privacy
+            <span className="absolute bottom-0 left-0 w-0 h-px bg-foreground transition-all duration-300 group-hover:w-full"></span>
+          </Link>
+          <a
+            href="https://github.com/Shikiiii/sociolink"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-muted-foreground hover:text-foreground transition-colors relative group p-1"
+            aria-label="GitHub"
+          >
+            <FaGithub className="w-3.5 h-3.5" />
+            <span className="absolute bottom-0 left-1/2 w-0 h-px bg-foreground transition-all duration-300 group-hover:w-full group-hover:left-0"></span>
+          </a>
+          <a
+            href="https://discord.gg/sociolink"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-muted-foreground hover:text-foreground transition-colors relative group p-1"
+            aria-label="Discord"
+          >
+            <FaDiscord className="w-3.5 h-3.5" />
+            <span className="absolute bottom-0 left-1/2 w-0 h-px bg-foreground transition-all duration-300 group-hover:w-full group-hover:left-0"></span>
+          </a>
         </div>
       </div>
     </footer>
-  );
+  )
 }
