@@ -170,6 +170,7 @@ const ProfilePage = () => {
   });
   const [isDirty, setIsDirty] = useState<boolean>(false);
   const [counter, setCounter] = useState<number>(0);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     console.log("Profile changed, counter: ", counter);
@@ -180,9 +181,9 @@ const ProfilePage = () => {
     }
   }, [profile])
 
-  const saveChanges = () => {
+  const saveChanges = async () => {
     // Save socials (links)
-    fetch('/api/website/edit_socials', {
+    let s = await fetch('/api/website/edit_socials', {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
@@ -196,6 +197,12 @@ const ProfilePage = () => {
       })
     });
 
+    if (!s.ok) {
+      const errorJson = await s.json();
+      setError(errorJson.error || "An unexpected error occured and your changes were not saved.");
+      return;
+    }
+
     // Save profile info as FormData (for avatar file support)
     const formData = new FormData();
     formData.append('display_name', profile.name ?? '');
@@ -203,15 +210,21 @@ const ProfilePage = () => {
     formData.append('background', profile.background + "|" + String(profile.blur));
 
     // If avatar is a File object (user uploaded), append it; otherwise, skip
-  if (profile.avatarFile instanceof File) {
-    formData.append('avatar', profile.avatarFile);
-  }
+    if (profile.avatarFile instanceof File) {
+      formData.append('avatar', profile.avatarFile);
+    }
 
-    fetch('/api/website/edit', {
+    let e = await fetch('/api/website/edit', {
       method: 'POST',
       credentials: 'include',
       body: formData
     });
+
+    if (!e.ok) {
+      const errorJson = await e.json();
+      setError(errorJson.error || "An unexpected error occured and your changes were not saved.");
+      return;
+    }
 
     setIsDirty(false);
   }
@@ -489,6 +502,8 @@ const ProfilePage = () => {
             handleAvatarUpload={handleAvatarUpload}
             iconMap={iconMap}
             saveChanges={saveChanges}
+            error={error}
+            isDirty={isDirty}
           />
         </motion.div>
 
@@ -551,6 +566,8 @@ const ProfilePage = () => {
             handleAvatarUpload={handleAvatarUpload}
             iconMap={iconMap}
             saveChanges={saveChanges}
+            error={error}
+            isDirty={isDirty}
           />
         </motion.div>
           )}
@@ -669,7 +686,7 @@ const MobileFullPreview = ({ profile, getBackgroundClass, iconMap }: any) => {
 const EditPanel = ({ 
   profile, setProfile, newLink, setNewLink, isMobileView, setIsMobileView,
   selectedMobilePreset, setSelectedMobilePreset, showBackgrounds, setShowBackgrounds,
-  addLink, removeLink, handleDragEnd, handleAvatarUpload, iconMap,
+  addLink, removeLink, handleDragEnd, handleAvatarUpload, iconMap, error, isDirty,
   saveChanges
 }: any) => (
   <div className="space-y-6">
@@ -752,7 +769,12 @@ const EditPanel = ({
     />
 
     {/* Save Button */}
-    <Button className="w-full" size="lg" onClick={saveChanges}>
+    {/* Error message display */}
+    {error && (
+      <p className="text-sm text-red-500 min-h-[1.5em]">{error}</p>
+    )}
+
+    <Button className="w-full" size="lg" onClick={saveChanges} disabled={isDirty === false}>
       Save Changes
     </Button>
   </div>
@@ -761,7 +783,7 @@ const EditPanel = ({
 // Mobile Edit Panel (Full Screen version)
 const MobileEditPanel = ({ 
   profile, setProfile, newLink, setNewLink, showBackgrounds, setShowBackgrounds,
-  addLink, removeLink, handleDragEnd, handleAvatarUpload, iconMap, saveChanges
+  addLink, removeLink, handleDragEnd, handleAvatarUpload, iconMap, saveChanges, error, isDirty
 }: any) => (
   <div className="space-y-6">
     <div className="flex items-center gap-2 mb-6">
@@ -798,7 +820,12 @@ const MobileEditPanel = ({
     />
 
     {/* Save Button */}
-    <Button className="w-full" size="lg" onClick={saveChanges}>
+    {/* Error message display */}
+    {error && (
+      <p className="text-sm text-red-500 min-h-[1.5em]">{error}</p>
+    )}
+
+    <Button className="w-full" size="lg" onClick={saveChanges} disabled={isDirty === false}>
       Save Changes
     </Button>
   </div>
