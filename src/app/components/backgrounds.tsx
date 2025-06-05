@@ -30,6 +30,18 @@ export const backgroundPresets = [
     category: 'Gradient'
   },
   { 
+    id: 'gradient-6', 
+    name: 'Coral Reef', 
+    class: 'bg-gradient-to-br from-pink-400 via-orange-400 to-yellow-400',
+    category: 'Gradient'
+  },
+  { 
+    id: 'gradient-7', 
+    name: 'Ice Storm', 
+    class: 'bg-gradient-to-br from-cyan-200 via-blue-400 to-indigo-600',
+    category: 'Gradient'
+  },
+  { 
     id: 'animated-1', 
     name: 'Flowing', 
     class: 'bg-gradient-to-r from-purple-400 via-pink-500 to-red-500 animate-gradient-x',
@@ -53,6 +65,68 @@ export const backgroundPresets = [
     class: 'bg-purple-600',
     category: 'Solid'
   },
+  { 
+    id: 'solid-3', 
+    name: 'Emerald', 
+    class: 'bg-emerald-600',
+    category: 'Solid'
+  },
+  { 
+    id: 'solid-4', 
+    name: 'Rose', 
+    class: 'bg-rose-600',
+    category: 'Solid'
+  },
+  // INTERACTIVE & ANIMATED BACKGROUNDS - Only components that exist
+  { 
+    id: 'particles-1', 
+    name: 'Floating Particles', 
+    class: 'bg-particles-float',
+    category: 'Interactive',
+    component: 'ParticleFloat'
+  },
+  { 
+    id: 'particles-2', 
+    name: 'Connection Web', 
+    class: 'bg-particle-web',
+    category: 'Interactive',
+    component: 'ParticleWeb'
+  },
+  { 
+    id: 'animated-3', 
+    name: 'Matrix Rain', 
+    class: 'bg-matrix-rain',
+    category: 'Animated',
+    component: 'MatrixRain'
+  },
+  { 
+    id: 'animated-4', 
+    name: 'Geometric Waves', 
+    class: 'bg-geometric-waves',
+    category: 'Animated',
+    component: 'GeometricWaves'
+  },
+  { 
+    id: 'interactive-2', 
+    name: 'Ripple Effect', 
+    class: 'bg-ripple-effect',
+    category: 'Interactive',
+    component: 'RippleEffect'
+  },
+  { 
+    id: 'animated-5', 
+    name: 'Constellation', 
+    class: 'bg-constellation',
+    category: 'Animated',
+    component: 'Constellation'
+  },
+  { 
+    id: 'animated-6', 
+    name: 'Liquid Morph', 
+    class: 'bg-liquid-morph',
+    category: 'Animated',
+    component: 'LiquidMorph'
+  }
 ]
 
 export const mobilePresets = [
@@ -60,4 +134,29 @@ export const mobilePresets = [
   { name: 'iPhone SE', width: 375, height: 667 },
   { name: 'Galaxy S23', width: 360, height: 780 },
   { name: 'Pixel 7', width: 412, height: 915 },
+  { name: 'iPad Mini', width: 768, height: 1024 },
 ]
+
+// Static preview mappings for thumbnail rendering (prevents animated components in previews)
+export const staticPreviewMap: Record<string, string> = {
+  'ParticleFloat': 'bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500',
+  'ParticleWeb': 'bg-gradient-to-br from-blue-600 via-purple-600 to-indigo-700',
+  'MatrixRain': 'bg-gradient-to-b from-green-900 via-green-600 to-black',
+  'Constellation': 'bg-gradient-to-b from-indigo-900 via-purple-900 to-black',
+  'LiquidMorph': 'bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-600',
+  'GeometricWaves': 'bg-gradient-to-br from-blue-500 via-purple-600 to-pink-500',
+  'RippleEffect': 'bg-gradient-to-br from-pink-400 via-rose-400 to-red-400'
+}
+
+// Categories for organized display
+export const backgroundCategories = ['Gradient', 'Solid', 'Animated', 'Interactive'] as const
+
+export type BackgroundCategory = typeof backgroundCategories[number]
+
+export interface BackgroundPreset {
+  id: string
+  name: string
+  class: string
+  category: BackgroundCategory
+  component?: string
+}
