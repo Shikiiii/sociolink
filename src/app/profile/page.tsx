@@ -40,7 +40,7 @@ import {
   Camera,
   Headphones,
   Share2,
-  ExternalLink
+  ExternalLink,
 } from 'lucide-react'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 import Header from '@/app/components/header'
@@ -72,7 +72,8 @@ const socialPlatforms = [
   { value: 'LastFM', label: 'Last.fm', icon: 'Headphones', color: '#D51007' },
   { value: 'BuyMeACoffee', label: 'Buy Me a Coffee', icon: 'Coffee', color: '#FFDD00' },
   { value: 'Kofi', label: 'Ko-fi', icon: 'Heart', color: '#FF5E5B' },
-  { value: 'Patreon', label: 'Patreon', icon: 'DollarSign', color: '#FF424D' }
+  { value: 'Patreon', label: 'Patreon', icon: 'DollarSign', color: '#FF424D' },
+  { value: 'Discord', label: 'Discord', icon: 'MessageCircle', color: '#5865f2'}
 ]
 
 interface Profile {
@@ -362,6 +363,7 @@ const ProfilePage = () => {
       Kofi: "https://ko-fi.com/{username}",
       Patreon: "https://patreon.com/{username}",
       Mail: "mailto:",
+      Discord: "https://discordapp.com/users/{username}",
     };
 
     // Helper to check if a string is a valid URL
@@ -1158,7 +1160,22 @@ const LinksSection = ({ profile, setProfile, newLink, setNewLink, addLink, remov
           placeholder="https://example.com or username"
           className="w-full"
         />
-        
+
+        {selectedPlatform.label === "Discord" && (
+          <div className="text-xs text-muted-foreground mt-1 mb-2">
+            Discord uses your user ID instead of your username.{" "}
+            <a
+              href="https://support.discord.com/hc/en-us/articles/206346498-Where-can-I-find-my-User-Server-Message-ID"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="underline text-accent-foreground hover:text-accent-foreground/70"
+            >
+              Find out how to get your user ID here
+            </a>
+            .
+          </div>
+        )}
+
         {/* Enhanced Platform Selector */}
         <div className="relative">
           <button
@@ -1365,7 +1382,7 @@ const ProfilePreview = ({ profile, getBackgroundClass, iconMap, isMobile, isDesk
   
   const blurValue = profile.blur || 0
   const isCustomColor = profile.background?.startsWith('custom-')
-  
+
   // Get dynamic text colors
   const textColors = getTextColors(profile)
 

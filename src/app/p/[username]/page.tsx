@@ -78,7 +78,8 @@ const socialPlatforms = [
   { value: 'LastFM', label: 'Last.fm', icon: 'Headphones', color: '#D51007' },
   { value: 'BuyMeACoffee', label: 'Buy Me a Coffee', icon: 'Coffee', color: '#FFDD00' },
   { value: 'Kofi', label: 'Ko-fi', icon: 'Heart', color: '#FF5E5B' },
-  { value: 'Patreon', label: 'Patreon', icon: 'DollarSign', color: '#FF424D' }
+  { value: 'Patreon', label: 'Patreon', icon: 'DollarSign', color: '#FF424D' },
+  { value: 'Discord', label: 'Discord', icon: 'MessageCircle', color: '#5865f2'}
 ]
 
 const hexToRgb = (hex: string) => {

@@ -503,112 +503,109 @@ return (
             transition={{ delay: 0.7 }}
             className="w-full max-w-md"
           >
-            <AnimatePresence mode="wait">
-              {isLoggedIn ? (
-                // Logged in user - show their info and go button
-                <motion.div
-                  key="logged-in"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  className="relative group"
-                >
-                  <div 
-                    className="absolute -inset-1 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-300"
-                    style={{
-                      background: `linear-gradient(45deg, ${currentMood.colors.primary}, ${currentMood.colors.secondary})`
-                    }}
-                  />
-                  
-                  <div className="relative bg-card border rounded-xl p-6 backdrop-blur-sm text-center">
-                    <div className="flex items-center justify-center mb-4">
-                      <span className="text-sm text-muted-foreground font-mono">
-                        sociolink.app/
-                      </span>
-                      <span className="text-lg font-bold ml-1" style={{ color: currentMood.colors.primary }}>
-                        {loggedInUsername}
-                      </span>
-                    </div>
-                    
-                    <Button
-                      onClick={handleGetStarted}
-                      className="w-full rounded-lg py-3 transition-all duration-300 text-white font-medium"
-                      style={{
-                        backgroundColor: currentMood.colors.primary,
-                      }}
-                    >
-                      {currentMood.cta}
-                    </Button>
+          <AnimatePresence mode="wait">
+            {isLoggedIn ? (
+              // Logged in - show profile preview and button
+              <motion.div
+                key="logged-in"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="relative group"
+              >
+                <div 
+                  className="absolute -inset-1 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-300"
+                  style={{
+                    background: `linear-gradient(45deg, ${currentMood.colors.primary}, ${currentMood.colors.secondary})`
+                  }}
+                />
+                <div className="relative bg-card border rounded-xl p-6 backdrop-blur-sm text-center">
+                  <div className="flex items-center justify-center mb-4">
+                    <span className="text-sm text-muted-foreground font-mono">
+                      sociolink.app/
+                    </span>
+                    <span className="text-lg font-bold ml-1" style={{ color: currentMood.colors.primary }}>
+                      {loggedInUsername}
+                    </span>
                   </div>
-                </motion.div>
-              ) : (
-                // Not logged in - show username input
-                <motion.div
-                  key="not-logged-in"
-                  initial={{ opacity: 0, scale: 0.9 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  className="relative group"
-                >
-                  <div 
-                    className="absolute -inset-1 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-300"
+                  <Button
+                    onClick={handleGetStarted}
+                    className="w-full rounded-lg py-3 transition-all duration-300 text-white font-medium"
                     style={{
-                      background:
+                      backgroundColor: currentMood.colors.primary,
+                    }}
+                  >
+                    {currentMood.cta}
+                  </Button>
+                </div>
+              </motion.div>
+            ) : (
+              // Not logged in - show username input
+              <motion.div
+                key="not-logged-in"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9 }}
+                className="relative group"
+              >
+                <div 
+                  className="absolute -inset-1 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-300"
+                  style={{
+                    background:
                       currentMood.cta === "Taken."
                         ? "linear-gradient(45deg, #ef4444, #ef4444)" // red glow
                         : currentMood.cta !== "Taken." && isUsernameAvailable
                         ? "linear-gradient(45deg, #22c55e, #16a34a)" // green glow
                         : `linear-gradient(45deg, ${currentMood.colors.primary}, ${currentMood.colors.secondary})`
-                    }}
-                  />
-                  
-                  <div className="relative bg-card border rounded-xl p-2 backdrop-blur-sm">
-                    <div className="flex items-center">
-                      <span className="px-4 py-3 text-muted-foreground text-sm font-mono">
-                        sociolink.app/
-                      </span>
-                      
-                      <Input
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                        onKeyPress={(e) => e.key === 'Enter' && handleGetStarted()}
-                        placeholder={currentMood.placeholder}
-                        className="flex-1 border-0 bg-transparent text-lg focus-visible:ring-0 placeholder:text-muted-foreground/50"
-                      />
-                      
-                      <Button
-                        onClick={handleGetStarted}
-                        disabled={!username.trim() || isUsernameAvailable === false}
-                        className="ml-2 rounded-lg px-6 transition-all duration-300"
-                        style={{
-                          backgroundColor: !username.trim()
+                  }}
+                />
+                <div className="relative bg-card border rounded-xl p-2 backdrop-blur-sm">
+                  <div className="flex items-center">
+                    <span className="px-4 py-3 text-muted-foreground text-sm font-mono">
+                      {typeof window !== "undefined"
+                        ? `${window.location.hostname}/p/`
+                        : "sociolink.app/p/"}
+                    </span>
+                    <Input
+                      value={username}
+                      onChange={(e) => setUsername(e.target.value)}
+                      onKeyPress={(e) => e.key === 'Enter' && handleGetStarted()}
+                      placeholder={currentMood.placeholder}
+                      className="flex-1 border-0 bg-transparent text-lg focus-visible:ring-0 placeholder:text-muted-foreground/50"
+                    />
+                    <Button
+                      onClick={handleGetStarted}
+                      disabled={!username.trim() || isUsernameAvailable === false}
+                      className="ml-2 rounded-lg px-6 transition-all duration-300"
+                      style={{
+                        backgroundColor: !username.trim()
                           ? undefined
                           : isUsernameAvailable === false
                             ? '#ef4444'
                             : currentMood.colors.primary,
-                          color: username.trim() ? '#ffffff' : undefined
-                        }}
-                      >
-                        {username.trim() ? currentMood.cta : 'Enter name'}
-                      </Button>
-                    </div>
+                        color: username.trim() ? '#ffffff' : undefined
+                      }}
+                    >
+                      {username.trim() ? currentMood.cta : 'Enter name'}
+                    </Button>
                   </div>
-                </motion.div>
-              )}
-            </AnimatePresence>
-            
-            <motion.p 
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+          </motion.div>
+          
+          <motion.p 
             className="mt-4 text-xs text-muted-foreground text-center"
             animate={{ opacity: isLoggedIn || username.trim() ? 1 : 0.5 }}
-            >
+          >
             {isLoggedIn 
-                ? "View your profile and see how it looks to visitors! 🎉" 
-                : username.trim() 
-                ? "Ready to claim your space? 🚀" 
-                : "Your digital home awaits"
+              ? "View your profile and see how it looks to visitors! 🎉" 
+              : username.trim() 
+              ? "Ready to claim your space? 🚀" 
+              : "Your digital home awaits"
             }
-            </motion.p>
-          </motion.div>
+          </motion.p>
         </main>
 
         {/* Floating mood switcher */}
