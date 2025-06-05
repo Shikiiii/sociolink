@@ -90,6 +90,73 @@ interface Profile {
   }[]
 }
 
+const hexToRgb = (hex: string) => {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+  return result ? {
+    r: parseInt(result[1], 16),
+    g: parseInt(result[2], 16),
+    b: parseInt(result[3], 16)
+  } : null
+}
+
+// Calculate luminance (brightness)
+const getLuminance = (r: number, g: number, b: number) => {
+  const [rs, gs, bs] = [r, g, b].map(c => {
+    c = c / 255
+    return c <= 0.03928 ? c / 12.92 : Math.pow((c + 0.055) / 1.055, 2.4)
+  })
+  return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs
+}
+
+// Determine if background is bright
+const isBackgroundBright = (profile: any) => {
+  // Handle custom colors
+  if (profile.background?.startsWith('custom-') && profile.customColor) {
+    const rgb = hexToRgb(profile.customColor)
+    if (rgb) {
+      const luminance = getLuminance(rgb.r, rgb.g, rgb.b)
+      return luminance > 0.5 // Threshold for bright vs dark
+    }
+  }
+  
+  // Handle preset backgrounds
+  const brightBackgrounds = [
+    'gradient-3', // Light gradients
+    'gradient-6',
+    'gradient-8', 
+    'solid-1', // Light solid colors
+    'solid-2',
+    'solid-4'
+    // Add more bright background IDs as needed
+  ]
+  
+  return brightBackgrounds.includes(profile.background)
+}
+
+// Get text colors based on background brightness
+const getTextColors = (profile: any) => {
+  const isBright = isBackgroundBright(profile)
+  
+  return {
+    primary: isBright ? 'text-gray-900' : 'text-white',
+    secondary: isBright ? 'text-gray-700' : 'text-white/80',
+    muted: isBright ? 'text-gray-600' : 'text-white/60',
+    gradient: isBright 
+      ? 'bg-gradient-to-r from-gray-900 via-gray-800 to-gray-700 bg-clip-text text-transparent'
+      : 'bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent',
+    // Enhanced container styles - keep glassy but add better shadows
+    profileCard: isBright 
+      ? 'bg-white/10 backdrop-blur-xl border border-gray-500/30 shadow-2xl ring-1 ring-black/10' 
+      : 'bg-white/5 backdrop-blur-xl border border-white/10',
+    linkCard: isBright 
+      ? 'bg-white/8 border border-gray-500/25 shadow-lg hover:shadow-xl ring-1 ring-black/5' 
+      : 'bg-white/5 border border-white/10',
+    // Add glow effects for bright backgrounds
+    profileGlow: isBright ? 'shadow-[0_0_50px_rgba(0,0,0,0.15)]' : '',
+    linkGlow: isBright ? 'hover:shadow-[0_8px_32px_rgba(0,0,0,0.12)]' : ''
+  }
+}
+
 const ProfilePage = () => {
   const [profile, setProfile] = useState<Profile>({
     name: "",
@@ -1187,56 +1254,59 @@ const ProfilePreview = ({ profile, getBackgroundClass, iconMap, isMobile, isDesk
   
   const blurValue = profile.blur || 0
   const isCustomColor = profile.background?.startsWith('custom-')
+  
+  // Get dynamic text colors
+  const textColors = getTextColors(profile)
 
   return (
     <div className="relative w-full h-full overflow-hidden">
-      {/* Background */}
-{BackgroundComponent ? (
-  <div 
-    className="absolute inset-0"
-    style={{
-      filter: blurValue > 0 ? `blur(${blurValue * 0.3}px)` : 'none',
-      transform: blurValue > 0 ? 'scale(1.1)' : 'scale(1)', // Scale up to cover edges
-      transformOrigin: 'center',
-      transition: 'filter 0.2s ease, transform 0.2s ease'
-    }}
-  >
-    <BackgroundComponent />
-  </div>
-) : isCustomColor ? (
-  <div 
-    className="absolute inset-0" 
-    style={{ 
-      backgroundColor: profile.customColor,
-      filter: blurValue > 0 ? `blur(${blurValue * 0.3}px)` : 'none',
-      transform: blurValue > 0 ? 'scale(1.05)' : 'scale(1)',
-      transition: 'filter 0.2s ease, transform 0.2s ease'
-    }}
-  />
-) : (
-  <div 
-    className={`absolute inset-0 ${getBackgroundClass(profile.background)}`}
-    style={{
-      filter: blurValue > 0 ? `blur(${blurValue * 0.3}px)` : 'none',
-      transform: blurValue > 0 ? 'scale(1.05)' : 'scale(1)',
-      transition: 'filter 0.2s ease, transform 0.2s ease'
-    }}
-  />
-)}
+      {/* Background - same as before */}
+      {BackgroundComponent ? (
+        <div 
+          className="absolute inset-0"
+          style={{
+            filter: blurValue > 0 ? `blur(${blurValue * 0.3}px)` : 'none',
+            transform: blurValue > 0 ? 'scale(1.1)' : 'scale(1)',
+            transformOrigin: 'center',
+            transition: 'filter 0.2s ease, transform 0.2s ease'
+          }}
+        >
+          <BackgroundComponent />
+        </div>
+      ) : isCustomColor ? (
+        <div 
+          className="absolute inset-0" 
+          style={{ 
+            backgroundColor: profile.customColor,
+            filter: blurValue > 0 ? `blur(${blurValue * 0.3}px)` : 'none',
+            transform: blurValue > 0 ? 'scale(1.05)' : 'scale(1)',
+            transition: 'filter 0.2s ease, transform 0.2s ease'
+          }}
+        />
+      ) : (
+        <div 
+          className={`absolute inset-0 ${getBackgroundClass(profile.background)}`}
+          style={{
+            filter: blurValue > 0 ? `blur(${blurValue * 0.3}px)` : 'none',
+            transform: blurValue > 0 ? 'scale(1.05)' : 'scale(1)',
+            transition: 'filter 0.2s ease, transform 0.2s ease'
+          }}
+        />
+      )}
 
-<div className="absolute inset-0 bg-gradient-to-br from-black/30 via-transparent to-black/30" />
+      <div className="absolute inset-0 bg-gradient-to-br from-black/30 via-transparent to-black/30" />
       
       {/* Content */}
       {isMobile ? (
-        // Mobile Layout - Centered vertical design
+        // Mobile Layout
         <div className="relative z-20 h-full p-4 flex flex-col items-center justify-center">
-          {/* Profile Card */}
-          <div className="w-full max-w-sm bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 relative overflow-hidden mb-4">
-            <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent rounded-3xl" />
-            <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 rounded-3xl blur-xl opacity-50" />
-            
-            <div className="relative z-10">
-              {/* Avatar */}
+                <div className={`w-full max-w-sm backdrop-blur-xl rounded-3xl p-6 relative overflow-hidden mb-4 transition-all duration-300 ${textColors.profileCard} ${textColors.profileGlow}`}>
+                {/* Keep the gradient effects - they work with the glass look */}
+                <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent rounded-3xl" />
+                <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 rounded-3xl blur-xl opacity-50" />
+                
+                <div className="relative z-10">
+              {/* Avatar - same as before */}
               <div className="flex justify-center mb-4">
                 <div className="w-16 h-16 rounded-full bg-gradient-to-br from-white/20 to-white/10 border-2 border-white/30 flex items-center justify-center overflow-hidden shadow-2xl">
                   {profile.avatar ? (
@@ -1255,18 +1325,18 @@ const ProfilePreview = ({ profile, getBackgroundClass, iconMap, isMobile, isDesk
                 </div>
               </div>
 
-              {/* Profile Info */}
+              {/* Profile Info with dynamic text colors */}
               <div className="text-center mb-4">
-                <h1 className="text-lg font-bold bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent mb-1">
+                <h1 className={`text-lg font-bold mb-1 transition-colors duration-300 ${textColors.gradient}`}>
                   {profile.name || 'Your Name'}
                 </h1>
-                <p className="text-white/60 text-xs mb-2">@username</p>
-                <p className="text-white/80 text-xs leading-relaxed">
+                <p className={`text-xs mb-2 transition-colors duration-300 ${textColors.muted}`}>@username</p>
+                <p className={`text-xs leading-relaxed transition-colors duration-300 ${textColors.secondary}`}>
                   {profile.bio || 'Your bio will appear here...'}
                 </p>
               </div>
 
-              {/* Edit and Share Buttons */}
+              {/* Buttons - same as before */}
               <div className="flex gap-2">
                 <div className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg px-3 py-2 flex items-center justify-center gap-1">
                   <Settings className="w-3 h-3 text-white" />
@@ -1281,23 +1351,23 @@ const ProfilePreview = ({ profile, getBackgroundClass, iconMap, isMobile, isDesk
             </div>
           </div>
 
-          {/* Links Section */}
+          {/* Links Section with dynamic text colors */}
           <div className="w-full max-w-sm space-y-2 flex-1 overflow-y-auto">
             {profile.links.length > 0 ? profile.links.map((link: any) => {
               const platform = socialPlatforms.find(p => p.value === link.icon) || socialPlatforms[0]
               const IconComponent = iconMap[platform.icon as keyof typeof iconMap] || Link
 
               return (
-                <div
-                  key={link.id}
-                  className="group w-full bg-white/5 border border-white/10 rounded-2xl p-3 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl backdrop-blur-sm relative overflow-hidden"
-                >
-                  <div 
-                    className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded-2xl"
-                    style={{ background: `linear-gradient(135deg, ${platform.color}40, transparent)` }}
-                  />
-                  
-                  <div className="relative flex items-center gap-3">
+                    <div
+                    key={link.id}
+                    className={`group w-full backdrop-blur-sm rounded-2xl p-3 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl relative overflow-hidden ${textColors.linkCard} ${textColors.linkGlow}`}
+                    >
+                    <div 
+                        className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded-2xl"
+                        style={{ background: `linear-gradient(135deg, ${platform.color}40, transparent)` }}
+                    />
+                    
+                    <div className="relative flex items-center gap-3">
                     <div 
                       className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-110 shadow-lg"
                       style={{ 
@@ -1309,31 +1379,31 @@ const ProfilePreview = ({ profile, getBackgroundClass, iconMap, isMobile, isDesk
                     </div>
 
                     <div className="flex-1 text-left">
-                      <h3 className="text-white font-semibold text-sm mb-0.5">
+                      <h3 className={`font-semibold text-sm mb-0.5 transition-colors duration-300 ${textColors.primary}`}>
                         {link.title}
                       </h3>
-                      <p className="text-white/60 text-xs truncate">
+                      <p className={`text-xs truncate transition-colors duration-300 ${textColors.muted}`}>
                         {link.url.replace(/^https?:\/\//, '').replace(/^mailto:/, '')}
                       </p>
                     </div>
 
                     <div className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors flex-shrink-0">
-                      <ExternalLink className="w-3 h-3 text-white/60 group-hover:text-white transition-colors" />
+                      <ExternalLink className={`w-3 h-3 transition-colors ${textColors.muted} group-hover:text-white`} />
                     </div>
                   </div>
                 </div>
               )
             }) : (
               <div className="text-center py-8">
-                <p className="text-white/60 text-sm">No links added yet</p>
+                <p className={`text-sm transition-colors duration-300 ${textColors.muted}`}>No links added yet</p>
               </div>
             )}
           </div>
 
           {/* Footer */}
           <div className="mt-4 text-center">
-            <p className="text-white/30 text-xs">
-              Powered by <span className="font-semibold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">SocioLink</span>
+            <p className={`text-xs transition-colors duration-300 ${textColors.muted}`}>
+              Powered by <span className={`font-semibold ${textColors.gradient}`}>SocioLink</span>
             </p>
           </div>
         </div>
@@ -1346,11 +1416,11 @@ const ProfilePreview = ({ profile, getBackgroundClass, iconMap, isMobile, isDesk
                 
                 {/* Left Side - Profile Card */}
                 <div className="flex justify-center">
-                  <div className="w-full max-w-sm bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 relative overflow-hidden">
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent rounded-3xl" />
-                    <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 rounded-3xl blur-xl opacity-50" />
-                    
-                    <div className="relative z-10">
+                        <div className={`w-full max-w-sm backdrop-blur-xl rounded-3xl p-6 relative overflow-hidden transition-all duration-300 ${textColors.profileCard} ${textColors.profileGlow}`}>
+                        <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent rounded-3xl" />
+                        <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 rounded-3xl blur-xl opacity-50" />
+                        
+                        <div className="relative z-10">
                       {/* Avatar */}
                       <div className="flex justify-center mb-6">
                         <div className="w-24 h-24 rounded-full bg-gradient-to-br from-white/20 to-white/10 border-2 border-white/30 flex items-center justify-center overflow-hidden shadow-2xl">
@@ -1371,15 +1441,15 @@ const ProfilePreview = ({ profile, getBackgroundClass, iconMap, isMobile, isDesk
                       </div>
 
                       {/* Profile Info */}
-                      <div className="text-center mb-6">
-                        <h1 className="text-2xl font-bold bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent mb-2">
-                          {profile.name || 'Your Name'}
+                        <div className="text-center mb-6">
+                        <h1 className={`text-2xl font-bold mb-2 transition-colors duration-300 ${textColors.gradient}`}>
+                            {profile.name || 'Your Name'}
                         </h1>
-                        <p className="text-white/60 text-sm mb-3">@username</p>
-                        <p className="text-white/80 text-sm leading-relaxed">
-                          {profile.bio || 'Your bio will appear here...'}
+                        <p className={`text-sm mb-3 transition-colors duration-300 ${textColors.muted}`}>@username</p>
+                        <p className={`text-sm leading-relaxed transition-colors duration-300 ${textColors.secondary}`}>
+                            {profile.bio || 'Your bio will appear here...'}
                         </p>
-                      </div>
+                        </div>
 
                       {/* Edit and Share Buttons */}
                       <div className="flex gap-3">
@@ -1404,16 +1474,16 @@ const ProfilePreview = ({ profile, getBackgroundClass, iconMap, isMobile, isDesk
                     const IconComponent = iconMap[platform.icon as keyof typeof iconMap] || Link
 
                     return (
-                      <div
-                        key={link.id}
-                        className="group w-full bg-white/5 border border-white/10 rounded-2xl p-4 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl backdrop-blur-sm relative overflow-hidden"
-                      >
-                        <div 
-                          className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded-2xl"
-                          style={{ background: `linear-gradient(135deg, ${platform.color}40, transparent)` }}
-                        />
-                        
-                        <div className="relative flex items-center gap-3">
+                            <div
+                            key={link.id}
+                            className={`group w-full backdrop-blur-sm rounded-2xl p-4 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl relative overflow-hidden ${textColors.linkCard} ${textColors.linkGlow}`}
+                            >
+                            <div 
+                                className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded-2xl"
+                                style={{ background: `linear-gradient(135deg, ${platform.color}40, transparent)` }}
+                            />
+                            
+                            <div className="relative flex items-center gap-3">
                           <div 
                             className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-110 shadow-lg"
                             style={{ 
@@ -1424,18 +1494,18 @@ const ProfilePreview = ({ profile, getBackgroundClass, iconMap, isMobile, isDesk
                             <IconComponent className="w-6 h-6 text-white" />
                           </div>
 
-                          <div className="flex-1 text-left">
-                            <h3 className="text-white font-semibold text-base mb-1">
-                              {link.title}
-                            </h3>
-                            <p className="text-white/60 text-sm truncate">
-                              {link.url.replace(/^https?:\/\//, '').replace(/^mailto:/, '')}
-                            </p>
-                          </div>
+                        <div className="flex-1 text-left">
+                        <h3 className={`font-semibold text-base mb-1 transition-colors duration-300 ${textColors.primary}`}>
+                            {link.title}
+                        </h3>
+                        <p className={`text-sm truncate transition-colors duration-300 ${textColors.muted}`}>
+                            {link.url.replace(/^https?:\/\//, '').replace(/^mailto:/, '')}
+                        </p>
+                        </div>
 
-                          <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors flex-shrink-0">
-                            <ExternalLink className="w-4 h-4 text-white/60 group-hover:text-white transition-colors" />
-                          </div>
+                        <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors flex-shrink-0">
+                        <ExternalLink className={`w-4 h-4 transition-colors ${textColors.muted} group-hover:${textColors.primary}`} />
+                        </div>
                         </div>
                       </div>
                     )
@@ -1447,11 +1517,11 @@ const ProfilePreview = ({ profile, getBackgroundClass, iconMap, isMobile, isDesk
                   )}
 
                   {/* Footer - Desktop */}
-                  <div className="pt-6 text-center">
-                    <p className="text-white/30 text-sm">
-                      Powered by <span className="font-semibold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">SocioLink</span>
-                    </p>
-                  </div>
+                <div className="pt-6 text-center">
+                <p className={`text-sm transition-colors duration-300 ${textColors.muted}`}>
+                    Powered by <span className={`font-semibold ${textColors.gradient}`}>SocioLink</span>
+                </p>
+                </div>
                 </div>
               </div>
             </div>
