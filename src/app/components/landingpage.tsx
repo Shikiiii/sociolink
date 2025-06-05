@@ -11,27 +11,33 @@ import {
   Sparkles, 
   Wind, 
   Sun,
-  Moon
+  Moon,
+  Coffee,
+  Zap
 } from 'lucide-react'
 
-// Typewriter hook
-const useTypewriter = (text: string, speed = 100, delay = 0) => {
+// Smoother typewriter with natural pauses
+const useTypewriter = (text: string, speed = 80) => {
   const [displayText, setDisplayText] = useState('')
   const [currentIndex, setCurrentIndex] = useState(0)
   const [isComplete, setIsComplete] = useState(false)
 
   useEffect(() => {
     if (currentIndex < text.length) {
+      const char = text[currentIndex]
+      const isPunctuation = ['.', ',', '!', '?'].includes(char)
+      const delay = isPunctuation ? speed * 3 : speed + Math.random() * 40
+      
       const timeout = setTimeout(() => {
-        setDisplayText(prev => prev + text[currentIndex])
+        setDisplayText(prev => prev + char)
         setCurrentIndex(prev => prev + 1)
-      }, currentIndex === 0 ? delay : speed)
+      }, delay)
 
       return () => clearTimeout(timeout)
     } else {
       setIsComplete(true)
     }
-  }, [currentIndex, text, speed, delay])
+  }, [currentIndex, text, speed])
 
   useEffect(() => {
     setDisplayText('')
@@ -42,53 +48,65 @@ const useTypewriter = (text: string, speed = 100, delay = 0) => {
   return { displayText, isComplete }
 }
 
-// Neural Network Particles Component
+// Enhanced Neural Network - Fixed for SSR
 const NeuralNetwork = ({ mouseX, mouseY, isDark, isVibrant }: { mouseX: any, mouseY: any, isDark: boolean, isVibrant: boolean }) => {
-  const nodes = useMemo(() => 
-    Array.from({ length: 12 }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: Math.random() * 8 + 4,
-      connections: Array.from({ length: Math.random() * 3 + 1 }, () => Math.floor(Math.random() * 12))
-    })), []
-  )
+  const [mounted, setMounted] = useState(false)
+  
+  // Fixed nodes to prevent hydration mismatch
+  const nodes = useMemo(() => [
+    { id: 0, x: 20, y: 30, size: 3, connections: [1, 2] },
+    { id: 1, x: 80, y: 20, size: 4, connections: [0, 3] },
+    { id: 2, x: 60, y: 70, size: 2.5, connections: [0, 4] },
+    { id: 3, x: 40, y: 80, size: 3.5, connections: [1, 4] },
+    { id: 4, x: 70, y: 50, size: 3, connections: [2, 3] },
+    { id: 5, x: 10, y: 60, size: 2, connections: [0] }
+  ], [])
 
-  const nodeColor = isDark 
-    ? (isVibrant ? 'var(--accent)' : 'oklch(0.7 0.1 220)')
-    : (isVibrant ? 'var(--accent)' : 'oklch(0.6 0.15 200)')
+  // Move useTransform outside of conditional rendering
+  const nodeX = useTransform(mouseX, [-1, 1], [-3, 3])
+  const nodeY = useTransform(mouseY, [-1, 1], [-3, 3])
 
-  const connectionColor = isDark
-    ? (isVibrant ? 'var(--accent)/30' : 'oklch(0.7 0.1 220 / 0.2)')
-    : (isVibrant ? 'var(--accent)/25' : 'oklch(0.6 0.15 200 / 0.15)')
+  useEffect(() => {
+    setMounted(true)
+  }, [])
 
+  const getNodeColor = () => {
+    if (isVibrant) {
+      return isDark ? '#ff6b9d' : '#e91e63'
+    }
+    return isDark ? '#64b5f6' : '#2196f3'
+  }
+
+  if (!mounted) return null
+  
   return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden -z-10">
+    <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-40">
       <svg className="w-full h-full">
-        {/* Neural connections */}
         {nodes.map((node) =>
           node.connections.map((targetId, connIndex) => {
             const target = nodes[targetId]
-            if (!target || targetId === node.id) return null
+            if (!target) return null
             
             return (
               <motion.line
-                key={`${node.id}-${targetId}-${connIndex}`}
+                key={`${node.id}-${targetId}`}
                 x1={`${node.x}%`}
                 y1={`${node.y}%`}
                 x2={`${target.x}%`}
                 y2={`${target.y}%`}
-                stroke={connectionColor}
+                stroke={getNodeColor()}
                 strokeWidth="1"
-                initial={{ pathLength: 0, opacity: 0 }}
+                opacity="0.3"
+                initial={{ pathLength: 0 }}
                 animate={{ 
-                  pathLength: 1, 
-                  opacity: [0.2, 0.6, 0.2],
+                  pathLength: [0, 1, 0],
+                  opacity: [0.1, 0.4, 0.1]
                 }}
                 transition={{ 
-                  duration: 3 + Math.random() * 2,
+                  duration: 4 + (connIndex * 0.5),
                   repeat: Infinity,
-                  delay: Math.random() * 2
+                  delay: connIndex * 0.8,
+                  ease: "easeInOut"
                 }}
               />
             )
@@ -96,11 +114,7 @@ const NeuralNetwork = ({ mouseX, mouseY, isDark, isVibrant }: { mouseX: any, mou
         )}
       </svg>
 
-      {/* Neural nodes */}
       {nodes.map((node) => {
-        const nodeX = useTransform(mouseX, [-1, 1], [node.x - 2, node.x + 2])
-        const nodeY = useTransform(mouseY, [-1, 1], [node.y - 2, node.y + 2])
-        
         return (
           <motion.div
             key={node.id}
@@ -112,17 +126,17 @@ const NeuralNetwork = ({ mouseX, mouseY, isDark, isVibrant }: { mouseX: any, mou
               height: `${node.size}px`,
               x: nodeX,
               y: nodeY,
-              backgroundColor: nodeColor,
-              boxShadow: `0 0 ${node.size * 2}px ${nodeColor}`,
+              backgroundColor: getNodeColor(),
             }}
             animate={{
               scale: [0.8, 1.2, 0.8],
-              opacity: [0.6, 1, 0.6],
+              opacity: [0.4, 0.8, 0.4],
             }}
             transition={{
-              duration: 2 + Math.random() * 3,
+              duration: 3 + (node.id * 0.3),
               repeat: Infinity,
-              delay: Math.random() * 2,
+              delay: node.id * 0.4,
+              ease: "easeInOut"
             }}
           />
         )
@@ -131,382 +145,393 @@ const NeuralNetwork = ({ mouseX, mouseY, isDark, isVibrant }: { mouseX: any, mou
   )
 }
 
-// Simplified geometric patterns for depth
-const GeometricPatterns = ({ isDark, isVibrant }: { isDark: boolean, isVibrant: boolean }) => {
-  const patterns = useMemo(() => 
-    Array.from({ length: 3 }, (_, i) => ({
-      id: i,
-      x: Math.random() * 100,
-      y: Math.random() * 100,
-      size: Math.random() * 200 + 100,
-      rotation: Math.random() * 360,
-      opacity: Math.random() * 0.03 + 0.01,
-    })), []
-  )
-
-  const patternColor = isDark
-    ? (isVibrant ? 'var(--accent)' : 'oklch(0.8 0.05 220)')
-    : (isVibrant ? 'var(--accent)' : 'oklch(0.5 0.1 200)')
-
-  return (
-    <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-40 -z-20">
-      {patterns.map((pattern) => (
-        <motion.div
-          key={pattern.id}
-          className="absolute"
-          style={{
-            left: `${pattern.x}%`,
-            top: `${pattern.y}%`,
-            width: `${pattern.size}px`,
-            height: `${pattern.size}px`,
-            opacity: pattern.opacity,
-          }}
-          animate={{
-            rotate: [pattern.rotation, pattern.rotation + 180],
-            scale: [1, 1.1, 1],
-          }}
-          transition={{
-            duration: 25 + pattern.id * 5,
-            repeat: Infinity,
-            ease: "linear",
-          }}
-        >
-          <div 
-            className="w-full h-full rounded-full border"
-            style={{
-              borderColor: `${patternColor}`,
-              borderWidth: '1px',
-            }}
-          />
-        </motion.div>
-      ))}
-    </div>
-  )
-}
-
 const LandingPage = () => {
   const [username, setUsername] = useState('')
-  const [isVibrantPersonality, setIsVibrantPersonality] = useState(false) // Personality state (independent of theme)
+  const [isVibrant, setIsVibrant] = useState(false)
   const [isTransitioning, setIsTransitioning] = useState(false)
-  const [circleTransition, setCircleTransition] = useState({ active: false, x: 0, y: 0 })
+  const [ripples, setRipples] = useState<Array<{id: number, x: number, y: number}>>([])
   const [isHolding, setIsHolding] = useState(false)
+  const [mounted, setMounted] = useState(false)
   const holdTimerRef = useRef<NodeJS.Timeout | null>(null)
   const router = useRouter()
   const { theme, setTheme } = useTheme()
 
   const mouseX = useMotionValue(0)
   const mouseY = useMotionValue(0)
-  const holdProgress = useSpring(0, { damping: 20, stiffness: 100 })
+  const holdProgress = useSpring(0, { damping: 25, stiffness: 200 })
 
   useEffect(() => {
+    setMounted(true)
+    
     const handleMouseMove = (e: MouseEvent) => {
-      mouseX.set((e.clientX / window.innerWidth - 0.5) * 2)
-      mouseY.set((e.clientY / window.innerHeight - 0.5) * 2)
+      mouseX.set((e.clientX / window.innerWidth - 0.5) * 0.5)
+      mouseY.set((e.clientY / window.innerHeight - 0.5) * 0.5)
     }
     window.addEventListener('mousemove', handleMouseMove)
     return () => window.removeEventListener('mousemove', handleMouseMove)
   }, [mouseX, mouseY])
 
-  const isDarkMode = theme === 'dark'
+  const isDark = theme === 'dark'
   
-  // Theme + Personality combinations
-  const themeConfig = useMemo(() => ({
-    name: `${isDarkMode ? 'Dark' : 'Light'} ${isVibrantPersonality ? 'Vibrant' : 'Zen'}`,
-    personalityIcon: isVibrantPersonality ? Sparkles : Wind,
-    themeIcon: isDarkMode ? Moon : Sun,
-  }), [isDarkMode, isVibrantPersonality])
+  // More human content with personality
+    const moods = useMemo(() => ({
+    zen: {
+        emoji: "🌱",
+        greeting: "Hey there, fellow human",
+        tagline: "One link. Zero chaos.",
+        subtitle: "Keep it simple, keep it you",
+        description: "Because your digital life doesn't need to be complicated. Just clean, focused connections.",
+        placeholder: "yourname",
+        cta: "Let's go →",
+        colors: {
+        primary: isDark ? '#60a5fa' : '#2563eb',
+        secondary: isDark ? '#22d3ee' : '#0891b2'
+        }
+    },
+    vibrant: {
+        emoji: "⚡",
+        greeting: "What's up, creative soul",
+        tagline: "Link loud. Be bold.",
+        subtitle: "Express yourself without limits",
+        description: "Turn your link into a canvas. Bright, bold, and unapologetically you.",
+        placeholder: "superstar",
+        cta: "Hell yes! →",
+        colors: {
+        primary: isDark ? '#f472b6' : '#ec4899',
+        secondary: isDark ? '#fb923c' : '#f97316'
+        }
+    }
+    }), [isDark])
 
-  const oppositePersonalityName = isVibrantPersonality ? 'Zen' : 'Vibrant'
+  const currentMood = isVibrant ? moods.vibrant : moods.zen
 
-  // Personality change handler (hold to switch personality, not theme)
-    const handlePersonalityChangeStart = (event: React.MouseEvent | React.TouchEvent) => {
+    const handleMoodChange = (event: React.MouseEvent | React.TouchEvent) => {
     event.preventDefault()
+    event.stopPropagation()
     setIsHolding(true)
     holdProgress.set(0)
     
-    const clientX = 'clientX' in event ? event.clientX : event.touches[0].clientX
-    const clientY = 'clientY' in event ? event.clientY : event.touches[0].clientY
+    // Animate progress to 1 (spring will handle animation)
+    holdProgress.set(1)
     
-    setCircleTransition({ active: true, x: clientX, y: clientY })
-    holdProgress.set(1, { duration: 0.8, ease: "linear" } as any)
-    holdTimerRef.current = setTimeout(() => triggerPersonalityTransition(), 800)
+    holdTimerRef.current = setTimeout(() => {
+        triggerMoodSwitch()
+    }, 1200)
     }
 
-  const handlePersonalityChangeEnd = () => {
-    if (holdTimerRef.current) clearTimeout(holdTimerRef.current)
+    const handleMoodEnd = (event?: React.MouseEvent | React.TouchEvent) => {
+    if (event) {
+        event.preventDefault()
+        event.stopPropagation()
+    }
+    if (holdTimerRef.current) {
+        clearTimeout(holdTimerRef.current)
+    }
     setIsHolding(false)
     holdProgress.set(0)
-    if (!isTransitioning) setCircleTransition(prev => ({ ...prev, active: false }))
-  }
+    }
 
-  const triggerPersonalityTransition = () => {
-    if(isTransitioning) return
+  const triggerMoodSwitch = () => {
+    if (isTransitioning) return
     setIsTransitioning(true)
     
+    // Add ripple effect with deterministic position for first ripple
+    const newRipple = {
+      id: Date.now(),
+      x: 50 + (Math.sin(Date.now() / 1000) * 20), // Deterministic but varied
+      y: 50 + (Math.cos(Date.now() / 1000) * 20)
+    }
+    setRipples(prev => [...prev, newRipple])
+    
     setTimeout(() => {
-      setIsVibrantPersonality(prev => !prev) // Toggle personality
-    }, 400)
+      setIsVibrant(prev => !prev)
+    }, 300)
 
     setTimeout(() => {
       setIsTransitioning(false)
-      setCircleTransition({ active: false, x: 0, y: 0 })
       setIsHolding(false)
       holdProgress.set(0)
-    }, 800)
-  }
-
-  // Quick theme toggle (separate from personality)
-  const handleThemeToggle = () => {
-    setTheme(isDarkMode ? 'light' : 'dark')
+      setRipples(prev => prev.filter(r => r.id !== newRipple.id))
+    }, 600)
   }
 
   const handleGetStarted = () => {
-    if (username.trim()) router.push(`/register?username=${username.trim()}`)
-  }
-
-  const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') handleGetStarted()
-  }
-  
-  // Content based on personality (works in both light and dark themes)
-  const content = useMemo(() => ({
-    zen: {
-      badge: "🧘‍♀️ Your Serene Space",
-      title: "One Link, Calmly Connected.",
-      highlight: "Simplify Your Digital Presence.",
-      description: "A tranquil, focused platform to unify your online identity with elegance and ease.",
-    },
-    vibrant: {
-      badge: "🎉 Express Your Spark",
-      title: "Link Loud, Live Vibrant.",
-      highlight: "Ignite Your Online Persona.",
-      description: "Unleash your creativity with a dynamic link platform that bursts with personality.",
+    if (username.trim()) {
+      // Add a little celebration ripple
+      const celebrationRipple = {
+        id: Date.now(),
+        x: 50,
+        y: 50
+      }
+      setRipples(prev => [...prev, celebrationRipple])
+      
+      setTimeout(() => {
+        router.push(`/register?username=${username.trim()}`)
+      }, 200)
     }
-  }), [])
+  }
 
-  const currentContent = isVibrantPersonality ? content.vibrant : content.zen
-  const { displayText: highlightText } = useTypewriter(currentContent.highlight, 70, 300)
+  const { displayText: subtitleText } = useTypewriter(currentMood.subtitle, 60)
+
+  // Prevent hydration mismatch by not rendering until mounted
+  if (!mounted) {
+    return (
+      <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-background via-background to-muted/30">
+        <div className="relative z-10 min-h-screen flex flex-col">
+          <header className="p-6 flex justify-between items-center">
+            <div className="text-2xl font-bold">sociolink</div>
+            <Button variant="ghost" size="icon" className="rounded-full">
+              <Sun className="w-5 h-5" />
+            </Button>
+          </header>
+          <main className="flex-1 flex flex-col items-center justify-center text-center px-6 -mt-16">
+            <div className="text-5xl md:text-7xl font-bold mb-4 tracking-tight">
+              One link. Zero chaos.
+            </div>
+          </main>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="min-h-screen relative overflow-hidden flex flex-col">
+    <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-background via-background to-muted/30">
+      
       {/* Neural Network Background */}
       <NeuralNetwork 
         mouseX={mouseX} 
         mouseY={mouseY} 
-        isDark={isDarkMode} 
-        isVibrant={isVibrantPersonality} 
+        isDark={isDark} 
+        isVibrant={isVibrant} 
       />
-      <GeometricPatterns isDark={isDarkMode} isVibrant={isVibrantPersonality} />
 
-      {/* Personality Circle Transition */}
+      {/* Mood Ripples */}
       <AnimatePresence>
-        {circleTransition.active && (
+        {ripples.map((ripple) => (
           <motion.div
-            className="fixed inset-0 pointer-events-none z-50 rounded-full"
+            key={ripple.id}
+            className="fixed inset-0 pointer-events-none"
             style={{
-              left: circleTransition.x,
-              top: circleTransition.y,
-              transform: 'translate(-50%, -50%)',
-              background: 'var(--accent)',
+              background: `radial-gradient(circle at ${ripple.x}% ${ripple.y}%, ${currentMood.colors.primary} 0%, transparent 70%)`,
             }}
-            initial={{ width: 0, height: 0, opacity: 0.5 }}
-            animate={{ 
-              width: isTransitioning ? '300vmax' : isHolding ? '150px' : '80px',
-              height: isTransitioning ? '300vmax' : isHolding ? '150px' : '80px',
-              opacity: isTransitioning ? 1 : isHolding ? 0.7 : 0.3,
-            }}
-            exit={{ width: 0, height: 0, opacity: 0 }}
-            transition={{ duration: isTransitioning ? 0.8 : 0.3, ease: [0.23, 1, 0.32, 1] }}
+            initial={{ opacity: 0, scale: 0 }}
+            animate={{ opacity: [0, 0.3, 0], scale: [0, 2, 3] }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
           />
-        )}
+        ))}
       </AnimatePresence>
 
       {/* Main Content */}
-      <AnimatePresence mode="wait">
-        <motion.main
-          key={`content-${themeConfig.name}`}
-          className="relative z-10 flex flex-1 flex-col items-center justify-center text-center p-4 sm:p-8"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: isTransitioning ? 0 : 1, y: isTransitioning ? 20 : 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.5 }}
-        >
-          {/* Badge */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.8, y: -20 }} 
-            animate={{ opacity: 1, scale: 1, y: 0 }} 
-            transition={{ duration: 0.6, delay: 0.2, type: "spring", stiffness: 180, damping: 15 }}
-            className="mb-6"
+      <div className="relative z-10 min-h-screen flex flex-col">
+        
+        {/* Header with theme toggle */}
+        <header className="p-6 flex justify-between items-center relative z-20">
+          <motion.div 
+            className="text-2xl font-bold"
+            animate={{ 
+              color: isVibrant ? currentMood.colors.primary : undefined,
+              scale: isTransitioning ? 1.05 : 1 
+            }}
+            transition={{ duration: 0.5, ease: "easeInOut" }}
           >
-            <div
-              className="px-5 py-2 text-sm sm:text-base font-medium rounded-full backdrop-blur-sm border"
+            sociolink
+          </motion.div>
+          
+          <Button
+            onClick={() => {
+              console.log('Theme button clicked!') // Debug log
+              setTheme(isDark ? 'light' : 'dark')
+            }}
+            variant="ghost"
+            size="icon"
+            className="rounded-full hover:bg-accent/10 transition-colors relative z-30 pointer-events-auto"
+          >
+            {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+          </Button>
+        </header>
+
+        {/* Hero Section */}
+        <main className="flex-1 flex flex-col items-center justify-center text-center px-6 -mt-16">
+          
+          {/* Mood indicator */}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`mood-${isVibrant}`}
+              initial={{ opacity: 0, y: 20, scale: 0.8 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: -20, scale: 0.8 }}
+              transition={{ duration: 0.5 }}
+              className="mb-8 flex items-center gap-3"
+            >
+              <span className="text-3xl">{currentMood.emoji}</span>
+              <span className="text-lg text-muted-foreground font-medium">
+                {currentMood.greeting}
+              </span>
+            </motion.div>
+          </AnimatePresence>
+
+          {/* Main heading */}
+          <AnimatePresence mode="wait">
+            <motion.h1
+              key={`title-${isVibrant}`}
+              initial={{ opacity: 0, y: 30 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -30 }}
+              transition={{ duration: 0.6, ease: [0.25, 0.46, 0.45, 0.94] }}
+              className="text-5xl md:text-7xl font-bold mb-4 tracking-tight"
               style={{
-                backgroundColor: 'var(--hero-badge-bg)',
-                borderColor: 'var(--hero-badge-border)',
-                color: 'var(--foreground)',
-                boxShadow: `0 0 15px var(--glow-color-themed)`,
+                background: isVibrant 
+                  ? `linear-gradient(45deg, ${currentMood.colors.primary}, ${currentMood.colors.secondary})`
+                  : undefined,
+                backgroundClip: isVibrant ? 'text' : 'unset',
+                WebkitBackgroundClip: isVibrant ? 'text' : 'unset',
+                color: isVibrant ? 'transparent' : undefined,
               }}
             >
-              {currentContent.badge}
-            </div>
+              {currentMood.tagline}
+            </motion.h1>
+          </AnimatePresence>
+
+          {/* Animated subtitle */}
+          <motion.div
+            className="text-xl md:text-2xl text-muted-foreground mb-8 h-8 flex items-center justify-center"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3 }}
+          >
+            {subtitleText}
+            <motion.span
+              className="ml-1 w-0.5 h-6"
+              style={{ backgroundColor: currentMood.colors.primary }}
+              animate={{ opacity: [1, 0] }}
+              transition={{ duration: 0.8, repeat: Infinity, repeatType: "reverse" }}
+            />
           </motion.div>
 
-          {/* Title */}
-          <motion.h1
-            initial={{ opacity: 0, y: -30 }} 
-            animate={{ opacity: 1, y: 0 }} 
-            transition={{ duration: 0.6, delay: 0.4, type: "spring", stiffness: 120, damping: 20 }}
-            className="text-4xl sm:text-5xl md:text-6xl font-bold mb-4 text-foreground"
-            style={{
-              textShadow: `0 0 20px var(--glow-color-themed)`,
-            }}
-          >
-            {currentContent.title}
-          </motion.h1>
-          
-          {/* Highlight Text */}
-          <motion.h2
-            initial={{ opacity: 0 }} 
-            animate={{ opacity: 1 }} 
-            transition={{ duration: 0.5, delay: 0.7 }}
-            className="text-2xl sm:text-3xl md:text-4xl font-semibold mb-6 bg-clip-text text-transparent min-h-[2.5rem] sm:min-h-[3rem] flex items-center justify-center"
-            style={{
-              backgroundImage: `linear-gradient(135deg, var(--accent-gradient-start) 0%, var(--accent-gradient-end) 100%)`,
-              WebkitBackgroundClip: 'text',
-              backgroundClip: 'text',
-            }}
-          >
-            <span className="relative">
-              {highlightText}
-              <motion.span
-                className="absolute -right-1 top-0 w-0.5 h-full"
-                style={{ backgroundColor: 'var(--accent)' }}
-                animate={{ opacity: [1, 0] }}
-                transition={{ duration: 0.7, repeat: Infinity, repeatType: "mirror" }}
-              />
-            </span>
-          </motion.h2>
-
-          {/* Description */}
-          <motion.p
-            initial={{ opacity: 0, y: 20 }} 
-            animate={{ opacity: 1, y: 0 }} 
-            transition={{ duration: 0.6, delay: 1.0 }}
-            className="text-md sm:text-lg md:text-xl max-w-xl mx-auto mb-10 leading-relaxed text-muted-foreground"
-          >
-            {currentContent.description}
-          </motion.p>
-
-          {/* Input Section */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.95 }} 
-            animate={{ opacity: 1, scale: 1 }} 
-            transition={{ duration: 0.6, delay: 1.3 }}
-            className="w-full max-w-md mx-auto mb-12"
-          >
-            <div 
-              className="relative rounded-xl shadow-xl p-1.5 backdrop-blur-md border"
-              style={{
-                backgroundColor: 'var(--themed-input-bg)',
-                borderColor: 'var(--themed-input-border)',
-                boxShadow: `0 0 30px var(--glow-color-themed)`,
-              }}
+          <AnimatePresence mode="wait">
+            <motion.p
+              key={`desc-${isVibrant}`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ delay: 0.5, duration: 0.5 }}
+              className="text-lg text-muted-foreground max-w-md mb-12 leading-relaxed"
             >
-              <div className="flex items-center">
-                <span className="px-3 py-3 text-sm sm:text-base whitespace-nowrap font-medium text-muted-foreground">
-                  sociolink.app/
-                </span>
-                <Input
-                  type="text"
-                  placeholder="yourname"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  onKeyPress={handleKeyPress}
-                  className="flex-1 border-0 bg-transparent text-md sm:text-lg placeholder-opacity-70 focus-visible:ring-0 focus-visible:ring-offset-0 py-3 font-medium text-foreground"
-                />
-                <Button
-                  onClick={handleGetStarted}
-                  disabled={!username.trim()}
-                  className="rounded-lg px-4 py-3 sm:px-5 sm:py-3.5 transition-all duration-300 hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 font-semibold text-sm sm:text-base shadow-md border-0 m-1 text-primary-foreground"
-                  style={{
-                    backgroundImage: username.trim() ? `linear-gradient(135deg, var(--accent-gradient-start) 0%, var(--accent-gradient-end) 100%)` : 'none',
-                    backgroundColor: username.trim() ? 'transparent' : 'var(--themed-input-bg)',
-                    boxShadow: username.trim() ? `0 0 15px var(--glow-color-themed)` : 'none',
-                  }}
-                >
-                  <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5" />
-                </Button>
+              {currentMood.description}
+            </motion.p>
+          </AnimatePresence>
+
+          {/* Input section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+            className="w-full max-w-md"
+          >
+            <div className="relative group">
+              <div 
+                className="absolute -inset-1 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-300"
+                style={{
+                  background: `linear-gradient(45deg, ${currentMood.colors.primary}, ${currentMood.colors.secondary})`
+                }}
+              />
+              
+              <div className="relative bg-card border rounded-xl p-2 backdrop-blur-sm">
+                <div className="flex items-center">
+                  <span className="px-4 py-3 text-muted-foreground text-sm font-mono">
+                    sociolink.app/
+                  </span>
+                  
+                  <Input
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    onKeyPress={(e) => e.key === 'Enter' && handleGetStarted()}
+                    placeholder={currentMood.placeholder}
+                    className="flex-1 border-0 bg-transparent text-lg focus-visible:ring-0 placeholder:text-muted-foreground/50"
+                  />
+                  
+                  <Button
+                    onClick={handleGetStarted}
+                    disabled={!username.trim()}
+                    className="ml-2 rounded-lg px-6 transition-all duration-300"
+                    style={{
+                      backgroundColor: username.trim() ? currentMood.colors.primary : undefined,
+                      color: username.trim() ? '#ffffff' : undefined
+                    }}
+                  >
+                    {username.trim() ? currentMood.cta : 'Enter name'}
+                  </Button>
+                </div>
               </div>
             </div>
-            <p className="mt-3 text-xs sm:text-sm text-center text-muted-foreground">
-              Claim your unique link.
-            </p>
-          </motion.div>
-        </motion.main>
-      </AnimatePresence>
-
-
-
-      {/* Personality Toggle (bottom right) */}
-      <motion.div
-        className="fixed bottom-6 right-6 sm:bottom-8 sm:right-8 z-40"
-        initial={{ opacity: 0, scale: 0 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.5, delay: 1.8 }}
-      >
-        <div className="relative group">
-          <svg 
-            className="absolute inset-0 w-14 h-14 sm:w-16 sm:h-16 -rotate-90 transition-opacity duration-300"
-            style={{ opacity: isHolding ? 1 : 0 }}
-            viewBox="0 0 64 64"
-          >
-            <circle cx="32" cy="32" r="29" stroke="var(--themed-input-border)" strokeWidth="1.5" fill="none" />
-            <motion.circle
-              cx="32" cy="32" r="29"
-              stroke="var(--accent)" strokeWidth="2.5"
-              fill="none" strokeLinecap="round"
-              style={{ pathLength: holdProgress, strokeDasharray: "0 1" }}
-            />
-          </svg>
-
-          <Button
-            onMouseDown={handlePersonalityChangeStart}
-            onMouseUp={handlePersonalityChangeEnd}
-            onMouseLeave={handlePersonalityChangeEnd}
-            onTouchStart={handlePersonalityChangeStart}
-            onTouchEnd={handlePersonalityChangeEnd}
-            aria-label={`Switch to ${oppositePersonalityName} personality`}
-            className="w-14 h-14 sm:w-16 sm:h-16 rounded-full shadow-xl transition-all duration-300 border backdrop-blur-md font-bold relative overflow-hidden flex items-center justify-center text-foreground"
-            style={{
-              backgroundColor: 'var(--themed-input-bg)', 
-              borderColor: 'var(--themed-input-border)',
-              boxShadow: `0 0 25px var(--glow-color-themed)`,
-            }}
-          >
-            <motion.div
-              animate={{ scale: isHolding ? 1.1 : 1, rotate: isHolding ? (isVibrantPersonality ? -90 : 90) : 0 }}
-              transition={{ duration: 0.3 }}
-              className="flex items-center justify-center"
+            
+            <motion.p 
+              className="mt-4 text-xs text-muted-foreground text-center"
+              animate={{ opacity: username.trim() ? 1 : 0.5 }}
             >
-              {React.createElement(themeConfig.personalityIcon, { className: "w-6 h-6 sm:w-7 sm:h-7" })}
-            </motion.div>
-          </Button>
-          
-          <motion.div
-            className="absolute left-1/2 -translate-x-1/2 -top-10 px-2.5 py-1.5 rounded-md text-xs font-medium whitespace-nowrap pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-            style={{
-              backgroundColor: 'var(--themed-input-bg)',
-              color: 'var(--foreground)',
-              border: `1px solid var(--themed-input-border)`,
-              boxShadow: `0 2px 5px var(--glow-color-themed)`,
-            }}
-            initial={{ y: 5 }}
-            animate={{ y: 0 }}
-          >
-            Hold to switch personality
+              {username.trim() ? "Ready to claim your space? 🚀" : "Your digital home awaits"}
+            </motion.p>
           </motion.div>
-        </div>
-      </motion.div>
+        </main>
+
+        {/* Floating mood switcher */}
+        <motion.div
+          className="fixed bottom-8 right-8 z-50"
+          initial={{ opacity: 0, scale: 0 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ delay: 1.2 }}
+        >
+          <div className="relative group pointer-events-auto">
+            {/* Progress ring */}
+            <svg 
+              className="absolute inset-0 w-14 h-14 -rotate-90 transition-opacity duration-200 pointer-events-none"
+              style={{ opacity: isHolding ? 1 : 0 }}
+            >
+              <circle cx="28" cy="28" r="26" stroke="currentColor" strokeWidth="1" fill="none" className="text-muted-foreground/20" />
+              <motion.circle
+                cx="28" cy="28" r="26"
+                stroke={currentMood.colors.primary}
+                strokeWidth="2"
+                fill="none" 
+                strokeLinecap="round"
+                style={{ 
+                  pathLength: holdProgress,
+                  strokeDasharray: "0 1"
+                }}
+              />
+            </svg>
+
+            <Button
+            onMouseDown={handleMoodChange}
+            onMouseUp={handleMoodEnd}
+            onMouseLeave={handleMoodEnd}
+            onTouchStart={handleMoodChange}
+            onTouchEnd={handleMoodEnd}
+            className="w-14 h-14 rounded-full glass-card hover-lift stable-layout relative z-10"
+            style={{
+                borderColor: `${currentMood.colors.primary}20`
+            }}
+            >
+            <motion.div
+                animate={{ 
+                rotate: isHolding ? 180 : 0,
+                scale: isHolding ? 1.1 : 1 
+                }}
+                transition={{ duration: 0.3 }}
+                style={{ color: currentMood.colors.primary }}
+            >
+                {isVibrant ? <Wind className="w-5 h-5" /> : <Sparkles className="w-5 h-5" />}
+            </motion.div>
+            </Button>
+
+            {/* Tooltip */}
+            <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 px-3 py-1.5 bg-popover border rounded-lg text-xs whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
+              Hold to switch vibe
+            </div>
+          </div>
+        </motion.div>
+      </div>
     </div>
   )
 }

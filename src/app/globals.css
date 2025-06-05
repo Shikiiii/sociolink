@@ -22,8 +22,8 @@
   --color-chart-2: var(--chart-2);
   --color-chart-1: var(--chart-1);
   --color-ring: var(--ring);
-  --color-input: var(--input); /* Base input background */
-  --color-border: var(--border); /* Base border color */
+  --color-input: var(--input);
+  --color-border: var(--border);
   --color-destructive: var(--destructive);
   --color-accent-foreground: var(--accent-foreground);
   --color-accent: var(--accent);
@@ -42,151 +42,216 @@
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
 
-  /* New variables for landing page specifics */
-  --main-bg-gradient-start: var(--main-bg-start);
-  --main-bg-gradient-mid: var(--main-bg-mid);
-  --main-bg-gradient-end: var(--main-bg-end);
-  --accent-gradient-start: var(--accent-grad-start);
-  --accent-gradient-end: var(--accent-grad-end);
-  --hero-badge-bg: var(--hero-badge-background);
-  --hero-badge-border: var(--hero-badge-border-color);
-  --themed-input-bg: var(--input-background-themed);
-  --themed-input-border: var(--input-border-themed);
-  --themed-input-placeholder: var(--input-placeholder-themed);
-  --glow-color-themed: var(--glow);
-  --orb-opacity-themed: var(--orb-opacity);
-  --orb-blur-themed: var(--orb-blur);
-  --orb-color-1: var(--orb-c1);
-  --orb-color-2: var(--orb-c2);
-  --orb-color-3: var(--orb-c3);
-  --orb-color-4: var(--orb-c4);
-  --pattern-color-1: var(--pattern-c1);
-  --pattern-color-2: var(--pattern-c2);
-  --transition-circle-bg: var(--accent); /* Use current theme's accent for simplicity */
+  /* Mood-specific colors */
+  --color-zen-primary: var(--zen-primary);
+  --color-zen-secondary: var(--zen-secondary);
+  --color-vibrant-primary: var(--vibrant-primary);
+  --color-vibrant-secondary: var(--vibrant-secondary);
 }
 
 :root {
-  --radius: 0.625rem;
-  /* Existing variables */
-  --background: oklch(1 0 0); /* White */
-  --foreground: oklch(0.145 0 0); /* Near black */
-  --card: oklch(1 0 0);
-  --card-foreground: oklch(0.145 0 0);
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.145 0 0);
-  --primary: oklch(0.205 0 0);
-  --primary-foreground: oklch(0.985 0 0);
-  --secondary: oklch(0.97 0 0);
-  --secondary-foreground: oklch(0.205 0 0);
-  --muted: oklch(0.97 0 0);
-  --muted-foreground: oklch(0.556 0 0);
-  --accent: oklch(0.618 0.179 219.23); /* Calming Blue (Zen Accent) */
-  --accent-foreground: oklch(0.985 0 0);
-  --destructive: oklch(0.577 0.245 27.325);
-  --border: oklch(0.922 0 0);
-  --input: oklch(0.922 0 0);
-  --ring: oklch(0.708 0 0);
-  --chart-1: oklch(0.646 0.222 41.116);
-  --chart-2: oklch(0.6 0.118 184.704);
-  --chart-3: oklch(0.398 0.07 227.392);
-  --chart-4: oklch(0.828 0.189 84.429);
-  --chart-5: oklch(0.769 0.188 70.08);
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
-  --sidebar-primary: oklch(0.205 0 0);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
-  --sidebar-ring: oklch(0.708 0 0);
+  --radius: 0.5rem;
+  
+  /* Base theme colors - Light */
+  --background: #ffffff;
+  --foreground: #0a0a0a;
+  --card: #ffffff;
+  --card-foreground: #0a0a0a;
+  --popover: #ffffff;
+  --popover-foreground: #0a0a0a;
+  --primary: #171717;
+  --primary-foreground: #fafafa;
+  --secondary: #f5f5f5;
+  --secondary-foreground: #171717;
+  --muted: #f5f5f5;
+  --muted-foreground: #737373;
+  --accent: #f5f5f5;
+  --accent-foreground: #171717;
+  --destructive: #ef4444;
+  --border: #e5e5e5;
+  --input: #e5e5e5;
+  --ring: #171717;
+  
+  /* Chart colors */
+  --chart-1: #2563eb;
+  --chart-2: #16a34a;
+  --chart-3: #dc2626;
+  --chart-4: #ca8a04;
+  --chart-5: #7c3aed;
+  
+  /* Sidebar */
+  --sidebar: #f8fafc;
+  --sidebar-foreground: #0f172a;
+  --sidebar-primary: #0f172a;
+  --sidebar-primary-foreground: #f8fafc;
+  --sidebar-accent: #f1f5f9;
+  --sidebar-accent-foreground: #0f172a;
+  --sidebar-border: #e2e8f0;
+  --sidebar-ring: #0f172a;
 
-  /* Landing Page Specific - Light Theme (Zen) */
-  --main-bg-start: oklch(0.95 0.02 200 / 0.7); /* Light, airy blueish */
-  --main-bg-mid: oklch(1 0 0 / 0.8); /* Whiter, transparent */
-  --main-bg-end: oklch(0.93 0.03 210 / 0.6);   /* Light, airy tealish */
-  --accent-grad-start: oklch(0.618 0.179 219.23); /* Zen Accent Blue */
-  --accent-grad-end: oklch(0.58 0.15 225);    /* Slightly darker blue */
-  --hero-badge-background: oklch(1 0 0 / 0.8); /* White, semi-transparent */
-  --hero-badge-border-color: oklch(0.618 0.179 219.23 / 0.5);
-  --input-background-themed: oklch(1 0 0 / 0.65); /* Frosted glass */
-  --input-border-themed: oklch(0.618 0.179 219.23 / 0.4);
-  --input-placeholder-themed: oklch(0.4 0.01 220 / 0.5);
-  --glow: oklch(0.618 0.179 219.23 / 0.25);
-  --orb-opacity: 0.5;
-  --orb-blur: '12px';
-  --orb-c1: oklch(0.618 0.179 219.23 / 0.5); /* Zen Accent Blue */
-  --orb-c2: oklch(0.75 0.15 150 / 0.5);   /* Light Green */
-  --orb-c3: oklch(0.7 0.1 260 / 0.5);    /* Light Purple */
-  --orb-c4: oklch(0.85 0.15 50 / 0.5);    /* Light Yellow */
-  --pattern-c1: oklch(0.618 0.179 219.23);
-  --pattern-c2: oklch(0.75 0.15 150);
+  /* Zen mood colors - Light */
+  --zen-primary: #2563eb;
+  --zen-secondary: #0891b2;
+  
+  /* Vibrant mood colors - Light */
+  --vibrant-primary: #ec4899;
+  --vibrant-secondary: #f97316;
 }
 
 .dark {
-  /* Existing dark theme variables */
-  --background: oklch(0.145 0 0); /* Near black */
-  --foreground: oklch(0.985 0 0); /* Near white */
-  --card: oklch(0.205 0 0);
-  --card-foreground: oklch(0.985 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.985 0 0);
-  --primary: oklch(0.922 0 0);
-  --primary-foreground: oklch(0.205 0 0);
-  --secondary: oklch(0.269 0 0);
-  --secondary-foreground: oklch(0.985 0 0);
-  --muted: oklch(0.269 0 0);
-  --muted-foreground: oklch(0.708 0 0);
-  --accent: oklch(0.704 0.231 327.27); /* Vibrant Pink (Vibrant Accent) */
-  --accent-foreground: oklch(0.145 0 0);
-  --destructive: oklch(0.704 0.191 22.216);
-  --border: oklch(1 0 0 / 0.1);
-  --input: oklch(1 0 0 / 0.15);
-  --ring: oklch(0.556 0 0);
-  --chart-1: oklch(0.488 0.243 264.376);
-  --chart-2: oklch(0.696 0.17 162.48);
-  --chart-3: oklch(0.769 0.188 70.08);
-  --chart-4: oklch(0.627 0.265 303.9);
-  --chart-5: oklch(0.645 0.246 16.439);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: oklch(0.488 0.243 264.376);
-  --sidebar-primary-foreground: oklch(0.985 0 0);
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 0.1);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* Base theme colors - Dark */
+  --background: #0a0a0a;
+  --foreground: #fafafa;
+  --card: #0a0a0a;
+  --card-foreground: #fafafa;
+  --popover: #0a0a0a;
+  --popover-foreground: #fafafa;
+  --primary: #fafafa;
+  --primary-foreground: #0a0a0a;
+  --secondary: #262626;
+  --secondary-foreground: #fafafa;
+  --muted: #262626;
+  --muted-foreground: #a3a3a3;
+  --accent: #262626;
+  --accent-foreground: #fafafa;
+  --destructive: #ef4444;
+  --border: #262626;
+  --input: #262626;
+  --ring: #d4d4d8;
+  
+  /* Chart colors - Dark */
+  --chart-1: #3b82f6;
+  --chart-2: #22c55e;
+  --chart-3: #f87171;
+  --chart-4: #fbbf24;
+  --chart-5: #a78bfa;
+  
+  /* Sidebar - Dark */
+  --sidebar: #020617;
+  --sidebar-foreground: #f8fafc;
+  --sidebar-primary: #f8fafc;
+  --sidebar-primary-foreground: #020617;
+  --sidebar-accent: #0f172a;
+  --sidebar-accent-foreground: #f8fafc;
+  --sidebar-border: #1e293b;
+  --sidebar-ring: #f8fafc;
 
-  /* Landing Page Specific - Dark Theme (Vibrant) */
-  --main-bg-start: oklch(0.2 0.05 290 / 0.7); /* Dark Purpleish */
-  --main-bg-mid: oklch(0.15 0.03 320 / 0.6); /* Darker Pinkish */
-  --main-bg-end: oklch(0.1 0.02 260 / 0.8);   /* Very Dark Blue/Purple */
-  --accent-grad-start: oklch(0.704 0.231 327.27); /* Vibrant Pink */
-  --accent-grad-end: oklch(0.65 0.25 15);      /* Vibrant Orange/Red */
-  --hero-badge-background: oklch(0.1 0.01 0 / 0.4); /* Dark, semi-transparent */
-  --hero-badge-border-color: oklch(0.704 0.231 327.27 / 0.6);
-  --input-background-themed: oklch(0.12 0.01 260 / 0.65); /* Darker glass */
-  --input-border-themed: oklch(0.704 0.231 327.27 / 0.5);
-  --input-placeholder-themed: oklch(0.7 0.02 300 / 0.5);
-  --glow: oklch(0.704 0.231 327.27 / 0.35);
-  --orb-opacity: 0.7;
-  --orb-blur: '15px';
-  --orb-c1: oklch(0.704 0.231 327.27); /* Vibrant Pink */
-  --orb-c2: oklch(0.75 0.28 30);    /* Vibrant Orange */
-  --orb-c3: oklch(0.6 0.2 270);     /* Vibrant Purple */
-  --orb-c4: oklch(0.7 0.22 180);    /* Vibrant Teal */
-  --pattern-c1: oklch(0.704 0.231 327.27);
-  --pattern-c2: oklch(0.75 0.28 30);
+  /* Zen mood colors - Dark */
+  --zen-primary: #60a5fa;
+  --zen-secondary: #22d3ee;
+  
+  /* Vibrant mood colors - Dark */
+  --vibrant-primary: #f472b6;
+  --vibrant-secondary: #fb923c;
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
   }
+  
   body {
     @apply bg-background text-foreground;
-    /* Apply main background gradient using CSS variables */
-    background-image: linear-gradient(135deg, var(--main-bg-gradient-start) 0%, var(--main-bg-gradient-mid) 50%, var(--main-bg-gradient-end) 100%);
-    transition: background-image 0.8s ease-in-out; /* Smooth gradient transition */
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  /* Remove the global transition that's causing issues */
+  button, input {
+    transition: none;
+  }
+  
+  /* Add specific transitions only where needed */
+  .smooth-transition {
+    transition: all 0.2s ease-in-out;
+  }
+  
+  /* Better scrollbars */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    background: hsl(var(--muted-foreground) / 0.3);
+    border-radius: 3px;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--muted-foreground) / 0.5);
   }
 }
 
+/* Custom utility classes for landing page */
+@layer utilities {
+  .mood-transition {
+    transition: color 0.3s ease, background-color 0.3s ease, border-color 0.3s ease, transform 0.3s ease;
+  }
+  
+  .zen-colors {
+    --mood-primary: var(--zen-primary);
+    --mood-secondary: var(--zen-secondary);
+  }
+  
+  .vibrant-colors {
+    --mood-primary: var(--vibrant-primary);
+    --mood-secondary: var(--vibrant-secondary);
+  }
+  
+  .text-mood-primary {
+    color: hsl(var(--mood-primary));
+  }
+  
+  .bg-mood-primary {
+    background-color: hsl(var(--mood-primary));
+  }
+  
+  .border-mood-primary {
+    border-color: hsl(var(--mood-primary));
+  }
+  
+  .glass-card {
+    background: hsl(var(--card) / 0.8);
+    backdrop-filter: blur(8px);
+    border: 1px solid hsl(var(--border) / 0.5);
+  }
+  
+  .hover-lift {
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  .hover-lift:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  /* Fix for button hover states */
+  .btn-ghost {
+    background: transparent;
+    border: 1px solid transparent;
+    transition: background-color 0.2s ease, border-color 0.2s ease;
+  }
+  
+  .btn-ghost:hover {
+    background: hsl(var(--accent) / 0.1);
+    border-color: hsl(var(--border));
+  }
+  
+  /* Prevent layout shifts during mood transitions */
+  .stable-layout {
+    contain: layout;
+  }
+  
+  /* Progress ring styles */
+  .progress-ring {
+    transform-origin: center;
+    transform: rotate(-90deg);
+  }
+  
+  .progress-circle {
+    stroke-dasharray: 160;
+    stroke-dashoffset: 160;
+    transition: stroke-dashoffset 0.1s linear;
+  }
+}
