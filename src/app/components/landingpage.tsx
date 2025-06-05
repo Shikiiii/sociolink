@@ -164,6 +164,8 @@ const LandingPage = () => {
   const mouseY = useMotionValue(0)
   const holdProgress = useSpring(0, { damping: 25, stiffness: 200 })
 
+  console.log('Current state:', { isLoggedIn, loggedInUsername }); // Add this line
+
   // Check if user is logged in by looking for access_token cookie
   useEffect(() => {
   console.log('Checking auth status...'); // Debug log
@@ -175,6 +177,7 @@ const LandingPage = () => {
       ?.split('=')[1]
 
     console.log('Access token found:', !!accessToken); // Debug log
+    console.log('Current state:', { isLoggedIn, loggedInUsername });
 
     if (accessToken && accessToken !== 'null') {
       setIsLoggedIn(true)
@@ -182,9 +185,15 @@ const LandingPage = () => {
       // Fetch user profile to get username
       fetch('/api/profile', {
         credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${accessToken}`, // Add explicit auth header
+        },
       })
         .then(res => {
           console.log('Profile API response status:', res.status); // Debug log
+          if (!res.ok) {
+            throw new Error(`HTTP ${res.status}`);
+          }
           return res.json();
         })
         .then(data => {
@@ -194,12 +203,16 @@ const LandingPage = () => {
             console.log('Username set to:', data.username); // Debug log
           } else {
             console.error('No username in profile data');
+            // If no username, user might need to complete registration
+            setIsLoggedIn(false);
           }
         })
         .catch(err => {
           console.error('Profile fetch error:', err); // Debug log
           // If profile fetch fails, user might not be properly logged in
           setIsLoggedIn(false)
+          // Optionally clear the invalid token
+          document.cookie = 'access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
         })
     } else {
       setIsLoggedIn(false)
@@ -336,8 +349,8 @@ const handleGetStarted = () => {
   if (isLoggedIn) {
     if (!loggedInUsername) {
       console.error('User is logged in but username is missing');
-      // Fallback - try to redirect to profile page or show error
-      router.push('/profile'); // or wherever you want to redirect as fallback
+      // Try to refetch profile or redirect to complete registration
+      window.location.href = '/complete-profile'; // or wherever you handle this
       return;
     }
     
