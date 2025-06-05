@@ -3,14 +3,13 @@
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Avatar } from '@/components/ui/avatar'
 import { 
-  Link,
   Sun,
   Moon,
   LogOut,
   User,
-  LucideLogIn
+  LogIn
 } from 'lucide-react'
 import { useTheme } from 'next-themes'
 import { useRouter } from 'next/navigation'
@@ -19,12 +18,16 @@ const Header = () => {
   const [isVisible, setIsVisible] = useState(true)
   const [lastScrollY, setLastScrollY] = useState(0)
   const [isHovering, setIsHovering] = useState(false)
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false)
+  const [mounted, setMounted] = useState(false)
   const { theme, setTheme } = useTheme()
   const router = useRouter()
 
+  // Fix hydration issue
   useEffect(() => {
-    // get access_token from cookies, if its there and it isnt null, then setIsLoggedIn true
+    setMounted(true)
+    
+    // Check login status
     const accessToken = document.cookie
       .split('; ')
       .find(row => row.startsWith('access_token='))
@@ -55,9 +58,10 @@ const Header = () => {
   }, [lastScrollY])
 
   const shouldShow = isVisible || isHovering
+  const isDark = theme === 'dark'
 
   const handleThemeToggle = () => {
-    setTheme(theme === 'dark' ? 'light' : 'dark')
+    setTheme(isDark ? 'light' : 'dark')
   }
 
   const handleProfileClick = () => {
@@ -65,7 +69,6 @@ const Header = () => {
   }
 
   const handleLogout = async () => {
-    // ping api/auth/logout, POST request, include credentials
     await fetch('/api/auth/logout', {
       method: 'POST',
       credentials: 'include',
@@ -77,114 +80,94 @@ const Header = () => {
     router.push('/login')
   }
 
-  const isDarkMode = theme === 'dark'
+  // Prevent hydration mismatch
+  if (!mounted) {
+    return <div className="h-14" />
+  }
 
   return (
     <>
-      {/* Header height spacer to push content down */}
-      <div className="h-16" />
+      {/* Header height spacer */}
+      <div className="h-14" />
       
       <div
-        className="fixed top-0 left-0 right-0 z-50 h-16"
+        className="fixed top-0 left-0 right-0 z-50 h-14"
         onMouseEnter={() => setIsHovering(true)}
         onMouseLeave={() => setIsHovering(false)}
       >
         <AnimatePresence>
           {shouldShow && (
             <motion.header
-              initial={{ y: -100, opacity: 0 }}
+              initial={{ y: -56, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
-              exit={{ y: -100, opacity: 0 }}
+              exit={{ y: -56, opacity: 0 }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="w-full backdrop-blur-xl border-b"
-              style={{
-                backgroundColor: 'var(--themed-input-bg)',
-                borderColor: 'var(--themed-input-border)',
-              }}
+              className="w-full backdrop-blur-xl border-b border-border/50 bg-background/80"
             >
-              <div className="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
-                {/* Logo */}
+              <div className="p-6 flex justify-between items-center relative z-20">
+                
+                {/* Logo - matching landing page exactly */}
                 <motion.div 
-                  className="flex items-center space-x-3 cursor-pointer"
+                  className="text-2xl font-bold cursor-pointer"
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   onClick={() => router.push('/')}
+                  transition={{ duration: 0.5, ease: "easeInOut" }}
                 >
-                  <div 
-                    className="w-8 h-8 rounded-xl flex items-center justify-center"
-                    style={{
-                      backgroundImage: `linear-gradient(135deg, var(--accent-gradient-start) 0%, var(--accent-gradient-end) 100%)`,
-                    }}
-                  >
-                    <Link className="w-5 h-5 text-white" />
-                  </div>
-                  <span 
-                    className="text-xl font-bold bg-clip-text text-transparent"
-                    style={{
-                      backgroundImage: `linear-gradient(135deg, var(--accent-gradient-start) 0%, var(--accent-gradient-end) 100%)`,
-                      WebkitBackgroundClip: 'text',
-                      backgroundClip: 'text',
-                    }}
-                  >
-                    SocioLink
-                  </span>
+                  sociolink
                 </motion.div>
 
                 {/* Right side controls */}
-                <div className="flex items-center space-x-3">
+                <div className="flex items-center space-x-2">
+                  
                   {/* Theme Toggle */}
                   <Button
                     onClick={handleThemeToggle}
-                    className="w-10 h-10 rounded-full border text-foreground hover:scale-105 transition-transform"
-                    style={{
-                      backgroundColor: 'var(--themed-input-bg)', 
-                      borderColor: 'var(--themed-input-border)',
-                    }}
+                    variant="ghost"
+                    size="icon"
+                    className="rounded-full hover:bg-accent/10 transition-colors relative z-30 pointer-events-auto"
                   >
-                    {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+                    {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
                   </Button>
 
-                  {/* Profile Avatar */}
-                  <div className="flex items-center">
-                    {isLoggedIn ? (
-                      <>
-                        <Button
-                          onClick={handleProfileClick}
-                          variant="ghost"
-                          className="h-10 w-10 p-0 rounded-full hover:scale-105 transition-transform"
-                        >
-                          <Avatar className="w-10 h-10 border-2" style={{ borderColor: 'var(--themed-input-border)' }}>
-                            <User className="w-4 h-4" />
-                          </Avatar>
-                        </Button>
+                  {/* Auth Section */}
+                  {isLoggedIn ? (
+                    <div className="flex items-center space-x-1">
+                      {/* Profile Button */}
+                      <Button
+                        onClick={handleProfileClick}
+                        variant="ghost"
+                        size="sm"
+                        className="w-9 h-9 p-0 rounded-full glass-effect transition-all duration-300"
+                      >
+                        <Avatar className="w-7 h-7 border border-border/50">
+                          <div className="w-full h-full bg-muted flex items-center justify-center">
+                            <User className="w-3.5 h-3.5 text-muted-foreground" />
+                          </div>
+                        </Avatar>
+                      </Button>
 
-                        {/* Logout Button */}
-                        <Button
-                          onClick={handleLogout}
-                          variant="ghost"
-                          className="w-10 h-10 rounded-full border text-foreground hover:scale-105 transition-transform hover:text-red-500"
-                          style={{
-                            backgroundColor: 'var(--themed-input-bg)', 
-                            borderColor: 'var(--themed-input-border)',
-                          }}
-                        >
-                          <LogOut className="w-4 h-4" />
-                        </Button>
-                      </>
-                    ) : (
-                      <div className="flex items-center">
-                        <Button
-                          onClick={handleLogin}
-                          variant="ghost"
-                          className="h-10 w-10 p-0 rounded-full hover:scale-105 transition-transform"
-                        >
-                          <Avatar className="w-10 h-10 border-2" style={{ borderColor: 'var(--themed-input-border)' }}>
-                            <LucideLogIn className="w-4 h-4" />
-                          </Avatar>
-                        </Button>
-                      </div>
+                      {/* Logout Button */}
+                      <Button
+                        onClick={handleLogout}
+                        variant="ghost"
+                        size="sm"
+                        className="w-9 h-9 rounded-full glass-effect hover:bg-red-500/10 hover:text-red-500 transition-all duration-300"
+                      >
+                        <LogOut className="w-4 h-4" />
+                      </Button>
+                    </div>
+                  ) : (
+                    <Button
+                      onClick={handleLogin}
+                      variant="ghost"
+                      size="sm"
+                      className="flex items-center space-x-2 h-9 px-3 rounded-full glass-effect transition-all duration-300"
+                    >
+                      <LogIn className="w-4 h-4" />
+                      <span className="text-sm font-medium">Sign in</span>
+                    </Button>
                   )}
-                  </div>
                 </div>
               </div>
             </motion.header>

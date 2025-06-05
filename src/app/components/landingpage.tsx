@@ -326,30 +326,7 @@ const LandingPage = () => {
       <div className="relative z-10 min-h-screen flex flex-col">
         
         {/* Header with theme toggle */}
-        <header className="p-6 flex justify-between items-center relative z-20">
-          <motion.div 
-            className="text-2xl font-bold"
-            animate={{ 
-              color: isVibrant ? currentMood.colors.primary : undefined,
-              scale: isTransitioning ? 1.05 : 1 
-            }}
-            transition={{ duration: 0.5, ease: "easeInOut" }}
-          >
-            sociolink
-          </motion.div>
-          
-          <Button
-            onClick={() => {
-              console.log('Theme button clicked!') // Debug log
-              setTheme(isDark ? 'light' : 'dark')
-            }}
-            variant="ghost"
-            size="icon"
-            className="rounded-full hover:bg-accent/10 transition-colors relative z-30 pointer-events-auto"
-          >
-            {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-          </Button>
-        </header>
+        
 
         {/* Hero Section */}
         <main className="flex-1 flex flex-col items-center justify-center text-center px-6 -mt-16">
