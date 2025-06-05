@@ -176,50 +176,42 @@ const LandingPage = () => {
       .find(row => row.startsWith('access_token='))
       ?.split('=')[1]
 
-    console.log('Access token found:', !!accessToken); // Debug log
-    console.log('Current state:', { isLoggedIn, loggedInUsername });
-
-    if (accessToken && accessToken !== 'null') {
-      setIsLoggedIn(true)
-      
-      // Fetch user profile to get username
-      fetch('/api/profile', {
-        credentials: 'include',
-        headers: {
-          'Authorization': `Bearer ${accessToken}`, // Add explicit auth header
-        },
-      })
-        .then(res => {
-          console.log('Profile API response status:', res.status); // Debug log
-          if (!res.ok) {
-            throw new Error(`HTTP ${res.status}`);
-          }
-          return res.json();
-        })
-        .then(data => {
-          console.log('Profile data:', data); // Debug log
-          if (data.username) {
-            setLoggedInUsername(data.username)
-            console.log('Username set to:', data.username); // Debug log
+      // decode only the payload of the access token, it should contain user_name, use setLoggedInUsername
+      if (accessToken) {
+        try {
+          // JWT format: header.payload.signature
+          const payload = accessToken.split('.')[1]
+          if (payload) {
+            const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')))
+            if (decoded && decoded.user_name) {
+              setLoggedInUsername(decoded.user_name)
+              setIsLoggedIn(true)
+              console.log('User logged in as:', decoded.user_name)
+            } else {
+              setIsLoggedIn(false)
+              setLoggedInUsername('')
+              console.log('No user_name in token payload')
+            }
           } else {
-            console.error('No username in profile data');
-            // If no username, user might need to complete registration
-            setIsLoggedIn(false);
+            setIsLoggedIn(false)
+            setLoggedInUsername('')
+            console.log('No payload in access token')
           }
-        })
-        .catch(err => {
-          console.error('Profile fetch error:', err); // Debug log
-          // If profile fetch fails, user might not be properly logged in
+        } catch (e) {
           setIsLoggedIn(false)
-          // Optionally clear the invalid token
-          document.cookie = 'access_token=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
-        })
+          setLoggedInUsername('')
+          console.error('Failed to decode access token', e)
+        }
+      } else {
+        setIsLoggedIn(false)
+        setLoggedInUsername('')
+        console.log('No access token found')
+      }
     } else {
       setIsLoggedIn(false)
       console.log('User not logged in'); // Debug log
     }
-  }
-}, [])
+  }, [])
 
   // Debounce username check for availability (only when not logged in)
   useEffect(() => {
@@ -346,14 +338,7 @@ const LandingPage = () => {
 const handleGetStarted = () => {
   console.log('handleGetStarted called', { isLoggedIn, loggedInUsername }); // Debug log
   
-  if (isLoggedIn) {
-    if (!loggedInUsername) {
-      console.error('User is logged in but username is missing');
-      // Try to refetch profile or redirect to complete registration
-      window.location.href = '/complete-profile'; // or wherever you handle this
-      return;
-    }
-    
+  if (isLoggedIn) {    
     // Redirect to user's profile page for logged-in users
     const celebrationRipple = {
       id: Date.now(),
