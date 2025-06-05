@@ -38,7 +38,9 @@ import {
   DollarSign,
   Play,
   Camera,
-  Headphones
+  Headphones,
+  Share2,
+  ExternalLink
 } from 'lucide-react'
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
 import Header from '@/app/components/header'
@@ -630,11 +632,23 @@ const ProfileInfoSection = ({ profile, setProfile, handleAvatarUpload }: any) =>
 )
 
 const BackgroundSection = ({ profile, setProfile, showBackgrounds, setShowBackgrounds, compact = false }: any) => {
+  const [customColor, setCustomColor] = useState('#667eea')
+
   const categorizedBackgrounds = backgroundPresets.reduce((acc, bg) => {
     if (!acc[bg.category]) acc[bg.category] = []
     acc[bg.category].push(bg)
     return acc
   }, {} as Record<string, typeof backgroundPresets>)
+
+  const handleCustomColorApply = () => {
+    setProfile((prev: any) => ({ 
+      ...prev, 
+      background: `custom-${customColor.replace('#', '')}`,
+      customColor: customColor
+    }))
+  }
+
+  const isCustomColor = profile.background?.startsWith('custom-')
 
   return (
     <div className="space-y-3">
@@ -680,6 +694,69 @@ const BackgroundSection = ({ profile, setProfile, showBackgrounds, setShowBackgr
               </div>
             </div>
 
+            {/* Custom Color Section - Always Visible */}
+            <div className="mb-4 p-3 bg-card border border-border rounded-lg">
+              <h4 className="text-sm font-medium text-foreground mb-3">Custom Color</h4>
+              
+              <div className="space-y-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex-1">
+                    <label className="block text-xs text-muted-foreground mb-1">
+                      Hex Color
+                    </label>
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="color"
+                        value={customColor}
+                        onChange={(e) => setCustomColor(e.target.value)}
+                        className="w-8 h-8 rounded border border-border cursor-pointer"
+                      />
+                      <input
+                        type="text"
+                        value={customColor}
+                        onChange={(e) => setCustomColor(e.target.value)}
+                        placeholder="#667eea"
+                        className="flex-1 px-2 py-1 text-sm bg-background border border-border rounded focus:outline-none focus:ring-2 focus:ring-accent/50"
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                <Button
+                  onClick={handleCustomColorApply}
+                  size="sm"
+                  className="w-full"
+                >
+                  Apply Color
+                </Button>
+              </div>
+
+              {/* Current Custom Color Preview */}
+              {isCustomColor && (
+                <div className="mt-3 p-2 rounded border border-border">
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-4 h-4 rounded border border-border"
+                      style={{ backgroundColor: profile.customColor || customColor }}
+                    />
+                    <span className="text-xs text-muted-foreground">
+                      Current: {profile.customColor || customColor}
+                    </span>
+                    <button
+                      onClick={() => setProfile((prev: any) => ({ 
+                        ...prev, 
+                        background: 'gradient-1',
+                        customColor: undefined
+                      }))}
+                      className="ml-auto text-xs text-destructive hover:text-destructive/80"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
+
             {/* Background Categories */}
             <div className="space-y-4 p-3">
               {Object.entries(categorizedBackgrounds).map(([category, backgrounds]) => (
@@ -691,7 +768,11 @@ const BackgroundSection = ({ profile, setProfile, showBackgrounds, setShowBackgr
                     {backgrounds.map((bg) => (
                       <button
                         key={bg.id}
-                        onClick={() => setProfile((prev: any) => ({ ...prev, background: bg.id }))}
+                        onClick={() => setProfile((prev: any) => ({ 
+                          ...prev, 
+                          background: bg.id,
+                          customColor: undefined
+                        }))}
                         className={`relative ${compact ? 'h-12' : 'h-16'} rounded-md border-2 transition-all duration-200 overflow-hidden ${
                           profile.background === bg.id ? 'border-accent scale-105 ring-2 ring-accent/30' : 'border-border hover:border-accent/50'
                         } group`}
@@ -1012,126 +1093,274 @@ const ProfilePreview = ({ profile, getBackgroundClass, iconMap, isMobile, isDesk
   const BackgroundComponent = backgroundPreset?.component ? backgroundComponents[backgroundPreset.component as keyof typeof backgroundComponents] : null
   
   const blurValue = profile.blur || 0
-  const backdropBlur = blurValue > 0 ? `backdrop-blur-[${Math.round(blurValue * 0.24)}px]` : ''
-  const bgOpacity = 20 + (blurValue * 0.3) // Increase opacity slightly with blur
+  const isCustomColor = profile.background?.startsWith('custom-')
 
   return (
-    <div className="relative w-full h-full">
+    <div className="relative w-full h-full overflow-hidden">
       {/* Background */}
-      {BackgroundComponent ? (
-        <BackgroundComponent />
-      ) : (
-        <div className={`absolute inset-0 ${getBackgroundClass(profile.background)}`} />
-      )}
+{BackgroundComponent ? (
+  <div 
+    className="absolute inset-0"
+    style={{
+      filter: blurValue > 0 ? `blur(${blurValue * 0.3}px)` : 'none',
+      transform: blurValue > 0 ? 'scale(1.1)' : 'scale(1)', // Scale up to cover edges
+      transformOrigin: 'center',
+      transition: 'filter 0.2s ease, transform 0.2s ease'
+    }}
+  >
+    <BackgroundComponent />
+  </div>
+) : isCustomColor ? (
+  <div 
+    className="absolute inset-0" 
+    style={{ 
+      backgroundColor: profile.customColor,
+      filter: blurValue > 0 ? `blur(${blurValue * 0.3}px)` : 'none',
+      transform: blurValue > 0 ? 'scale(1.05)' : 'scale(1)',
+      transition: 'filter 0.2s ease, transform 0.2s ease'
+    }}
+  />
+) : (
+  <div 
+    className={`absolute inset-0 ${getBackgroundClass(profile.background)}`}
+    style={{
+      filter: blurValue > 0 ? `blur(${blurValue * 0.3}px)` : 'none',
+      transform: blurValue > 0 ? 'scale(1.05)' : 'scale(1)',
+      transition: 'filter 0.2s ease, transform 0.2s ease'
+    }}
+  />
+)}
+
+<div className="absolute inset-0 bg-gradient-to-br from-black/30 via-transparent to-black/30" />
       
       {/* Content */}
       {isMobile ? (
-        // Mobile Layout
-        <div 
-          className={`relative z-10 h-full p-4 flex flex-col ${backdropBlur}`}
-          style={{ 
-            backgroundColor: `rgba(0, 0, 0, ${bgOpacity / 100})`,
-            backdropFilter: blurValue > 0 ? `blur(${Math.round(blurValue * 0.24)}px)` : 'none'
-          }}
-        >
-          {/* Avatar */}
-          <div className="flex justify-center pt-4 pb-3">
-            <div className="w-20 h-20 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border-2 border-white/30 shadow-lg overflow-hidden">
-              {profile.avatar ? (
-                <img src={profile.avatar} alt={profile.name} className="w-full h-full object-cover" />
-              ) : (
-                <User className="w-8 h-8 text-white" />
-              )}
+        // Mobile Layout - Centered vertical design
+        <div className="relative z-20 h-full p-4 flex flex-col items-center justify-center">
+          {/* Profile Card */}
+          <div className="w-full max-w-sm bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 relative overflow-hidden mb-4">
+            <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent rounded-3xl" />
+            <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 rounded-3xl blur-xl opacity-50" />
+            
+            <div className="relative z-10">
+              {/* Avatar */}
+              <div className="flex justify-center mb-4">
+                <div className="w-16 h-16 rounded-full bg-gradient-to-br from-white/20 to-white/10 border-2 border-white/30 flex items-center justify-center overflow-hidden shadow-2xl">
+                  {profile.avatar ? (
+                    <img 
+                      src={profile.avatar} 
+                      alt={profile.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : (
+                    <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-400 to-purple-600 flex items-center justify-center">
+                      <span className="text-white text-lg font-bold">
+                        {profile.name?.charAt(0).toUpperCase() || 'U'}
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Profile Info */}
+              <div className="text-center mb-4">
+                <h1 className="text-lg font-bold bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent mb-1">
+                  {profile.name || 'Your Name'}
+                </h1>
+                <p className="text-white/60 text-xs mb-2">@username</p>
+                <p className="text-white/80 text-xs leading-relaxed">
+                  {profile.bio || 'Your bio will appear here...'}
+                </p>
+              </div>
+
+              {/* Edit and Share Buttons */}
+              <div className="flex gap-2">
+                <div className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 rounded-lg px-3 py-2 flex items-center justify-center gap-1">
+                  <Settings className="w-3 h-3 text-white" />
+                  <span className="text-white font-medium text-xs">Edit</span>
+                </div>
+                
+                <div className="flex-1 bg-white/10 backdrop-blur-lg border border-white/20 rounded-lg px-3 py-2 flex items-center justify-center gap-1">
+                  <Share2 className="w-3 h-3 text-white" />
+                  <span className="text-white font-medium text-xs">Share</span>
+                </div>
+              </div>
             </div>
           </div>
 
-          {/* Name & Bio */}
-          <div className="text-center pb-4">
-            <h2 className="text-xl font-bold text-white mb-1 drop-shadow-lg">{profile.name}</h2>
-            <p className="text-sm text-white/90 leading-relaxed drop-shadow">{profile.bio}</p>
-          </div>
+          {/* Links Section */}
+          <div className="w-full max-w-sm space-y-2 flex-1 overflow-y-auto">
+            {profile.links.length > 0 ? profile.links.map((link: any) => {
+              const platform = socialPlatforms.find(p => p.value === link.icon) || socialPlatforms[0]
+              const IconComponent = iconMap[platform.icon as keyof typeof iconMap] || Link
 
-          {/* Links */}
-          <div className="flex-1 space-y-3 overflow-y-auto">
-            {profile.links.map((link: any) => {
-              const IconComponent = iconMap[link.icon as keyof typeof iconMap] || Link
               return (
                 <div
                   key={link.id}
-                  className="flex items-center gap-3 p-3 bg-white/20 backdrop-blur-md rounded-xl border border-white/20 shadow-lg"
+                  className="group w-full bg-white/5 border border-white/10 rounded-2xl p-3 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl backdrop-blur-sm relative overflow-hidden"
                 >
-                  <div className="w-8 h-8 rounded-lg bg-white/20 flex items-center justify-center">
-                    <IconComponent className="w-4 h-4 text-white" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-medium text-white text-sm">{link.title}</p>
-                    <p className="text-xs text-white/80 truncate">{link.url}</p>
+                  <div 
+                    className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded-2xl"
+                    style={{ background: `linear-gradient(135deg, ${platform.color}40, transparent)` }}
+                  />
+                  
+                  <div className="relative flex items-center gap-3">
+                    <div 
+                      className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-110 shadow-lg"
+                      style={{ 
+                        backgroundColor: platform.color,
+                        boxShadow: `0 4px 20px ${platform.color}40`
+                      }}
+                    >
+                      <IconComponent className="w-5 h-5 text-white" />
+                    </div>
+
+                    <div className="flex-1 text-left">
+                      <h3 className="text-white font-semibold text-sm mb-0.5">
+                        {link.title}
+                      </h3>
+                      <p className="text-white/60 text-xs truncate">
+                        {link.url.replace(/^https?:\/\//, '').replace(/^mailto:/, '')}
+                      </p>
+                    </div>
+
+                    <div className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors flex-shrink-0">
+                      <ExternalLink className="w-3 h-3 text-white/60 group-hover:text-white transition-colors" />
+                    </div>
                   </div>
                 </div>
               )
-            })}
+            }) : (
+              <div className="text-center py-8">
+                <p className="text-white/60 text-sm">No links added yet</p>
+              </div>
+            )}
           </div>
 
           {/* Footer */}
-          <div className="text-center pt-3 pb-2 border-t border-white/20">
-            <p className="text-xs text-white/80">
-              Powered by <span className="text-white font-medium">SocioLink</span>
+          <div className="mt-4 text-center">
+            <p className="text-white/30 text-xs">
+              Powered by <span className="font-semibold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">SocioLink</span>
             </p>
           </div>
         </div>
       ) : (
-        // Desktop Layout
-        <div 
-          className={`relative z-10 h-full overflow-y-auto ${backdropBlur}`}
-          style={{ 
-            backgroundColor: `rgba(0, 0, 0, ${bgOpacity / 100})`,
-            backdropFilter: blurValue > 0 ? `blur(${Math.round(blurValue * 0.24)}px)` : 'none'
-          }}
-        >
-          <div className={`${isDesktopPreview ? 'p-4 max-w-lg mx-auto' : 'p-6 max-w-md mx-auto'}`}>
-            {/* Avatar */}
-            <div className="flex justify-center pt-6 pb-4">
-              <div className={`${isDesktopPreview ? 'w-20 h-20' : 'w-24 h-24'} rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center border-2 border-white/30 shadow-lg overflow-hidden`}>
-                {profile.avatar ? (
-                  <img src={profile.avatar} alt={profile.name} className="w-full h-full object-cover" />
-                ) : (
-                  <User className={`${isDesktopPreview ? 'w-6 h-6' : 'w-8 h-8'} text-white`} />
-                )}
-              </div>
-            </div>
+        // Desktop Layout - Left profile, right links
+        <div className="relative z-20 h-full overflow-y-auto">
+          <div className="min-h-full p-4">
+            <div className="max-w-4xl mx-auto">
+              <div className="grid grid-cols-2 gap-8 items-center min-h-[80vh]">
+                
+                {/* Left Side - Profile Card */}
+                <div className="flex justify-center">
+                  <div className="w-full max-w-sm bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-6 relative overflow-hidden">
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent rounded-3xl" />
+                    <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 rounded-3xl blur-xl opacity-50" />
+                    
+                    <div className="relative z-10">
+                      {/* Avatar */}
+                      <div className="flex justify-center mb-6">
+                        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-white/20 to-white/10 border-2 border-white/30 flex items-center justify-center overflow-hidden shadow-2xl">
+                          {profile.avatar ? (
+                            <img 
+                              src={profile.avatar} 
+                              alt={profile.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-18 h-18 rounded-full bg-gradient-to-br from-blue-400 to-purple-600 flex items-center justify-center">
+                              <span className="text-white text-2xl font-bold">
+                                {profile.name?.charAt(0).toUpperCase() || 'U'}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </div>
 
-            {/* Name & Bio */}
-            <div className="text-center pb-4">
-              <h1 className={`${isDesktopPreview ? 'text-xl' : 'text-2xl'} font-bold text-white mb-2 drop-shadow-lg`}>{profile.name}</h1>
-              <p className={`text-white/90 leading-relaxed drop-shadow ${isDesktopPreview ? 'text-sm' : ''}`}>{profile.bio}</p>
-            </div>
+                      {/* Profile Info */}
+                      <div className="text-center mb-6">
+                        <h1 className="text-2xl font-bold bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent mb-2">
+                          {profile.name || 'Your Name'}
+                        </h1>
+                        <p className="text-white/60 text-sm mb-3">@username</p>
+                        <p className="text-white/80 text-sm leading-relaxed">
+                          {profile.bio || 'Your bio will appear here...'}
+                        </p>
+                      </div>
 
-            {/* Links */}
-            <div className="space-y-3 pb-4">
-              {profile.links.map((link: any) => {
-                const IconComponent = iconMap[link.icon as keyof typeof iconMap] || Link
-                return (
-                  <div
-                    key={link.id}
-                    className="flex items-center gap-3 p-3 bg-white/20 backdrop-blur-md rounded-xl border border-white/20 hover:border-white/40 transition-all duration-200 cursor-pointer shadow-lg hover:scale-[1.02]"
-                  >
-                    <div className={`${isDesktopPreview ? 'w-8 h-8' : 'w-10 h-10'} rounded-xl bg-white/20 flex items-center justify-center`}>
-                      <IconComponent className={`${isDesktopPreview ? 'w-4 h-4' : 'w-5 h-5'} text-white`} />
-                    </div>
-                    <div className="flex-1">
-                      <p className={`font-semibold text-white ${isDesktopPreview ? 'text-sm' : ''}`}>{link.title}</p>
-                      <p className={`text-white/80 ${isDesktopPreview ? 'text-xs' : 'text-sm'}`}>{link.url}</p>
+                      {/* Edit and Share Buttons */}
+                      <div className="flex gap-3">
+                        <div className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 rounded-xl px-4 py-3 flex items-center justify-center gap-2">
+                          <Settings className="w-4 h-4 text-white" />
+                          <span className="text-white font-medium text-sm">Edit</span>
+                        </div>
+                        
+                        <div className="flex-1 bg-white/10 backdrop-blur-lg border border-white/20 rounded-xl px-4 py-3 flex items-center justify-center gap-2">
+                          <Share2 className="w-4 h-4 text-white" />
+                          <span className="text-white font-medium text-sm">Share</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
-                )
-              })}
-            </div>
+                </div>
 
-            {/* Footer */}
-            <div className="text-center pt-4 pb-4 border-t border-white/20">
-              <p className={`text-white/80 ${isDesktopPreview ? 'text-xs' : 'text-sm'}`}>
-                Powered by <span className="text-white font-semibold">SocioLink</span>
-              </p>
+                {/* Right Side - Links */}
+                <div className="w-full max-w-sm mx-auto space-y-3">
+                  {profile.links.length > 0 ? profile.links.map((link: any) => {
+                    const platform = socialPlatforms.find(p => p.value === link.icon) || socialPlatforms[0]
+                    const IconComponent = iconMap[platform.icon as keyof typeof iconMap] || Link
+
+                    return (
+                      <div
+                        key={link.id}
+                        className="group w-full bg-white/5 border border-white/10 rounded-2xl p-4 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl backdrop-blur-sm relative overflow-hidden"
+                      >
+                        <div 
+                          className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded-2xl"
+                          style={{ background: `linear-gradient(135deg, ${platform.color}40, transparent)` }}
+                        />
+                        
+                        <div className="relative flex items-center gap-3">
+                          <div 
+                            className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-110 shadow-lg"
+                            style={{ 
+                              backgroundColor: platform.color,
+                              boxShadow: `0 4px 20px ${platform.color}40`
+                            }}
+                          >
+                            <IconComponent className="w-6 h-6 text-white" />
+                          </div>
+
+                          <div className="flex-1 text-left">
+                            <h3 className="text-white font-semibold text-base mb-1">
+                              {link.title}
+                            </h3>
+                            <p className="text-white/60 text-sm truncate">
+                              {link.url.replace(/^https?:\/\//, '').replace(/^mailto:/, '')}
+                            </p>
+                          </div>
+
+                          <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors flex-shrink-0">
+                            <ExternalLink className="w-4 h-4 text-white/60 group-hover:text-white transition-colors" />
+                          </div>
+                        </div>
+                      </div>
+                    )
+                  }) : (
+                    <div className="text-center py-12">
+                      <p className="text-white/60 text-base">No links added yet</p>
+                      <p className="text-white/40 text-sm mt-2">Add some links to see them here</p>
+                    </div>
+                  )}
+
+                  {/* Footer - Desktop */}
+                  <div className="pt-6 text-center">
+                    <p className="text-white/30 text-sm">
+                      Powered by <span className="font-semibold bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">SocioLink</span>
+                    </p>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
