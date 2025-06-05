@@ -803,7 +803,7 @@ const MobileEditPanel = ({
   profile, setProfile, newLink, setNewLink, showBackgrounds, setShowBackgrounds,
   addLink, removeLink, handleDragEnd, handleAvatarUpload, iconMap, saveChanges, error, isDirty
 }: any) => (
-  <div className="space-y-6">
+  <div className="space-y-6 pt-10">
     <div className="flex items-center gap-2 mb-6">
       <Settings className="w-5 h-5 text-accent" />
       <h1 className="text-xl font-bold text-foreground">Edit Profile</h1>
@@ -1440,7 +1440,7 @@ const ProfilePreview = ({ profile, getBackgroundClass, iconMap, isMobile, isDesk
       {/* Content */}
       {isMobile ? (
         // Mobile Layout
-        <div className="relative z-20 h-full p-4 flex flex-col items-center justify-center">
+        <div className="relative z-20 h-full p-4 flex flex-col items-center justify-center pt-10">
                 <div className={`w-full max-w-sm backdrop-blur-xl rounded-3xl p-6 relative overflow-hidden mb-4 transition-all duration-300 ${textColors.profileCard} ${textColors.profileGlow}`}>
                 {/* Keep the gradient effects - they work with the glass look */}
                 <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent rounded-3xl" />

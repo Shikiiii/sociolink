@@ -229,23 +229,14 @@ const LoginPage = () => {
               {/* Logo with floating animation */}
               <motion.div
                 className="flex items-center justify-center space-x-3 mb-6"
-                animate={{
-                  y: [0, -2, 0],
-                }}
-                transition={{
-                  duration: 4,
-                  repeat: Infinity,
-                  ease: "easeInOut"
-                }}
+
               >
-                <motion.div 
-                  className="w-12 h-12 rounded-2xl flex items-center justify-center relative overflow-hidden"
-                  style={{
-                    background: `linear-gradient(135deg, ${isDark ? '#60a5fa' : '#2563eb'}, ${isDark ? '#22d3ee' : '#0891b2'})`,
-                  }}
-                  whileHover={{ rotate: 5 }}
-                  transition={{ type: "spring", stiffness: 300 }}
-                >
+                  <motion.div 
+                    className="w-12 h-12 rounded-2xl flex items-center justify-center relative overflow-hidden"
+                    style={{
+                      background: `linear-gradient(135deg, ${isDark ? '#60a5fa' : '#2563eb'}, ${isDark ? '#22d3ee' : '#0891b2'})`,
+                    }}
+                  >
                   <LogIn className="w-7 h-7 text-white" />
                   <motion.div
                     className="absolute inset-0 bg-white/20"
