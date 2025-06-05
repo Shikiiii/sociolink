@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
 
     // Parse and validate input
     const body = await req.json();
-    const { type, link, text } = body;
+    const { type, link, text, order } = body;
 
     // Validate type
     if (typeof type !== 'string' || !type.trim()) {
@@ -29,6 +29,11 @@ export async function POST(req: NextRequest) {
     // Validate text
     if (typeof text !== 'string' || text.length < 3 || text.length > 60) {
         return NextResponse.json({ error: 'Text must be between 3 and 60 characters' }, { status: 400 });
+    }
+
+    // Validate order
+    if (typeof order !== 'number') {
+        return NextResponse.json({ error: 'Order must be a number.' }, { status: 400 });
     }
 
     // Find the user's website
@@ -47,6 +52,7 @@ export async function POST(req: NextRequest) {
             type,
             link,
             text,
+            order,
             websiteId: user.user_website.id
         }
     });
