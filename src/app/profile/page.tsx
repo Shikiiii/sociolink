@@ -293,12 +293,80 @@ const ProfilePage = () => {
   }, [])
 
   const [newLink, setNewLink] = useState({ title: '', url: '', icon: 'Link' })
+  const [prevIcon, setPrevIcon] = useState(newLink.icon);
   const [isMobileView, setIsMobileView] = useState(false)
   const [selectedMobilePreset, setSelectedMobilePreset] = useState(mobilePresets[0])
   const [showBackgrounds, setShowBackgrounds] = useState(false)
   const [isPreviewMode, setIsPreviewMode] = useState(false) // New state for mobile toggle
 
   const [selectedBackground, setSelectedBackground] = useState<string | null>(null);
+
+  useEffect(() => {
+    // can we detect if newLink.icon is changed from previous one, and if it is, clear out the url field?
+    // Track previous icon to detect changes
+    if (newLink.icon !== prevIcon) {
+      setNewLink((prev: any) => ({ ...prev, url: '' }));
+      setPrevIcon(newLink.icon);
+    }
+
+
+    // Auto-format username to URL for supported platforms
+    // Map of platform value to URL pattern (use {username} as placeholder)
+    const usernameUrlPatterns: Record<string, string> = {
+      Instagram: "https://instagram.com/{username}",
+      Twitter: "https://twitter.com/{username}",
+      Youtube: "https://youtube.com/@{username}",
+      Github: "https://github.com/{username}",
+      Twitch: "https://twitch.tv/{username}",
+      Facebook: "https://facebook.com/{username}",
+      TikTok: "https://tiktok.com/@{username}",
+      OnlyFans: "https://onlyfans.com/{username}",
+      Spotify: "https://open.spotify.com/user/{username}",
+      Snapchat: "https://snapchat.com/add/{username}",
+      Telegram: "https://t.me/{username}",
+      SoundCloud: "https://soundcloud.com/{username}",
+      PayPal: "https://paypal.me/{username}",
+      Roblox: "https://roblox.com/users/{username}/profile",
+      CashApp: "https://cash.app/${username}",
+      GitLab: "https://gitlab.com/{username}",
+      Reddit: "https://reddit.com/u/{username}",
+      Steam: "https://steamcommunity.com/id/{username}",
+      Kick: "https://kick.com/{username}",
+      Pinterest: "https://pinterest.com/{username}",
+      LastFM: "https://last.fm/user/{username}",
+      BuyMeACoffee: "https://buymeacoffee.com/{username}",
+      Kofi: "https://ko-fi.com/{username}",
+      Patreon: "https://patreon.com/{username}",
+    };
+
+    // Helper to check if a string is a valid URL
+    function isValidUrl(str: string) {
+      try {
+      new URL(str);
+      return true;
+      } catch {
+      return false;
+      }
+    }
+
+    // Helper to check if a string is a single word (username)
+    function isSingleWord(str: string) {
+      return /^[a-zA-Z0-9_.-]+$/.test(str) && !str.includes(" ");
+    }
+
+    // If newLink.url is not a valid URL and is a single word, auto-format
+    if (
+      newLink.url &&
+      !isValidUrl(newLink.url) &&
+      isSingleWord(newLink.url) &&
+      usernameUrlPatterns[newLink.icon]
+    ) {
+      setNewLink((prev: any) => ({
+      ...prev,
+      url: usernameUrlPatterns[newLink.icon].replace("{username}", prev.url),
+      }));
+    }
+  }, [newLink]);
 
   useEffect(() => {
     if (selectedBackground === null) return;
@@ -1044,7 +1112,7 @@ const LinksSection = ({ profile, setProfile, newLink, setNewLink, addLink, remov
         <Input
           value={newLink.url}
           onChange={(e) => setNewLink((prev: any) => ({ ...prev, url: e.target.value }))}
-          placeholder="https://example.com"
+          placeholder="https://example.com or username"
           className="w-full"
         />
         
@@ -1258,6 +1326,34 @@ const ProfilePreview = ({ profile, getBackgroundClass, iconMap, isMobile, isDesk
   // Get dynamic text colors
   const textColors = getTextColors(profile)
 
+  const [username, setUsername] = useState<string>("username");
+
+  useEffect(() => {
+    // take access_token from cookies, take only the payload from it, there should be user_name in it, setUsername to user_name
+    const getCookie = (name: string) => {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop()?.split(';').shift();
+      return null;
+    };
+
+    const accessToken = getCookie('access_token');
+    if (accessToken) {
+      try {
+        // JWT format: header.payload.signature
+        const payload = accessToken.split('.')[1];
+        if (payload) {
+          const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+          if (decoded.user_name) {
+            setUsername(decoded.user_name);
+          }
+        }
+      } catch (e) {
+        // ignore errors
+      }
+    }
+  }, [])
+
   return (
     <div className="relative w-full h-full overflow-hidden">
       {/* Background - same as before */}
@@ -1330,7 +1426,7 @@ const ProfilePreview = ({ profile, getBackgroundClass, iconMap, isMobile, isDesk
                 <h1 className={`text-lg font-bold mb-1 transition-colors duration-300 ${textColors.gradient}`}>
                   {profile.name || 'Your Name'}
                 </h1>
-                <p className={`text-xs mb-2 transition-colors duration-300 ${textColors.muted}`}>@username</p>
+                <p className={`text-xs mb-2 transition-colors duration-300 ${textColors.muted}`}>@{username}</p>
                 <p className={`text-xs leading-relaxed transition-colors duration-300 ${textColors.secondary}`}>
                   {profile.bio || 'Your bio will appear here...'}
                 </p>
@@ -1445,7 +1541,7 @@ const ProfilePreview = ({ profile, getBackgroundClass, iconMap, isMobile, isDesk
                         <h1 className={`text-2xl font-bold mb-2 transition-colors duration-300 ${textColors.gradient}`}>
                             {profile.name || 'Your Name'}
                         </h1>
-                        <p className={`text-sm mb-3 transition-colors duration-300 ${textColors.muted}`}>@username</p>
+                        <p className={`text-sm mb-3 transition-colors duration-300 ${textColors.muted}`}>@{username}</p>
                         <p className={`text-sm leading-relaxed transition-colors duration-300 ${textColors.secondary}`}>
                             {profile.bio || 'Your bio will appear here...'}
                         </p>
