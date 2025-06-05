@@ -58,14 +58,14 @@ export const backgroundPresets = [
     id: 'particles-1', 
     name: 'Floating Particles', 
     class: 'bg-particles-float',
-    category: 'Interactive',
+    category: 'Animated',
     component: 'ParticleFloat'
   },
   { 
     id: 'particles-2', 
     name: 'Connection Web', 
     class: 'bg-particle-web',
-    category: 'Interactive',
+    category: 'Animated',
     component: 'ParticleWeb'
   },
   { 
@@ -86,7 +86,7 @@ export const backgroundPresets = [
     id: 'interactive-2', 
     name: 'Ripple Effect', 
     class: 'bg-ripple-effect',
-    category: 'Interactive',
+    category: 'Animated',
     component: 'RippleEffect'
   },
   { 
@@ -110,7 +110,6 @@ export const mobilePresets = [
   { name: 'iPhone SE', width: 375, height: 667 },
   { name: 'Galaxy S23', width: 360, height: 780 },
   { name: 'Pixel 7', width: 412, height: 915 },
-  { name: 'iPad Mini', width: 768, height: 1024 },
 ]
 
 // Static preview mappings for thumbnail rendering (prevents animated components in previews)

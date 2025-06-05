@@ -489,7 +489,7 @@ export const RippleEffect = React.memo(() => {
 
   return (
     <div
-      className="absolute inset-0 cursor-pointer overflow-hidden"
+      className="absolute inset-0 cursor-pointer overflow-hidden z-0"
       onClick={handleClick}
       style={{ background: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%)' }}
     >

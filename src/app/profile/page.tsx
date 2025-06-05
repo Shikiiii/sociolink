@@ -637,35 +637,33 @@ const DesktopPreview = ({ profile, getBackgroundClass, iconMap, isMobileView, se
       {isMobileView ? (
         // Mobile Frame Preview - BIGGER PHONE
         <div className="h-full bg-gray-100 dark:bg-gray-900 flex items-center justify-center p-4">
-          <div 
-            className="relative bg-gray-900 rounded-[2rem] shadow-2xl p-2 border-2 border-gray-700"
-            style={{ 
-              width: Math.min(selectedMobilePreset.width / 1.1, 350) + 16, // Changed from 1.5 to 1.1 and 280 to 350
-              height: Math.min(selectedMobilePreset.height / 1.1, 650) + 16, // Changed from 1.5 to 1.1 and 500 to 650
+        <div 
+        className="px-4relative bg-gray-900 rounded-[2rem] shadow-2xl p-2 border-2 border-gray-700"
+        style={{
+          // Allow larger width/height for tablets, but cap at a max (e.g., 420x800)
+          width: Math.min(selectedMobilePreset.width, 420) + 16,
+          height: Math.min(selectedMobilePreset.height, 800) + 16,
+        }}
+        >
+        <div className="w-full h-full rounded-[1.5rem] overflow-hidden bg-black">
+          <div
+            style={{
+              width: selectedMobilePreset.width,
+              height: selectedMobilePreset.height,
+              // Only scale down if device is wider than max allowed
+              transform: `scale(${Math.min(1, 420 / selectedMobilePreset.width)})`,
+              transformOrigin: 'top left',
             }}
           >
-            <div className="absolute inset-x-0 top-3 h-4 w-20 mx-auto bg-gray-900 rounded-b-lg z-20"></div>
-            <div className="absolute left-1 top-16 h-10 w-1 bg-gray-700 rounded-full"></div>
-            <div className="absolute left-1 top-28 h-6 w-1 bg-gray-700 rounded-full"></div>
-            
-            <div className="w-full h-full rounded-[1.5rem] overflow-hidden bg-black">
-              <div
-                style={{
-                  width: selectedMobilePreset.width,
-                  height: selectedMobilePreset.height,
-                  transform: `scale(${Math.min(1/1.1, 350/selectedMobilePreset.width)})`, // Changed from 1.5 to 1.1 and 280 to 350
-                  transformOrigin: 'top left',
-                }}
-              >
-                <ProfilePreview 
-                  profile={profile} 
-                  getBackgroundClass={getBackgroundClass} 
-                  iconMap={iconMap} 
-                  isMobile={true} 
-                />
-              </div>
-            </div>
+            <ProfilePreview 
+              profile={profile} 
+              getBackgroundClass={getBackgroundClass} 
+              iconMap={iconMap} 
+              isMobile={true} 
+            />
           </div>
+        </div>
+        </div>
         </div>
       ) : (
         // Desktop Preview - Fixed scrolling
@@ -1500,8 +1498,11 @@ const ProfilePreview = ({ profile, getBackgroundClass, iconMap, isMobile, isDesk
 
               return (
                     <div
-                    key={link.id}
-                    className={`group w-full backdrop-blur-sm rounded-2xl p-3 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl relative overflow-hidden ${textColors.linkCard} ${textColors.linkGlow}`}
+                      key={link.id}
+                      className={
+                        `group w-full backdrop-blur-sm rounded-2xl p-3 transition-all duration-300 relative overflow-hidden ${textColors.linkCard} ${textColors.linkGlow}` +
+                        (!isMobile ? " hover:scale-[1.02] hover:shadow-xl" : "")
+                      }
                     >
                     <div 
                         className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded-2xl"

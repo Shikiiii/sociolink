@@ -152,6 +152,10 @@ const LandingPage = () => {
   const [ripples, setRipples] = useState<Array<{id: number, x: number, y: number}>>([])
   const [isHolding, setIsHolding] = useState(false)
   const [mounted, setMounted] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false)
+  const [loggedInUsername, setLoggedInUsername] = useState<string>('')
+  const [isUsernameAvailable, setIsUsernameAvailable] = useState<boolean>(false)
+  
   const holdTimerRef = useRef<NodeJS.Timeout | null>(null)
   const router = useRouter()
   const { theme, setTheme } = useTheme()
@@ -160,24 +164,53 @@ const LandingPage = () => {
   const mouseY = useMotionValue(0)
   const holdProgress = useSpring(0, { damping: 25, stiffness: 200 })
 
-
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
-
-  const [isUsernameAvailable, setIsUsernameAvailable] = useState<boolean>(false);
-
   // Check if user is logged in by looking for access_token cookie
   useEffect(() => {
-    if (typeof document !== "undefined") {
-      const match = document.cookie.match(/(^| )access_token=([^;]+)/)
-      if (match) {
-        setIsLoggedIn(true)
-      }
-    }
-  }, [])
+  console.log('Checking auth status...'); // Debug log
+  
+  if (typeof document !== "undefined") {
+    const accessToken = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('access_token='))
+      ?.split('=')[1]
 
-  // Debounce username check for availability
+    console.log('Access token found:', !!accessToken); // Debug log
+
+    if (accessToken && accessToken !== 'null') {
+      setIsLoggedIn(true)
+      
+      // Fetch user profile to get username
+      fetch('/api/profile', {
+        credentials: 'include',
+      })
+        .then(res => {
+          console.log('Profile API response status:', res.status); // Debug log
+          return res.json();
+        })
+        .then(data => {
+          console.log('Profile data:', data); // Debug log
+          if (data.username) {
+            setLoggedInUsername(data.username)
+            console.log('Username set to:', data.username); // Debug log
+          } else {
+            console.error('No username in profile data');
+          }
+        })
+        .catch(err => {
+          console.error('Profile fetch error:', err); // Debug log
+          // If profile fetch fails, user might not be properly logged in
+          setIsLoggedIn(false)
+        })
+    } else {
+      setIsLoggedIn(false)
+      console.log('User not logged in'); // Debug log
+    }
+  }
+}, [])
+
+  // Debounce username check for availability (only when not logged in)
   useEffect(() => {
-    if (!username.trim()) {
+    if (isLoggedIn || !username.trim()) {
       setIsUsernameAvailable(false)
       return
     }
@@ -195,7 +228,8 @@ const LandingPage = () => {
         .catch(() => setIsUsernameAvailable(false))
     }, 300)
     return () => clearTimeout(handler)
-  }, [username])
+  }, [username, isLoggedIn])
+
 
   useEffect(() => {
     setMounted(true)
@@ -214,12 +248,14 @@ const LandingPage = () => {
     const moods = useMemo(() => ({
     zen: {
         emoji: "🌱",
-        greeting: "Hey there, fellow human",
+        greeting: isLoggedIn ? `Welcome back, ${loggedInUsername}` : "Hey there, fellow human",
         tagline: "One link. Zero chaos.",
-        subtitle: "Keep it simple, keep it you",
-        description: "Because your digital life doesn't need to be complicated. Just clean, focused connections.",
+        subtitle: isLoggedIn ? "Your space awaits" : "Keep it simple, keep it you",
+        description: isLoggedIn 
+        ? "Ready to view your profile page?" 
+        : "Because your digital life doesn't need to be complicated. Just clean, focused connections.",
         placeholder: "yourname",
-        cta: "Let's go →",
+        cta: isLoggedIn ? "View Profile →" : "Let's go →",
         colors: {
         primary: isDark ? '#60a5fa' : '#2563eb',
         secondary: isDark ? '#22d3ee' : '#0891b2'
@@ -227,18 +263,20 @@ const LandingPage = () => {
     },
     vibrant: {
         emoji: "⚡",
-        greeting: "What's up, creative soul",
+        greeting: isLoggedIn ? `What's up, ${loggedInUsername}` : "What's up, creative soul",
         tagline: "Link loud. Be bold.",
-        subtitle: "Express yourself without limits",
-        description: "Turn your link into a canvas. Bright, bold, and unapologetically you.",
+        subtitle: isLoggedIn ? "Time to shine bright" : "Express yourself without limits",
+        description: isLoggedIn
+        ? "Check out how awesome your profile looks!"
+        : "Turn your link into a canvas. Bright, bold, and unapologetically you.",
         placeholder: "superstar",
-        cta: "Hell yes! →",
+        cta: isLoggedIn ? "See My Profile! →" : "Hell yes! →",
         colors: {
         primary: isDark ? '#f472b6' : '#ec4899',
         secondary: isDark ? '#fb923c' : '#f97316'
         }
     }
-    }), [isDark])
+    }), [isDark, isLoggedIn, loggedInUsername])
 
   const currentMood = isVibrant ? moods.vibrant : moods.zen
 
@@ -292,21 +330,46 @@ const LandingPage = () => {
     }, 600)
   }
 
-  const handleGetStarted = () => {
-    if (username.trim()) {
-      // Add a little celebration ripple
-      const celebrationRipple = {
-        id: Date.now(),
-        x: 50,
-        y: 50
-      }
-      setRipples(prev => [...prev, celebrationRipple])
-      
-      setTimeout(() => {
-        router.push(`/register?username=${username.trim()}`)
-      }, 200)
+const handleGetStarted = () => {
+  console.log('handleGetStarted called', { isLoggedIn, loggedInUsername }); // Debug log
+  
+  if (isLoggedIn) {
+    if (!loggedInUsername) {
+      console.error('User is logged in but username is missing');
+      // Fallback - try to redirect to profile page or show error
+      router.push('/profile'); // or wherever you want to redirect as fallback
+      return;
     }
+    
+    // Redirect to user's profile page for logged-in users
+    const celebrationRipple = {
+      id: Date.now(),
+      x: 50,
+      y: 50
+    }
+    setRipples(prev => [...prev, celebrationRipple])
+    
+    console.log('Redirecting to:', `/p/${loggedInUsername}`); // Debug log
+    
+    setTimeout(() => {
+      router.push(`/p/${loggedInUsername}`)
+    }, 200)
+  } else if (username.trim()) {
+    // Original registration flow for new users
+    const celebrationRipple = {
+      id: Date.now(),
+      x: 50,
+      y: 50
+    }
+    setRipples(prev => [...prev, celebrationRipple])
+    
+    setTimeout(() => {
+      router.push(`/register?username=${username.trim()}`)
+    }, 200)
+  } else {
+    console.log('No action taken - user not logged in and no username entered');
   }
+}
 
   const { displayText: subtitleText } = useTypewriter(currentMood.subtitle, 60)
 
@@ -331,7 +394,7 @@ const LandingPage = () => {
     )
   }
 
-  return (
+return (
     <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-background via-background to-muted/30">
       
       {/* Neural Network Background */}
@@ -362,16 +425,13 @@ const LandingPage = () => {
       {/* Main Content */}
       <div className="relative z-10 min-h-screen flex flex-col">
         
-        {/* Header with theme toggle */}
-        
-
         {/* Hero Section */}
         <main className="flex-1 flex flex-col items-center justify-center text-center px-6 -mt-16">
           
           {/* Mood indicator */}
           <AnimatePresence mode="wait">
             <motion.div
-              key={`mood-${isVibrant}`}
+              key={`mood-${isVibrant}-${isLoggedIn}`}
               initial={{ opacity: 0, y: 20, scale: 0.8 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, y: -20, scale: 0.8 }}
@@ -425,7 +485,7 @@ const LandingPage = () => {
 
           <AnimatePresence mode="wait">
             <motion.p
-              key={`desc-${isVibrant}`}
+              key={`desc-${isVibrant}-${isLoggedIn}`}
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -436,64 +496,117 @@ const LandingPage = () => {
             </motion.p>
           </AnimatePresence>
 
-          {/* Input section */}
+          {/* Input section or Welcome back section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.7 }}
             className="w-full max-w-md"
           >
-            <div className="relative group">
-              <div 
-                className="absolute -inset-1 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-300"
-                style={{
-                  background:
-                  currentMood.cta === "Taken."
-                    ? "linear-gradient(45deg, #ef4444, #ef4444)" // red glow
-                    : currentMood.cta !== "Taken." && isUsernameAvailable
-                    ? "linear-gradient(45deg, #22c55e, #16a34a)" // green glow
-                    : `linear-gradient(45deg, ${currentMood.colors.primary}, ${currentMood.colors.secondary})`
-                }}
-              />
-              
-              <div className="relative bg-card border rounded-xl p-2 backdrop-blur-sm">
-                <div className="flex items-center">
-                  <span className="px-4 py-3 text-muted-foreground text-sm font-mono">
-                    sociolink.app/
-                  </span>
-                  
-                  <Input
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleGetStarted()}
-                    placeholder={currentMood.placeholder}
-                    className="flex-1 border-0 bg-transparent text-lg focus-visible:ring-0 placeholder:text-muted-foreground/50"
+            <AnimatePresence mode="wait">
+              {isLoggedIn ? (
+                // Logged in user - show their info and go button
+                <motion.div
+                  key="logged-in"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  className="relative group"
+                >
+                  <div 
+                    className="absolute -inset-1 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-300"
+                    style={{
+                      background: `linear-gradient(45deg, ${currentMood.colors.primary}, ${currentMood.colors.secondary})`
+                    }}
                   />
                   
-                  <Button
-                    onClick={handleGetStarted}
-                    disabled={!username.trim() || isUsernameAvailable === false}
-                    className="ml-2 rounded-lg px-6 transition-all duration-300"
+                  <div className="relative bg-card border rounded-xl p-6 backdrop-blur-sm text-center">
+                    <div className="flex items-center justify-center mb-4">
+                      <span className="text-sm text-muted-foreground font-mono">
+                        sociolink.app/
+                      </span>
+                      <span className="text-lg font-bold ml-1" style={{ color: currentMood.colors.primary }}>
+                        {loggedInUsername}
+                      </span>
+                    </div>
+                    
+                    <Button
+                      onClick={handleGetStarted}
+                      className="w-full rounded-lg py-3 transition-all duration-300 text-white font-medium"
+                      style={{
+                        backgroundColor: currentMood.colors.primary,
+                      }}
+                    >
+                      {currentMood.cta}
+                    </Button>
+                  </div>
+                </motion.div>
+              ) : (
+                // Not logged in - show username input
+                <motion.div
+                  key="not-logged-in"
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  className="relative group"
+                >
+                  <div 
+                    className="absolute -inset-1 rounded-2xl blur opacity-20 group-hover:opacity-40 transition duration-300"
                     style={{
-                      backgroundColor: !username.trim()
-                      ? undefined
-                      : isUsernameAvailable === false
-                        ? '#ef4444'
-                        : currentMood.colors.primary,
-                      color: username.trim() ? '#ffffff' : undefined
+                      background:
+                      currentMood.cta === "Taken."
+                        ? "linear-gradient(45deg, #ef4444, #ef4444)" // red glow
+                        : currentMood.cta !== "Taken." && isUsernameAvailable
+                        ? "linear-gradient(45deg, #22c55e, #16a34a)" // green glow
+                        : `linear-gradient(45deg, ${currentMood.colors.primary}, ${currentMood.colors.secondary})`
                     }}
-                  >
-                    {username.trim() ? currentMood.cta : 'Enter name'}
-                  </Button>
-                </div>
-              </div>
-            </div>
+                  />
+                  
+                  <div className="relative bg-card border rounded-xl p-2 backdrop-blur-sm">
+                    <div className="flex items-center">
+                      <span className="px-4 py-3 text-muted-foreground text-sm font-mono">
+                        sociolink.app/
+                      </span>
+                      
+                      <Input
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
+                        onKeyPress={(e) => e.key === 'Enter' && handleGetStarted()}
+                        placeholder={currentMood.placeholder}
+                        className="flex-1 border-0 bg-transparent text-lg focus-visible:ring-0 placeholder:text-muted-foreground/50"
+                      />
+                      
+                      <Button
+                        onClick={handleGetStarted}
+                        disabled={!username.trim() || isUsernameAvailable === false}
+                        className="ml-2 rounded-lg px-6 transition-all duration-300"
+                        style={{
+                          backgroundColor: !username.trim()
+                          ? undefined
+                          : isUsernameAvailable === false
+                            ? '#ef4444'
+                            : currentMood.colors.primary,
+                          color: username.trim() ? '#ffffff' : undefined
+                        }}
+                      >
+                        {username.trim() ? currentMood.cta : 'Enter name'}
+                      </Button>
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
             
             <motion.p 
-              className="mt-4 text-xs text-muted-foreground text-center"
-              animate={{ opacity: username.trim() ? 1 : 0.5 }}
+            className="mt-4 text-xs text-muted-foreground text-center"
+            animate={{ opacity: isLoggedIn || username.trim() ? 1 : 0.5 }}
             >
-              {username.trim() ? "Ready to claim your space? 🚀" : "Your digital home awaits"}
+            {isLoggedIn 
+                ? "View your profile and see how it looks to visitors! 🎉" 
+                : username.trim() 
+                ? "Ready to claim your space? 🚀" 
+                : "Your digital home awaits"
+            }
             </motion.p>
           </motion.div>
         </main>
