@@ -21,10 +21,10 @@ export async function GET(req: NextRequest) {
     const code = searchParams.get('code');
     const rawState = searchParams.get('state');
 
-    let stateData: { from?: string; link_account?: string } = {};
+    let stateData: string = '';
     if (rawState) {
         try {
-            stateData = JSON.parse(decodeURIComponent(rawState));
+            stateData = rawState
         } catch (e) {
             console.error('Failed to parse state:', e);
         }
@@ -65,7 +65,7 @@ export async function GET(req: NextRequest) {
             include: { user: true },
         });
 
-        if (existingOAuth && stateData.link_account) {
+        /*if (existingOAuth && stateData.link_account) {
             const user = await prisma.user.findUnique({
                 where: { user_email: stateData.link_account },
             });
@@ -89,7 +89,7 @@ export async function GET(req: NextRequest) {
             });
 
             return NextResponse.redirect(new URL(`/oauth/success?message=account-linked`, req.url));
-        }
+        }*/
 
         if (existingOAuth) {
             const accessToken = generateAccessToken(existingOAuth.user_id, existingOAuth.user.user_name);
