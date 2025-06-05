@@ -350,6 +350,7 @@ const ProfilePage = () => {
       BuyMeACoffee: "https://buymeacoffee.com/{username}",
       Kofi: "https://ko-fi.com/{username}",
       Patreon: "https://patreon.com/{username}",
+      Mail: "mailto:",
     };
 
     // Helper to check if a string is a valid URL
