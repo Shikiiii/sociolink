@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -30,18 +30,78 @@ import Header from '@/app/components/header'
 import { backgroundPresets, mobilePresets } from '@/app/components/backgrounds'
 
 const ProfilePage = () => {
-  const [profile, setProfile] = useState({
-    name: 'John Doe',
-    bio: 'Digital creator and developer passionate about connecting people through technology.',
-    avatar: '',
-    background: 'gradient-1',
-    links: [
-      { id: '1', title: 'Portfolio', url: 'https://johndoe.dev', icon: 'Link' },
-      { id: '2', title: 'Instagram', url: 'https://instagram.com/johndoe', icon: 'Instagram' },
-      { id: '3', title: 'Twitter', url: 'https://twitter.com/johndoe', icon: 'Twitter' },
-      { id: '4', title: 'GitHub', url: 'https://github.com/johndoe', icon: 'Github' },
-    ]
-  })
+  useEffect(() => {
+    // Check for access_token and refresh_token cookies
+    const getCookie = (name: string) => {
+      const value = `; ${document.cookie}`;
+      const parts = value.split(`; ${name}=`);
+      if (parts.length === 2) return parts.pop()?.split(';').shift();
+      return null;
+    };
+
+    const accessToken = getCookie('access_token');
+    const refreshToken = getCookie('refresh_token');
+
+    if (!accessToken || !refreshToken) {
+      window.location.href = '/login';
+      return;
+    }
+
+    // Helper to fetch with auth and handle 401
+    const fetchWithAuth = async (url: string) => {
+      let res = await fetch(url, { credentials: 'include' });
+      if (res.status === 401) {
+      // Try to refresh token
+      await fetch('/api/auth/refresh', { credentials: 'include' });
+      res = await fetch(url, { credentials: 'include' });
+      }
+      return res;
+    };
+
+    // Fetch profile data
+    (async () => {
+      try {
+      const profileRes = await fetchWithAuth('/api/website/get_data');
+
+      if (profileRes.ok) {
+        const data = await profileRes.json();
+        setProfile({
+          name: data.data.display_name,
+          bio: data.data.bio,
+          avatar: data.avatar,
+          background: data.background,
+          links: []
+        });
+      }
+
+      const socialsRes = await fetchWithAuth('/api/website/get_socials');
+
+      if (socialsRes.ok) {
+        const socials = await socialsRes.json();
+        setProfile(prev => ({
+          ...prev,
+          links: socials.data.map((item: any, idx: number) => ({
+            id: item.order,
+            title: item.type,
+            url: item.link,
+            icon: item.type.charAt(0).toUpperCase() + item.type.slice(1)
+          }))
+        }))
+
+        // now order the array via the id , so id 1 is first, id 2 is second, etc.
+        setProfile(prev => ({
+          ...prev,
+          links: prev.links.slice().sort((a, b) => Number(a.id) - Number(b.id))
+        }))
+      }
+      } catch (err) {
+        // fallback: redirect to login on error
+        window.location.href = '/login';
+      }
+    })();
+  }, [])
+
+  const [profile, setProfile] = useState<any>({});
 
   const [newLink, setNewLink] = useState({ title: '', url: '', icon: 'Link' })
   const [isMobileView, setIsMobileView] = useState(false)
