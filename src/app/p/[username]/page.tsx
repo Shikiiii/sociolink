@@ -185,6 +185,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
   const router = useRouter()
   const [profile, setProfile] = useState<Profile>(mockProfile);
   const [isOwnProfile, setIsOwnProfile] = useState<boolean>(false);
+  const [isProfileAvailable, setIsProfileAvailable] = useState<boolean>(false);
 
   // take username from the [username] (so like what, link query? path query?)
 
@@ -250,9 +251,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
         }
 
       } catch (err) {
-        router.push('/');
-        // fallback to mockProfile on error
-        setProfile(mockProfile);
+        setIsProfileAvailable(true);
       }
     };
 
@@ -353,308 +352,23 @@ export default function ProfilePage({ params }: { params: { username: string } }
           transition={{ duration: 0.6 }}
           className="max-w-6xl mx-auto"
         >
-          {/* Mobile Layout */}
-          <div className="flex flex-col items-center justify-center min-h-screen lg:hidden">
-            {/* Profile Card - Mobile with dynamic styling */}
-            <motion.div
-              initial={{ opacity: 0, y: 50 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className={`w-full max-w-md backdrop-blur-xl rounded-3xl p-8 relative overflow-hidden mb-6 transition-all duration-300 ${textColors.profileCard} ${textColors.profileGlow}`}
-            >
-              {/* Conditional gradient effects */}
-              <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent rounded-3xl" />
-              <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 rounded-3xl blur-xl opacity-50" />
-              
-              <div className="relative z-10">
-                {/* Avatar - same as before */}
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.4, type: "spring", stiffness: 200 }}
-                  className="flex justify-center mb-6"
-                >
-                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-white/20 to-white/10 border-2 border-white/30 flex items-center justify-center overflow-hidden shadow-2xl">
-                    {profile.avatar ? (
-                      <img 
-                        src={profile.avatar} 
-                        alt={profile.name}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-400 to-purple-600 flex items-center justify-center">
-                        <span className="text-white text-2xl font-bold">
-                          {profile.name.charAt(0).toUpperCase()}
-                        </span>
-                      </div>
-                    )}
-                  </div>
-                </motion.div>
 
-                {/* Profile Info with dynamic colors */}
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.6 }}
-                  className="text-center mb-6"
-                >
-                  <h1 className={`text-2xl font-bold mb-2 transition-colors duration-300 ${textColors.gradient}`}>
-                    {profile.name}
-                  </h1>
-                  <p className={`text-sm mb-3 transition-colors duration-300 ${textColors.muted}`}>@{profile.username}</p>
-                  <p className={`text-sm leading-relaxed transition-colors duration-300 ${textColors.secondary}`}>
-                    {profile.bio}
-                  </p>
-                </motion.div>
+          {isProfileAvailable && (
+            <div className="flex flex-col items-center justify-center py-24">
+              <h2 className="text-3xl font-bold mb-6 text-center text-white">
+                This username is available.
+              </h2>
+              <button
+                className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold px-8 py-3 rounded-xl shadow-lg transition-all duration-200 text-lg"
+                onClick={() => router.push(`/register?username=${encodeURIComponent(params.username)}`)}
+              >
+                Claim it now
+              </button>
 
-                {/* Buttons - keep same styling as they work well */}
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.8 }}
-                  className="flex gap-3"
-                >
-                  {isOwnProfile && (
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={() => router.push('/profile')}
-                      className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-xl px-4 py-3 transition-all duration-300 flex items-center justify-center gap-2"
-                    >
-                      <Settings className="w-4 h-4 text-white" />
-                      <span className="text-white font-medium text-sm">Edit</span>
-                    </motion.button>
-                  )}
-                  
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    onClick={handleShare}
-                    className="flex-1 bg-white/10 hover:bg-white/20 backdrop-blur-lg border border-white/20 rounded-xl px-4 py-3 transition-all duration-300 flex items-center justify-center gap-2"
-                  >
-                    <Share2 className="w-4 h-4 text-white" />
-                    <span className="text-white font-medium text-sm">Share</span>
-                  </motion.button>
-                </motion.div>
-              </div>
-            </motion.div>
-
-            {/* Links Section - Mobile with dynamic styling */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1.0 }}
-              className="w-full max-w-md space-y-4"
-            >
-              {profile.links.map((link, index) => {
-                const platform = socialPlatforms.find(p => p.value === link.icon) || socialPlatforms[0]
-                const IconComponent = iconMap[platform.icon as keyof typeof iconMap] || Link
-
-                return (
-                  <motion.button
-                    key={link.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 1.1 + index * 0.1 }}
-                    onClick={() => handleLinkClick(link.url)}
-                    className={`group w-full backdrop-blur-sm rounded-2xl p-4 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl relative overflow-hidden ${textColors.linkCard} ${textColors.linkGlow}`}
-                  >
-                    {!isBright && (
-                      <div 
-                        className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded-2xl"
-                        style={{ background: `linear-gradient(135deg, ${platform.color}40, transparent)` }}
-                      />
-                    )}
-                    
-                    <div className="relative flex items-center gap-4">
-                      <div 
-                        className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-110 shadow-lg"
-                        style={{ 
-                          backgroundColor: platform.color,
-                          boxShadow: `0 4px 20px ${platform.color}40`
-                        }}
-                      >
-                        <IconComponent className="w-6 h-6 text-white" />
-                      </div>
-
-                      <div className="flex-1 text-left">
-                        <h3 className={`font-semibold text-base mb-1 transition-colors duration-300 ${textColors.primary}`}>
-                          {link.title}
-                        </h3>
-                        <p className={`text-sm truncate transition-colors duration-300 ${textColors.muted}`}>
-                          {link.url.replace(/^https?:\/\//, '').replace(/^mailto:/, '')}
-                        </p>
-                      </div>
-
-                      <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors flex-shrink-0">
-                        <ExternalLink className={`w-4 h-4 transition-colors ${textColors.muted} group-hover:${textColors.primary}`} />
-                      </div>
-                    </div>
-                  </motion.button>
-                )
-              })}
-            </motion.div>
-
-            {/* Footer - Mobile */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 1.6 }}
-              className="mt-8 text-center"
-            >
-              <p className={`text-xs transition-colors duration-300 ${textColors.muted}`}>
-                Powered by <span className={`font-semibold ${textColors.gradient}`}>SocioLink</span>
-              </p>
-            </motion.div>
-          </div>
-
-          {/* Desktop Layout - Apply same dynamic styling */}
-          <div className="hidden lg:grid lg:grid-cols-2 lg:gap-12 lg:items-center lg:min-h-screen">
-            {/* Left Side - Profile Card */}
-            <motion.div
-              initial={{ opacity: 0, x: -50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.6, delay: 0.2 }}
-              className="flex justify-center"
-            >
-              <div className={`w-full max-w-md backdrop-blur-xl rounded-3xl p-8 relative overflow-hidden transition-all duration-300 ${textColors.profileCard} ${textColors.profileGlow}`}>
-                <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent rounded-3xl" />
-                <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 rounded-3xl blur-xl opacity-50" />
-                
-                <div className="relative z-10">
-                  {/* Avatar - same as before */}
-                  <motion.div
-                    initial={{ scale: 0 }}
-                    animate={{ scale: 1 }}
-                    transition={{ delay: 0.4, type: "spring", stiffness: 200 }}
-                    className="flex justify-center mb-8"
-                  >
-                    <div className="w-32 h-32 rounded-full bg-gradient-to-br from-white/20 to-white/10 border-2 border-white/30 flex items-center justify-center overflow-hidden shadow-2xl">
-                      {profile.avatar ? (
-                        <img 
-                          src={profile.avatar} 
-                          alt={profile.name}
-                          className="w-full h-full object-cover"
-                        />
-                      ) : (
-                        <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-400 to-purple-600 flex items-center justify-center">
-                          <span className="text-white text-3xl font-bold">
-                            {profile.name.charAt(0).toUpperCase()}
-                          </span>
-                        </div>
-                      )}
-                    </div>
-                  </motion.div>
-
-                  {/* Profile Info with dynamic colors */}
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.6 }}
-                    className="text-center mb-8"
-                  >
-                    <h1 className={`text-3xl font-bold mb-3 transition-colors duration-300 ${textColors.gradient}`}>
-                      {profile.name}
-                    </h1>
-                    <p className={`text-base mb-4 transition-colors duration-300 ${textColors.muted}`}>@{profile.username}</p>
-                    <p className={`text-base leading-relaxed transition-colors duration-300 ${textColors.secondary}`}>
-                      {profile.bio}
-                    </p>
-                  </motion.div>
-
-                  {/* Edit and Share Buttons - same as before */}
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.8 }}
-                    className="flex gap-4"
-                  >
-                    {isOwnProfile && (
-                      <motion.button
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        onClick={() => router.push('/profile')}
-                        className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-xl px-6 py-4 transition-all duration-300 flex items-center justify-center gap-2"
-                      >
-                        <Settings className="w-5 h-5 text-white" />
-                        <span className="text-white font-medium">Edit</span>
-                      </motion.button>
-                    )}
-                    
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      onClick={handleShare}
-                      className="flex-1 bg-white/10 hover:bg-white/20 backdrop-blur-lg border border-white/20 rounded-xl px-6 py-4 transition-all duration-300 flex items-center justify-center gap-2"
-                    >
-                      <Share2 className="w-5 h-5 text-white" />
-                      <span className="text-white font-medium">Share</span>
-                    </motion.button>
-                  </motion.div>
-                </div>
-              </div>
-            </motion.div>
-
-            {/* Right Side - Links with dynamic styling */}
-            <motion.div
-              initial={{ opacity: 0, x: 50 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 1.0 }}
-              className="w-full max-w-md mx-auto space-y-4"
-            >
-              {profile.links.map((link, index) => {
-                const platform = socialPlatforms.find(p => p.value === link.icon) || socialPlatforms[0]
-                const IconComponent = iconMap[platform.icon as keyof typeof iconMap] || Link
-
-                return (
-                  <motion.button
-                    key={link.id}
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 1.1 + index * 0.1 }}
-                    onClick={() => handleLinkClick(link.url)}
-                    className={`group w-full backdrop-blur-sm rounded-2xl p-5 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl relative overflow-hidden ${textColors.linkCard} ${textColors.linkGlow}`}
-                  >
-                    {!isBright && (
-                      <div 
-                        className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded-2xl"
-                        style={{ background: `linear-gradient(135deg, ${platform.color}40, transparent)` }}
-                      />
-                    )}
-                    
-                    <div className="relative flex items-center gap-4">
-                      <div 
-                        className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-110 shadow-lg"
-                        style={{ 
-                          backgroundColor: platform.color,
-                          boxShadow: `0 4px 20px ${platform.color}40`
-                        }}
-                      >
-                        <IconComponent className="w-7 h-7 text-white" />
-                      </div>
-
-                      <div className="flex-1 text-left">
-                        <h3 className={`font-semibold text-lg mb-1 transition-colors duration-300 ${textColors.primary}`}>
-                          {link.title}
-                        </h3>
-                        <p className={`text-sm truncate transition-colors duration-300 ${textColors.muted}`}>
-                          {link.url.replace(/^https?:\/\//, '').replace(/^mailto:/, '')}
-                        </p>
-                      </div>
-
-                      <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors flex-shrink-0">
-                        <ExternalLink className={`w-5 h-5 transition-colors ${textColors.muted} group-hover:${textColors.primary}`} />
-                      </div>
-                    </div>
-                  </motion.button>
-                )
-              })}
-
-              {/* Footer - Desktop */}
               <motion.div
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ delay: 1.6 }}
+                transition={{ delay: 0.2 }}
                 className="pt-8 text-center"
               >
                 <p className={`text-sm transition-colors duration-300 ${textColors.muted}`}>
@@ -668,8 +382,328 @@ export default function ProfilePage({ params }: { params: { username: string } }
                   </button>
                 </p>
               </motion.div>
-            </motion.div>
-          </div>
+            </div>
+          )}
+          {!isProfileAvailable && (
+            <div>
+              {/* Mobile Layout */}
+              <div className="flex flex-col items-center justify-center min-h-screen lg:hidden">
+                {/* Profile Card - Mobile with dynamic styling */}
+                <motion.div
+                  initial={{ opacity: 0, y: 50 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.6, delay: 0.2 }}
+                  className={`w-full max-w-md backdrop-blur-xl rounded-3xl p-8 relative overflow-hidden mb-6 transition-all duration-300 ${textColors.profileCard} ${textColors.profileGlow}`}
+                >
+                  {/* Conditional gradient effects */}
+                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent rounded-3xl" />
+                  <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 rounded-3xl blur-xl opacity-50" />
+                  
+                  <div className="relative z-10">
+                    {/* Avatar - same as before */}
+                    <motion.div
+                      initial={{ scale: 0 }}
+                      animate={{ scale: 1 }}
+                      transition={{ delay: 0.4, type: "spring", stiffness: 200 }}
+                      className="flex justify-center mb-6"
+                    >
+                      <div className="w-24 h-24 rounded-full bg-gradient-to-br from-white/20 to-white/10 border-2 border-white/30 flex items-center justify-center overflow-hidden shadow-2xl">
+                        {profile.avatar ? (
+                          <img 
+                            src={profile.avatar} 
+                            alt={profile.name}
+                            className="w-full h-full object-cover"
+                          />
+                        ) : (
+                          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-blue-400 to-purple-600 flex items-center justify-center">
+                            <span className="text-white text-2xl font-bold">
+                              {profile.name.charAt(0).toUpperCase()}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </motion.div>
+
+                    {/* Profile Info with dynamic colors */}
+                    <motion.div
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ delay: 0.6 }}
+                      className="text-center mb-6"
+                    >
+                      <h1 className={`text-2xl font-bold mb-2 transition-colors duration-300 ${textColors.gradient}`}>
+                        {profile.name}
+                      </h1>
+                      <p className={`text-sm mb-3 transition-colors duration-300 ${textColors.muted}`}>@{profile.username}</p>
+                      <p className={`text-sm leading-relaxed transition-colors duration-300 ${textColors.secondary}`}>
+                        {profile.bio}
+                      </p>
+                    </motion.div>
+
+                    {/* Buttons - keep same styling as they work well */}
+                    <motion.div
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.8 }}
+                      className="flex gap-3"
+                    >
+                      {isOwnProfile && (
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={() => router.push('/profile')}
+                          className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-xl px-4 py-3 transition-all duration-300 flex items-center justify-center gap-2"
+                        >
+                          <Settings className="w-4 h-4 text-white" />
+                          <span className="text-white font-medium text-sm">Edit</span>
+                        </motion.button>
+                      )}
+                      
+                      <motion.button
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={handleShare}
+                        className="flex-1 bg-white/10 hover:bg-white/20 backdrop-blur-lg border border-white/20 rounded-xl px-4 py-3 transition-all duration-300 flex items-center justify-center gap-2"
+                      >
+                        <Share2 className="w-4 h-4 text-white" />
+                        <span className="text-white font-medium text-sm">Share</span>
+                      </motion.button>
+                    </motion.div>
+                  </div>
+                </motion.div>
+
+                {/* Links Section - Mobile with dynamic styling */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 1.0 }}
+                  className="w-full max-w-md space-y-4"
+                >
+                  {profile.links.map((link, index) => {
+                    const platform = socialPlatforms.find(p => p.value === link.icon) || socialPlatforms[0]
+                    const IconComponent = iconMap[platform.icon as keyof typeof iconMap] || Link
+
+                    return (
+                      <motion.button
+                        key={link.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 1.1 + index * 0.1 }}
+                        onClick={() => handleLinkClick(link.url)}
+                        className={`group w-full backdrop-blur-sm rounded-2xl p-4 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl relative overflow-hidden ${textColors.linkCard} ${textColors.linkGlow}`}
+                      >
+                        {!isBright && (
+                          <div 
+                            className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded-2xl"
+                            style={{ background: `linear-gradient(135deg, ${platform.color}40, transparent)` }}
+                          />
+                        )}
+                        
+                        <div className="relative flex items-center gap-4">
+                          <div 
+                            className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-110 shadow-lg"
+                            style={{ 
+                              backgroundColor: platform.color,
+                              boxShadow: `0 4px 20px ${platform.color}40`
+                            }}
+                          >
+                            <IconComponent className="w-6 h-6 text-white" />
+                          </div>
+
+                          <div className="flex-1 text-left">
+                            <h3 className={`font-semibold text-base mb-1 transition-colors duration-300 ${textColors.primary}`}>
+                              {link.title}
+                            </h3>
+                            <p className={`text-sm truncate transition-colors duration-300 ${textColors.muted}`}>
+                              {link.url.replace(/^https?:\/\//, '').replace(/^mailto:/, '')}
+                            </p>
+                          </div>
+
+                          <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors flex-shrink-0">
+                            <ExternalLink className={`w-4 h-4 transition-colors ${textColors.muted} group-hover:${textColors.primary}`} />
+                          </div>
+                        </div>
+                      </motion.button>
+                    )
+                  })}
+                </motion.div>
+
+                {/* Footer - Mobile */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 1.6 }}
+                  className="mt-8 text-center"
+                >
+                  <p className={`text-xs transition-colors duration-300 ${textColors.muted}`}>
+                    Powered by <span className={`font-semibold ${textColors.gradient}`}>SocioLink</span>
+                  </p>
+                </motion.div>
+              </div>
+
+              {/* Desktop Layout - Apply same dynamic styling */}
+              <div className="hidden lg:grid lg:grid-cols-2 lg:gap-12 lg:items-center lg:min-h-screen">
+                {/* Left Side - Profile Card */}
+                <motion.div
+                  initial={{ opacity: 0, x: -50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ duration: 0.6, delay: 0.2 }}
+                  className="flex justify-center"
+                >
+                  <div className={`w-full max-w-md backdrop-blur-xl rounded-3xl p-8 relative overflow-hidden transition-all duration-300 ${textColors.profileCard} ${textColors.profileGlow}`}>
+                    <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent rounded-3xl" />
+                    <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 rounded-3xl blur-xl opacity-50" />
+                    
+                    <div className="relative z-10">
+                      {/* Avatar - same as before */}
+                      <motion.div
+                        initial={{ scale: 0 }}
+                        animate={{ scale: 1 }}
+                        transition={{ delay: 0.4, type: "spring", stiffness: 200 }}
+                        className="flex justify-center mb-8"
+                      >
+                        <div className="w-32 h-32 rounded-full bg-gradient-to-br from-white/20 to-white/10 border-2 border-white/30 flex items-center justify-center overflow-hidden shadow-2xl">
+                          {profile.avatar ? (
+                            <img 
+                              src={profile.avatar} 
+                              alt={profile.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-24 h-24 rounded-full bg-gradient-to-br from-blue-400 to-purple-600 flex items-center justify-center">
+                              <span className="text-white text-3xl font-bold">
+                                {profile.name.charAt(0).toUpperCase()}
+                              </span>
+                            </div>
+                          )}
+                        </div>
+                      </motion.div>
+
+                      {/* Profile Info with dynamic colors */}
+                      <motion.div
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        transition={{ delay: 0.6 }}
+                        className="text-center mb-8"
+                      >
+                        <h1 className={`text-3xl font-bold mb-3 transition-colors duration-300 ${textColors.gradient}`}>
+                          {profile.name}
+                        </h1>
+                        <p className={`text-base mb-4 transition-colors duration-300 ${textColors.muted}`}>@{profile.username}</p>
+                        <p className={`text-base leading-relaxed transition-colors duration-300 ${textColors.secondary}`}>
+                          {profile.bio}
+                        </p>
+                      </motion.div>
+
+                      {/* Edit and Share Buttons - same as before */}
+                      <motion.div
+                        initial={{ opacity: 0, y: 20 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.8 }}
+                        className="flex gap-4"
+                      >
+                        {isOwnProfile && (
+                          <motion.button
+                            whileHover={{ scale: 1.05 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => router.push('/profile')}
+                            className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-xl px-6 py-4 transition-all duration-300 flex items-center justify-center gap-2"
+                          >
+                            <Settings className="w-5 h-5 text-white" />
+                            <span className="text-white font-medium">Edit</span>
+                          </motion.button>
+                        )}
+                        
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          onClick={handleShare}
+                          className="flex-1 bg-white/10 hover:bg-white/20 backdrop-blur-lg border border-white/20 rounded-xl px-6 py-4 transition-all duration-300 flex items-center justify-center gap-2"
+                        >
+                          <Share2 className="w-5 h-5 text-white" />
+                          <span className="text-white font-medium">Share</span>
+                        </motion.button>
+                      </motion.div>
+                    </div>
+                  </div>
+                </motion.div>
+
+                {/* Right Side - Links with dynamic styling */}
+                <motion.div
+                  initial={{ opacity: 0, x: 50 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 1.0 }}
+                  className="w-full max-w-md mx-auto space-y-4"
+                >
+                  {profile.links.map((link, index) => {
+                    const platform = socialPlatforms.find(p => p.value === link.icon) || socialPlatforms[0]
+                    const IconComponent = iconMap[platform.icon as keyof typeof iconMap] || Link
+
+                    return (
+                      <motion.button
+                        key={link.id}
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ delay: 1.1 + index * 0.1 }}
+                        onClick={() => handleLinkClick(link.url)}
+                        className={`group w-full backdrop-blur-sm rounded-2xl p-5 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl relative overflow-hidden ${textColors.linkCard} ${textColors.linkGlow}`}
+                      >
+                        {!isBright && (
+                          <div 
+                            className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded-2xl"
+                            style={{ background: `linear-gradient(135deg, ${platform.color}40, transparent)` }}
+                          />
+                        )}
+                        
+                        <div className="relative flex items-center gap-4">
+                          <div 
+                            className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-110 shadow-lg"
+                            style={{ 
+                              backgroundColor: platform.color,
+                              boxShadow: `0 4px 20px ${platform.color}40`
+                            }}
+                          >
+                            <IconComponent className="w-7 h-7 text-white" />
+                          </div>
+
+                          <div className="flex-1 text-left">
+                            <h3 className={`font-semibold text-lg mb-1 transition-colors duration-300 ${textColors.primary}`}>
+                              {link.title}
+                            </h3>
+                            <p className={`text-sm truncate transition-colors duration-300 ${textColors.muted}`}>
+                              {link.url.replace(/^https?:\/\//, '').replace(/^mailto:/, '')}
+                            </p>
+                          </div>
+
+                          <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors flex-shrink-0">
+                            <ExternalLink className={`w-5 h-5 transition-colors ${textColors.muted} group-hover:${textColors.primary}`} />
+                          </div>
+                        </div>
+                      </motion.button>
+                    )
+                  })}
+                  {/* Footer - Desktop */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 1.6 }}
+                    className="pt-8 text-center"
+                  >
+                    <p className={`text-sm transition-colors duration-300 ${textColors.muted}`}>
+                      Powered by{' '}
+                      <button
+                        type="button"
+                        className={`font-semibold ${textColors.gradient} focus:outline-none cursor-pointer hover:underline`}
+                        onClick={() => router.push('/')}
+                      >
+                        SocioLink
+                      </button>
+                    </p>
+                  </motion.div>
+                </motion.div>
+              </div>
+            </div>
+          )}
         </motion.div>
       </div>
     </div>
