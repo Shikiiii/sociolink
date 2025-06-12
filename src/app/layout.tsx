@@ -17,6 +17,9 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "SocioLink - Link All Your Socials",
   description: "Create your perfect social hub with one beautiful link",
+  icons: {
+    icon: '/favicon.svg',
+  },
 };
 
 export default function RootLayout({

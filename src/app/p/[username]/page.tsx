@@ -187,8 +187,6 @@ export default function ProfilePage({ params }: { params: { username: string } }
   const [isOwnProfile, setIsOwnProfile] = useState<boolean>(false);
   const [isProfileAvailable, setIsProfileAvailable] = useState<boolean>(false);
 
-  // take username from the [username] (so like what, link query? path query?)
-
   useEffect(() => {
     // Fetch profile data from /api/view using POST with username
     const fetchProfile = async () => {
@@ -216,6 +214,8 @@ export default function ProfilePage({ params }: { params: { username: string } }
             : 'Link',
         }));
 
+        const temp_username = params.username;
+
         setProfile({
           name: data.website.display_name,
           username: params.username,
@@ -230,23 +230,34 @@ export default function ProfilePage({ params }: { params: { username: string } }
         const getCookie = (name: string) => {
           const value = `; ${document.cookie}`;
           const parts = value.split(`; ${name}=`);
-          if (parts.length === 2) return parts.pop()?.split(';').shift();
+          if (parts.length === 2) {
+            return parts.pop()?.split(';').shift();
+          }
           return null;
         };
 
         const accessToken = getCookie('access_token');
+
         if (accessToken) {
           try {
             // JWT format: header.payload.signature
-            const payload = accessToken.split('.')[1];
+            const parts = accessToken.split('.');
+            const payload = parts[1];
             if (payload) {
-              const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+              // JWT base64url decode
+              const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+              // Add padding if needed
+              const padded = base64 + '='.repeat((4 - base64.length % 4) % 4);
+              const decodedStr = atob(padded);
+              const decoded = JSON.parse(decodedStr);
               if (decoded.user_name) {
-                if ( decoded.user_name === profile.username ) { setIsOwnProfile(true) };
+                if (decoded.user_name === temp_username) {
+                  setIsOwnProfile(true);
+                }
               }
             }
           } catch (e) {
-            // ignore errors
+            // ignore error
           }
         }
 
