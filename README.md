@@ -4,7 +4,8 @@
 
 SocioLink is a modern, beautiful link-in-bio platform that allows creators, influencers, and individuals to create personalized profiles showcasing all their social media links in one elegant place. Built with Next.js 15, TypeScript, and cutting-edge web technologies for the best user experience.
 
-![SocioLink Preview](https://via.placeholder.com/800x400/2563eb/ffffff?text=SocioLink+Preview)
+![SocioLink Preview](https://i.imgur.com/6LvjCIr.png)
+![SocioLink Preview](https://i.imgur.com/rWZDe12.png)
 
 ## ✨ Features
 
