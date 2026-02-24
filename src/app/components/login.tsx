@@ -83,7 +83,7 @@ const LoginPage = () => {
     <div className="min-h-screen relative overflow-hidden bg-background">
 
       {/* Main Content */}
-      <div className="flex items-center justify-center min-h-screen p-4 pt-24 md:pt-4">
+      <div className="flex items-center justify-center min-h-screen p-4 pt-24">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
