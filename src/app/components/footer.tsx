@@ -10,7 +10,7 @@ export default function Footer() {
         
         {/* Left side - Logo and Copyright */}
         <div className="flex items-center space-x-2">
-          <Link href="/" className="text-lg font-bold hover:underline">
+          <Link href="/" className="text-lg font-bold">
             sociolink
           </Link>
           <div className="text-xs text-muted-foreground">
