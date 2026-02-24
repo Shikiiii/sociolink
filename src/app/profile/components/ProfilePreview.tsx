@@ -188,7 +188,11 @@ export const ProfilePreview = ({ profile, getBackgroundClass, iconMap, isMobile 
                         {link.title}
                       </h3>
                       <p className={`text-xs truncate transition-colors duration-300 ${textColors.muted}`}>
-                        {link.url.replace(/^https?:\/\//, '').replace(/^mailto:/, '')}
+                        {(() => {
+                          const cleanUrl = link.url.replace(/^https?:\/\//, '').replace(/^mailto:/, '')
+                          const limit = isMobile ? 20 : 30
+                          return cleanUrl.length > limit ? cleanUrl.substring(0, limit) + '...' : cleanUrl
+                        })()}
                       </p>
                     </div>
 

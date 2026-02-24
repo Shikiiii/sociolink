@@ -31,9 +31,9 @@ const OAuthErrorPage = () => {
   const errorMessage = ERRORS[errorKey] || "Unexpected error happened. If this issue keeps happening, please contact support."
 
   const router = useRouter()
-  const { theme, setTheme } = useTheme()
+  const { theme, setTheme, resolvedTheme } = useTheme()
 
-  const isDarkMode = theme === 'dark'
+  const isDarkMode = (theme === 'system' ? resolvedTheme : theme) === 'dark'
 
 
   const handleThemeToggle = () => {

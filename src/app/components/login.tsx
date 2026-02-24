@@ -28,10 +28,10 @@ const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [mounted, setMounted] = useState(false)
   const router = useRouter()
-  const { theme } = useTheme()
+  const { theme, resolvedTheme } = useTheme()
   const [error, setError] = useState<string | null>(null)
 
-  const isDark = theme === 'dark'
+  const isDark = (theme === 'system' ? resolvedTheme : theme) === 'dark'
 
   useEffect(() => {
     setMounted(true)
@@ -83,7 +83,7 @@ const LoginPage = () => {
     <div className="min-h-screen relative overflow-hidden bg-background">
 
       {/* Main Content */}
-      <div className="flex items-center justify-center min-h-screen p-4">
+      <div className="flex items-center justify-center min-h-screen p-4 pt-24 md:pt-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}

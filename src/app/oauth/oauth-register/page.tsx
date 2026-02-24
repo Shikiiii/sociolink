@@ -38,10 +38,10 @@ const OAuthRegisterPage = () => {
   } | null>(null)
   const [mounted, setMounted] = useState(false)
   const router = useRouter()
-  const { theme, setTheme } = useTheme()
+  const { theme, setTheme, resolvedTheme } = useTheme()
   const [error, setError] = useState<string | null>(null)
 
-  const isDark = theme === 'dark'
+  const isDark = (theme === 'system' ? resolvedTheme : theme) === 'dark'
 
   useEffect(() => {
     setMounted(true)

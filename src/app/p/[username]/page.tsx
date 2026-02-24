@@ -535,7 +535,11 @@ export default function ProfilePage({ params }: { params: Promise<{ username: st
                               {link.title}
                             </h3>
                             <p className={`text-sm truncate transition-colors duration-300 ${textColors.muted}`}>
-                              {link.url.replace(/^https?:\/\//, '').replace(/^mailto:/, '')}
+                              {(() => {
+                                const cleanUrl = link.url.replace(/^https?:\/\//, '').replace(/^mailto:/, '')
+                                const limit = 20
+                                return cleanUrl.length > limit ? cleanUrl.substring(0, limit) + '...' : cleanUrl
+                              })()}
                             </p>
                           </div>
 
@@ -682,7 +686,11 @@ export default function ProfilePage({ params }: { params: Promise<{ username: st
                               {link.title}
                             </h3>
                             <p className={`text-sm truncate transition-colors duration-300 ${textColors.muted}`}>
-                              {link.url.replace(/^https?:\/\//, '').replace(/^mailto:/, '')}
+                              {(() => {
+                                const cleanUrl = link.url.replace(/^https?:\/\//, '').replace(/^mailto:/, '')
+                                const limit = 30
+                                return cleanUrl.length > limit ? cleanUrl.substring(0, limit) + '...' : cleanUrl
+                              })()}
                             </p>
                           </div>
 

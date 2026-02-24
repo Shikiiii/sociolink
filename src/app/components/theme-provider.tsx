@@ -11,7 +11,7 @@ export function ThemeProvider({ children, ...props }: ThemeProviderProps) {
       const stored = localStorage.getItem('theme')
       if (stored && (stored.startsWith('{') || stored.startsWith('['))) {
         // Invalid theme value, reset to default
-        localStorage.setItem('theme', 'light')
+        localStorage.removeItem('theme')
       }
     }
   }, [])

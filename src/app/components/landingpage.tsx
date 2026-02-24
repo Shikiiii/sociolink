@@ -54,11 +54,11 @@ const LandingPage = () => {
   const [isUsernameAvailable, setIsUsernameAvailable] = useState<boolean>(false)
   
   const router = useRouter()
-  const { theme } = useTheme()
+  const { theme, resolvedTheme } = useTheme()
 
   console.log('Current state:', { isLoggedIn, loggedInUsername }); // Add this line
 
-  const isDark = theme === 'dark'
+  const isDark = (theme === 'system' ? resolvedTheme : theme) === 'dark'
   
   // More human content with personality
     const moods = useMemo(() => ({

@@ -365,7 +365,7 @@ const ProfilePage = () => {
       <Header />
       
       {/* Desktop Layout */}
-      <div className="hidden lg:flex max-w-7xl mx-auto px-6 gap-6">
+      <div className="hidden lg:flex max-w-7xl mx-auto px-6 gap-6 pt-8">
         {/* Left Sidebar - Edit Panel */}
         <motion.div 
           initial={{ x: -20, opacity: 0 }}
@@ -449,7 +449,7 @@ const ProfilePage = () => {
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
-              className="min-h-screen bg-card p-4 pb-24"
+              className="min-h-screen bg-card p-4 pt-24 pb-24"
             >
               <MobileEditPanel 
                 profile={profile}

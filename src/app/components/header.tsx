@@ -20,7 +20,7 @@ const Header = () => {
   const [isHovering, setIsHovering] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false)
   const [mounted, setMounted] = useState(false)
-  const { theme, setTheme } = useTheme()
+  const { theme, setTheme, resolvedTheme } = useTheme()
   const router = useRouter()
 
   // Fix hydration issue
@@ -58,7 +58,7 @@ const Header = () => {
   }, [lastScrollY])
 
   const shouldShow = isVisible || isHovering
-  const isDark = theme === 'dark'
+  const isDark = (theme === 'system' ? resolvedTheme : theme) === 'dark'
 
   const handleThemeToggle = () => {
     setTheme(isDark ? 'light' : 'dark')
