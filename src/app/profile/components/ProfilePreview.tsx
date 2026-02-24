@@ -7,12 +7,18 @@ import { backgroundComponents } from '@/app/components/animated-backgrounds'
 import { getTextColors } from '../utils/colors'
 import { socialPlatforms } from '../constants'
 import Image from 'next/image'
+import { fontMap } from '@/lib/fonts'
+import { cn } from '@/lib/utils'
 
 interface Profile {
   name: string | null
   bio: string | null
   avatar: string | null
   background: string
+  font: string
+  buttonStyle: string
+  buttonRoundness: string
+  buttonLayout?: string
   blur?: number
   customColor?: string
   links: {
@@ -37,9 +43,59 @@ export const ProfilePreview = ({ profile, getBackgroundClass, iconMap, isMobile 
   
   const blurValue = profile.blur || 0
   const isCustomColor = profile.background?.startsWith('custom-')
+  const isExternalImage = profile.background && !backgroundPreset && !isCustomColor && !profile.background.startsWith('bg-')
 
   // Get dynamic text colors
   const textColors = getTextColors(profile)
+  const fontClass = fontMap[profile.font] || fontMap.inter
+
+  const getButtonClass = () => {
+    const style = profile.buttonStyle || 'fill'
+    const roundness = profile.buttonRoundness || 'rounded'
+    const layout = profile.buttonLayout || 'list'
+    const isBright = textColors.isBright
+
+    const roundClass = {
+        'sharp': 'rounded-none',
+        'rounded': 'rounded-xl',
+        'pill': 'rounded-full'
+    }[roundness as 'sharp' | 'rounded' | 'pill'] || 'rounded-xl';
+
+    let colorClass = "";
+    switch (style) {
+        case 'fill':
+            colorClass = isBright 
+                ? "bg-white/80 hover:bg-white text-black border border-black/5 shadow-sm" 
+                : "bg-zinc-900/60 hover:bg-zinc-900/80 text-white border border-white/10 backdrop-blur-md";
+            break;
+        case 'outline':
+            colorClass = isBright 
+                ? "bg-transparent border-2 border-black/80 text-black hover:bg-black/5" 
+                : "bg-transparent border-2 border-white/80 text-white hover:bg-white/10";
+            break;
+        case 'soft':
+            colorClass = isBright 
+                ? "bg-black/5 hover:bg-black/10 text-black" 
+                : "bg-white/10 hover:bg-white/20 text-white backdrop-blur-md";
+            break;
+        case 'hard':
+            colorClass = isBright 
+                ? "bg-white border-2 border-black text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]" 
+                : "bg-black border-2 border-white text-white shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]";
+            break;
+        default:
+             colorClass = isBright 
+                ? "bg-white/50 text-black" 
+                : "bg-black/50 text-white";
+    }
+    
+    // Adjust padding/layout for grid mode
+    if (layout === 'grid') {
+      return `${roundClass} ${colorClass} transition-all duration-200 flex flex-col items-center justify-center text-center p-4 h-32 w-full`;
+    }
+
+    return `${roundClass} ${colorClass} transition-all duration-200`;
+  }
 
   const [username, setUsername] = useState<string>("username");
 
@@ -70,47 +126,46 @@ export const ProfilePreview = ({ profile, getBackgroundClass, iconMap, isMobile 
   }, [])
 
   return (
-    <div className="relative w-full h-full overflow-hidden">
-      {/* Background */}
-      {isCustomColor ? (
-        <div 
-          className="absolute inset-0" 
-          style={{ 
-            backgroundColor: `#${profile.background.split("custom-")[1]}`,
-            filter: blurValue > 0 ? `blur(${blurValue * 0.3}px)` : 'none',
-            transform: blurValue > 0 ? 'scale(1.05)' : 'scale(1)',
-            transition: 'filter 0.2s ease, transform 0.2s ease'
-          }}
-        />
-      ) : BackgroundComponent ? (
-        <div 
-          className="absolute inset-0"
-          style={{
-            filter: blurValue > 0 ? `blur(${blurValue * 0.3}px)` : 'none',
-            transform: blurValue > 0 ? 'scale(1.1)' : 'scale(1)',
-            transformOrigin: 'center',
-            transition: 'filter 0.2s ease, transform 0.2s ease'
-          }}
-        >
+    <div className={`relative w-full h-full overflow-hidden bg-background ${fontClass}`}>
+      {/* Background Layer */}
+      <div className="absolute inset-0 z-0">
+        {isCustomColor ? (
+          <div 
+            className="w-full h-full" 
+            style={{ backgroundColor: profile.customColor || '#000000' }}
+          />
+        ) : isExternalImage ? (
+          <div className="relative w-full h-full">
+            <Image
+              src={profile.background}
+              alt="Profile Background"
+              fill
+              className="object-cover"
+              priority
+            />
+          </div>
+        ) : BackgroundComponent ? (
           <BackgroundComponent />
-        </div>
-      ) : (
+        ) : (
+          <div className={`w-full h-full ${getBackgroundClass(profile.background)}`} />
+        )}
+      </div>
+
+      {/* Blur Overlay - Applied separately to avoid blurring the container edges */}
+      {blurValue > 0 && (
         <div 
-          className={`absolute inset-0 ${getBackgroundClass(profile.background)}`}
-          style={{
-            filter: blurValue > 0 ? `blur(${blurValue * 0.3}px)` : 'none',
-            transform: blurValue > 0 ? 'scale(1.05)' : 'scale(1)',
-            transition: 'filter 0.2s ease, transform 0.2s ease'
-          }}
+          className="absolute inset-0 z-0 backdrop-blur-[var(--blur-amount)]"
+          style={{ '--blur-amount': `${blurValue * 0.5}px` } as React.CSSProperties}
         />
       )}
 
-      <div className={`absolute inset-0 pointer-events-none ${textColors.isBright ? 'bg-black/10' : 'bg-black/20'}`} />
-      
       {/* Content */}
+      <div className={`absolute inset-0 z-10 pointer-events-none ${textColors.isBright ? 'bg-black/10' : 'bg-black/20'}`} />
+      
+      {/* Content Container */}
       {isMobile ? (
         // Mobile Layout
-        <div className="relative z-20 h-full p-4 flex flex-col items-center justify-start pt-10 overflow-y-auto">
+        <div className="relative z-20 h-full p-4 flex flex-col items-center justify-start pt-10 overflow-y-auto custom-scrollbar">
           <div className={`w-full max-w-sm backdrop-blur-xl rounded-3xl p-6 relative overflow-hidden mb-4 transition-all duration-300 ${textColors.profileCard}`}>
             
             <div className="relative z-10">
@@ -161,59 +216,60 @@ export const ProfilePreview = ({ profile, getBackgroundClass, iconMap, isMobile 
             </div>
           </div>
 
-          {/* Links Section */}
-          <div className="w-full max-w-sm space-y-2 flex-1 pb-10">
-            {profile.links.length > 0 ? profile.links.map((link) => {
-              const platform = socialPlatforms.find(p => p.value === link.icon) || socialPlatforms[0]
-              const IconComponent = iconMap[platform.icon as keyof typeof iconMap] || Link
-
-              return (
-                <div
-                  key={link.id}
-                  className={`w-full backdrop-blur-sm rounded-xl p-3 transition-all duration-200 relative overflow-hidden ${textColors.linkCard}`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div 
-                      className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md"
-                      style={{ 
-                        backgroundColor: platform.color,
-                        boxShadow: `0 4px 20px ${platform.color}40`
-                      }}
+          {/* Links + Footer wrapper */}
+          <div className="w-full max-w-sm flex-1 flex flex-col">
+            <div className={cn(
+               "w-full",
+               profile.buttonLayout === 'grid-icon' ? "grid grid-cols-3 gap-2" : "space-y-2"
+            )}>
+              {profile.links.length > 0 ? profile.links.map((link) => {
+                const platform = socialPlatforms.find(p => p.value === link.icon) || socialPlatforms[0]
+                const IconComponent = iconMap[platform.icon as keyof typeof iconMap] || Link
+                const buttonClass = getButtonClass();
+                const isIconGrid = profile.buttonLayout === 'grid-icon';
+                
+                if (isIconGrid) {
+                  return (
+                    <div
+                      key={link.id}
+                      className={`group cursor-pointer flex flex-col items-center justify-center gap-1 p-3 ${buttonClass}`}
                     >
-                      <IconComponent className="w-5 h-5 text-white" />
-                    </div>
-
-                    <div className="flex-1 text-left min-w-0">
-                      <h3 className={`font-semibold text-sm mb-0.5 truncate transition-colors duration-300 ${textColors.primary}`}>
+                      <IconComponent className="w-6 h-6" />
+                      <h3 className="font-semibold text-xs text-center leading-tight line-clamp-2 w-full">
                         {link.title}
                       </h3>
-                      <p className={`text-xs truncate transition-colors duration-300 ${textColors.muted}`}>
-                        {(() => {
-                          const cleanUrl = link.url.replace(/^https?:\/\//, '').replace(/^mailto:/, '')
-                          const limit = isMobile ? 20 : 30
-                          return cleanUrl.length > limit ? cleanUrl.substring(0, limit) + '...' : cleanUrl
-                        })()}
-                      </p>
                     </div>
+                  )
+                }
 
-                    <div className="w-6 h-6 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
-                      <ExternalLink className={`w-3 h-3 ${textColors.muted}`} />
+                return (
+                  <div
+                    key={link.id}
+                    className={`w-full relative overflow-hidden flex items-center gap-3 p-3 group cursor-pointer ${buttonClass}`}
+                  >
+                    <div className="w-10 h-10 flex items-center justify-center flex-shrink-0">
+                      <IconComponent className="w-5 h-5" />
+                    </div>
+                    <div className="flex-1 text-left min-w-0">
+                      <h3 className="font-semibold text-sm mb-0.5 truncate">
+                        {link.title}
+                      </h3>
                     </div>
                   </div>
+                )
+              }) : (
+                <div className="text-center py-8">
+                  <p className={`text-sm transition-colors duration-300 ${textColors.muted}`}>No links added yet</p>
                 </div>
-              )
-            }) : (
-              <div className="text-center py-8">
-                <p className={`text-sm transition-colors duration-300 ${textColors.muted}`}>No links added yet</p>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
 
-          {/* Footer */}
-          <div className="pb-4 text-center">
-            <p className={`text-xs transition-colors duration-300 ${textColors.muted}`}>
-              Powered by <span className={`font-semibold ${textColors.gradient}`}>SocioLink</span>
-            </p>
+            {/* Footer - always outside the grid */}
+            <div className="py-4 text-center">
+              <p className={`text-xs transition-colors duration-300 ${textColors.muted}`}>
+                Powered by <span className={`font-semibold ${textColors.gradient}`}>SocioLink</span>
+              </p>
+            </div>
           </div>
         </div>
       ) : (
@@ -277,51 +333,58 @@ export const ProfilePreview = ({ profile, getBackgroundClass, iconMap, isMobile 
                 </div>
 
                 {/* Right Side - Links */}
-                <div className="w-full max-w-sm mx-auto space-y-3 pb-10">
-                  {profile.links.length > 0 ? profile.links.map((link) => {
-                    const platform = socialPlatforms.find(p => p.value === link.icon) || socialPlatforms[0]
-                    const IconComponent = iconMap[platform.icon as keyof typeof iconMap] || Link
-
-                    return (
-                      <div
-                        key={link.id}
-                        className={`w-full backdrop-blur-sm rounded-xl p-4 transition-all duration-200 relative overflow-hidden ${textColors.linkCard}`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <div 
-                            className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md"
-                            style={{ 
-                              backgroundColor: platform.color,
-                              boxShadow: `0 4px 20px ${platform.color}40`
-                            }}
+                <div className="w-full max-w-sm mx-auto flex flex-col gap-4">
+                  <div className={cn(
+                     "w-full",
+                     profile.buttonLayout === 'grid-icon' ? "grid grid-cols-3 gap-3" : "space-y-3"
+                  )}>
+                    {profile.links.length > 0 ? profile.links.map((link) => {
+                      const platform = socialPlatforms.find(p => p.value === link.icon) || socialPlatforms[0]
+                      const IconComponent = iconMap[platform.icon as keyof typeof iconMap] || Link
+                      const buttonClass = getButtonClass();
+                      const isIconGrid = profile.buttonLayout === 'grid-icon';
+                      
+                      if (isIconGrid) {
+                        return (
+                          <div
+                            key={link.id}
+                            className={`group cursor-pointer flex flex-col items-center justify-center gap-1.5 p-4 hover:scale-[1.04] transition-transform ${buttonClass}`}
                           >
-                            <IconComponent className="w-6 h-6 text-white" />
-                          </div>
-
-                          <div className="flex-1 text-left min-w-0">
-                            <h3 className={`font-semibold text-base mb-1 transition-colors duration-300 ${textColors.primary}`}>
+                            <IconComponent className="w-7 h-7" />
+                            <h3 className="font-semibold text-xs text-center leading-tight line-clamp-2 w-full">
                               {link.title}
                             </h3>
-                            <p className={`text-sm truncate transition-colors duration-300 ${textColors.muted}`}>
-                              {link.url.replace(/^https?:\/\//, '').replace(/^mailto:/, '')}
-                            </p>
                           </div>
+                        )
+                      }
 
-                          <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center flex-shrink-0">
-                            <ExternalLink className={`w-4 h-4 ${textColors.muted}`} />
+                      return (
+                        <div
+                          key={link.id}
+                          className={`w-full relative overflow-hidden flex items-center gap-3 p-3 sm:p-4 group cursor-pointer ${buttonClass}`}
+                        >
+                          <div className="w-10 h-10 flex items-center justify-center flex-shrink-0">
+                            <IconComponent className="w-6 h-6" />
+                          </div>
+                          <div className="flex-1 text-left min-w-0">
+                            <h3 className="font-semibold text-base mb-1 truncate">
+                              {link.title}
+                            </h3>
+                          </div>
+                          <div className="flex items-center justify-center flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <ExternalLink className="w-4 h-4 opacity-70" />
                           </div>
                         </div>
+                      )
+                    }) : (
+                      <div className="text-center py-12">
+                        <p className={`text-base transition-colors duration-300 ${textColors.muted}`}>No links added yet</p>
                       </div>
-                    )
-                  }) : (
-                    <div className="text-center py-12">
-                      <p className="text-white/60 text-base">No links added yet</p>
-                      <p className="text-white/40 text-sm mt-2">Add some links to see them here</p>
-                    </div>
-                  )}
+                    )}
+                  </div>
 
-                  {/* Footer - Desktop */}
-                  <div className="pt-6 text-center">
+                  {/* Footer - always outside the grid */}
+                  <div className="pt-2 text-center">
                     <p className={`text-sm transition-colors duration-300 ${textColors.muted}`}>
                       Powered by <span className={`font-semibold ${textColors.gradient}`}>SocioLink</span>
                     </p>

@@ -2,16 +2,21 @@
 
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Palette, ChevronUp, ChevronDown } from 'lucide-react'
+import { Palette, ChevronUp, ChevronDown, Upload } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { backgroundPresets } from '@/app/components/backgrounds'
+import Image from 'next/image'
 
 interface Profile {
   name: string | null
   bio: string | null
   avatar: string | null
   background: string
+  font: string
   blur?: number
+  buttonStyle: string
+  buttonRoundness: string
+  buttonLayout?: string
   customColor?: string
   links: {
     id: string
@@ -35,6 +40,7 @@ interface BackgroundSectionProps {
   showBackgrounds: boolean
   setShowBackgrounds: (value: boolean) => void
   compact?: boolean
+  handleBackgroundUpload?: () => void
 }
 
 // Background Thumbnail Component
@@ -74,8 +80,15 @@ const BackgroundThumbnail = React.memo(({ background }: { background: Background
 
 BackgroundThumbnail.displayName = 'BackgroundThumbnail'
 
-export const BackgroundSection = ({ profile, setProfile, showBackgrounds, setShowBackgrounds, compact = false }: BackgroundSectionProps) => {
-  const [customColor, setCustomColor] = useState('#667eea')
+export const BackgroundSection = ({ profile, setProfile, showBackgrounds, setShowBackgrounds, compact = false, handleBackgroundUpload }: BackgroundSectionProps) => {
+  const [customColor, setCustomColor] = useState(profile.customColor || '#667eea')
+
+  // Sync internal customColor state when profile.customColor changes (e.g. on initial load)
+  React.useEffect(() => {
+    if (profile.customColor) {
+      setCustomColor(profile.customColor)
+    }
+  }, [profile.customColor])
 
   const categorizedBackgrounds = backgroundPresets.reduce((acc: Record<string, BackgroundPreset[]>, bg) => {
     const category = bg.category || 'Other'
@@ -136,6 +149,42 @@ export const BackgroundSection = ({ profile, setProfile, showBackgrounds, setSho
                 <span>No Blur</span>
                 <span>Max Blur</span>
               </div>
+            </div>
+
+            {/* Custom Background Upload */}
+            <div className="mb-4 p-3 bg-card border border-border rounded-lg">
+                <div className="flex items-center justify-between mb-4">
+                  <h4 className="text-sm font-medium text-foreground">Custom Background</h4>
+                </div>
+                
+                <button
+                  onClick={handleBackgroundUpload}
+                  className="flex items-center gap-3 w-full p-3 rounded-lg border border-border hover:border-accent/50 transition-colors bg-muted/20"
+                >
+                  <div className="w-12 h-12 rounded-md bg-gradient-to-br from-accent/20 to-accent/40 flex items-center justify-center border border-accent/30 overflow-hidden relative shrink-0">
+                    {profile.background && !profile.background.startsWith('custom-') && !backgroundPresets.some(b => b.id === profile.background) ? (
+                      <div className="w-full h-full relative">
+                        <Image 
+                          src={profile.background} 
+                          alt="Custom Background Preview" 
+                          fill
+                          className="object-cover" 
+                        />
+                      </div>
+                    ) : (
+                      <Upload className="w-5 h-5 text-accent" />
+                    )}
+                  </div>
+                  <div className="flex-1 text-left min-w-0">
+                    <p className="text-sm font-medium text-foreground truncate">
+                      {profile.background && !profile.background.startsWith('custom-') && !backgroundPresets.some(b => b.id === profile.background)
+                        ? "Change Image" 
+                        : "Upload Image"}
+                    </p>
+                    <p className="text-xs text-muted-foreground truncate">JPG, PNG up to 5MB</p>
+                  </div>
+                  <Upload className="w-4 h-4 text-muted-foreground shrink-0" />
+                </button>
             </div>
 
             {/* Custom Color Section */}

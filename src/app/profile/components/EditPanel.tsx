@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { DropResult } from '@hello-pangea/dnd'
 import { mobilePresets } from '@/app/components/backgrounds'
 import { ProfileInfoSection } from './ProfileInfoSection'
+import { ProfileStyleSection } from './ProfileStyleSection'
 import { BackgroundSection } from './BackgroundSection'
 import { LinksSection } from './LinksSection'
 
@@ -20,7 +21,11 @@ interface Profile {
   bio: string | null
   avatar: string | null
   background: string
+  font: string
   blur?: number
+  buttonStyle: string
+  buttonRoundness: string
+  buttonLayout?: string
   customColor?: string
   links: {
     id: string
@@ -51,6 +56,7 @@ interface EditPanelProps {
   removeLink: (id: string) => void
   handleDragEnd: (result: DropResult<string>) => void
   handleAvatarUpload: () => void
+  handleBackgroundUpload: () => void
   iconMap: Record<string, React.ComponentType<{ className?: string }>>
   error: string | null
   isDirty: boolean
@@ -60,7 +66,7 @@ interface EditPanelProps {
 export const EditPanel = ({ 
   profile, setProfile, newLink, setNewLink, isMobileView, setIsMobileView,
   selectedMobilePreset, setSelectedMobilePreset, showBackgrounds, setShowBackgrounds,
-  addLink, removeLink, handleDragEnd, handleAvatarUpload, iconMap, error, isDirty,
+  addLink, removeLink, handleDragEnd, handleAvatarUpload, handleBackgroundUpload, iconMap, error, isDirty,
   saveChanges
 }: EditPanelProps) => (
   <div className="space-y-6">
@@ -127,7 +133,10 @@ export const EditPanel = ({
       setProfile={setProfile}
       showBackgrounds={showBackgrounds}
       setShowBackgrounds={setShowBackgrounds}
+      handleBackgroundUpload={handleBackgroundUpload}
     />
+
+    <ProfileStyleSection profile={profile} setProfile={setProfile} />
 
     {/* Links Management */}
     <LinksSection 
@@ -163,6 +172,7 @@ interface MobileEditPanelProps {
   removeLink: (id: string) => void
   handleDragEnd: (result: DropResult<string>) => void
   handleAvatarUpload: () => void
+  handleBackgroundUpload: () => void
   iconMap: Record<string, React.ComponentType<{ className?: string }>>
   saveChanges: () => void
   error: string | null
@@ -171,7 +181,7 @@ interface MobileEditPanelProps {
 
 export const MobileEditPanel = ({ 
   profile, setProfile, newLink, setNewLink, showBackgrounds, setShowBackgrounds,
-  addLink, removeLink, handleDragEnd, handleAvatarUpload, iconMap, saveChanges, error, isDirty
+  addLink, removeLink, handleDragEnd, handleAvatarUpload, handleBackgroundUpload, iconMap, saveChanges, error, isDirty
 }: MobileEditPanelProps) => (
   <div className="space-y-6 pt-10">
     <div className="flex items-center gap-2 mb-6">
@@ -193,7 +203,10 @@ export const MobileEditPanel = ({
       showBackgrounds={showBackgrounds}
       setShowBackgrounds={setShowBackgrounds}
       compact={true}
+      handleBackgroundUpload={handleBackgroundUpload}
     />
+
+    <ProfileStyleSection profile={profile} setProfile={setProfile} />
 
     {/* Links Management */}
     <LinksSection 

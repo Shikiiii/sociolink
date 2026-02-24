@@ -32,6 +32,10 @@ model Website {
   display_name     String?
   bio              String?
   background       String?
+  font             String   @default("inter")
+  buttonStyle      String   @default("fill") // fill, outline, soft, heavy
+  buttonRoundness  String   @default("rounded") // sharp, rounded, pill
+  buttonLayout     String   @default("list") // list, grid
   socials          Social[]
   user             User?    @relation("UserWebsite")
 }

@@ -20,9 +20,14 @@ interface Profile {
   bio: string | null,
   avatar: string | null,
   background: string,
+  font: string,
   blur?: number,
+  buttonStyle: string,
+  buttonRoundness: string,
+  buttonLayout?: string,
   customColor?: string,
   avatarFile?: File;
+  backgroundFile?: File;
   links: {
     id: string,
     title: string,
@@ -38,7 +43,11 @@ const ProfilePage = () => {
     bio: "",
     avatar: "",
     background: "",
+    font: "inter",
     blur: 0,
+    buttonStyle: "fill",
+    buttonRoundness: "rounded",
+    buttonLayout: "list",
     links: []
   });
   const [isDirty, setIsDirty] = useState<boolean>(false);
@@ -112,9 +121,16 @@ const ProfilePage = () => {
     const formData = new FormData();
     formData.append('display_name', profile.name ?? '');
     formData.append('bio', profile.bio ?? '');
+    formData.append('font', profile.font ?? 'inter');
+    formData.append('buttonStyle', profile.buttonStyle || 'fill');
+    formData.append('buttonRoundness', profile.buttonRoundness || 'rounded');
+    formData.append('buttonLayout', profile.buttonLayout || 'list');
     
     // Check if background is custom color or preset
-    if (profile.background.startsWith('custom-') && profile.customColor) {
+    if (profile.backgroundFile instanceof File) {
+      formData.append('background', profile.backgroundFile);
+      formData.append('blur', String(profile.blur));
+    } else if (profile.background.startsWith('custom-') && profile.customColor) {
       // Store custom color with prefix
       formData.append('background', profile.background + "|" + String(profile.blur));
     } else {
@@ -179,7 +195,10 @@ const ProfilePage = () => {
               bio: "",
               avatar: "",
               background: "",
+              font: "inter",
               blur: 0,
+              buttonStyle: "fill",
+              buttonRoundness: "rounded",
               links: []
           };
 
@@ -200,6 +219,10 @@ const ProfilePage = () => {
                 bio: data.data.bio,
                 avatar: data.data.avatar,
                 background: background,
+                font: data.data.font || "inter",
+                buttonStyle: data.data.buttonStyle || "fill",
+                buttonRoundness: data.data.buttonRoundness || "rounded",
+                buttonLayout: data.data.buttonLayout || "list",
                 blur: parseInt(String(blur)),
                 customColor: customColor,
                 links: []
@@ -352,6 +375,29 @@ const ProfilePage = () => {
     input.click();
   };
 
+  const handleBackgroundUpload = () => {
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/*';
+
+    input.onchange = (e) => {
+      const target = e.target as HTMLInputElement;
+      const file = target.files?.[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          setProfile(prev => ({
+            ...prev,
+            background: e.target?.result as string,
+            backgroundFile: file
+          }));
+        };
+        reader.readAsDataURL(file);
+      }
+    };
+    input.click();
+  };
+
   const getBackgroundClass = (bgId: string) => {
     return backgroundPresets.find(bg => bg.id === bgId)?.class || backgroundPresets[0].class
   }
@@ -399,6 +445,7 @@ const ProfilePage = () => {
             removeLink={removeLink}
             handleDragEnd={handleDragEnd}
             handleAvatarUpload={handleAvatarUpload}
+            handleBackgroundUpload={handleBackgroundUpload}
             iconMap={iconMap}
             saveChanges={saveChanges}
             error={error}
@@ -462,6 +509,7 @@ const ProfilePage = () => {
                 removeLink={removeLink}
                 handleDragEnd={handleDragEnd}
                 handleAvatarUpload={handleAvatarUpload}
+                handleBackgroundUpload={handleBackgroundUpload}
                 iconMap={iconMap}
                 saveChanges={saveChanges}
                 error={error}

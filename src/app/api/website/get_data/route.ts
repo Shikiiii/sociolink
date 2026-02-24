@@ -27,6 +27,10 @@ export async function GET(req: NextRequest) {
             display_name: user.user_website.display_name,
             bio: user.user_website.bio,
             background: user.user_website.background,
+            font: user.user_website.font,
+            buttonStyle: user.user_website.buttonStyle,
+            buttonRoundness: user.user_website.buttonRoundness,
+            buttonLayout: user.user_website.buttonLayout,
         }
     }, { status: 200 })
 }

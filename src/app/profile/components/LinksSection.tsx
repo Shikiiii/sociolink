@@ -20,7 +20,11 @@ interface Profile {
   bio: string | null
   avatar: string | null
   background: string
+  font: string
   blur?: number
+  buttonStyle: string
+  buttonRoundness: string
+  buttonLayout?: string
   customColor?: string
   links: LinkItem[]
 }

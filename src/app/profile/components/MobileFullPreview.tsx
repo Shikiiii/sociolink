@@ -8,6 +8,10 @@ interface Profile {
   bio: string | null
   avatar: string | null
   background: string
+  font: string
+  buttonStyle: string
+  buttonRoundness: string
+  buttonLayout?: string
   blur?: number
   customColor?: string
   links: {

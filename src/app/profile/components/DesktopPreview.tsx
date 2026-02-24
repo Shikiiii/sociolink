@@ -15,6 +15,10 @@ interface Profile {
   bio: string | null
   avatar: string | null
   background: string
+  font: string
+  buttonStyle: string
+  buttonRoundness: string
+  buttonLayout?: string
   blur?: number
   customColor?: string
   links: {
@@ -60,7 +64,7 @@ export const DesktopPreview = ({ profile, getBackgroundClass, iconMap, isMobileV
             >
               <div className="w-full h-full rounded-[1.5rem] overflow-hidden bg-black relative">
                 <div
-                  className="w-full h-full origin-top-left"
+                  className="origin-top-left"
                   style={{
                     width: selectedMobilePreset.width,
                     height: selectedMobilePreset.height,

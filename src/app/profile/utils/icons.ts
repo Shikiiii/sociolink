@@ -6,10 +6,9 @@ import {
   Twitter, 
   Youtube, 
   Github,
-  Twitch,
   Facebook,
   Music,
-  MessageCircle,
+  MessageCircle, 
   CreditCard,
   Gamepad2,
   Coffee,
@@ -20,24 +19,74 @@ import {
   Headphones,
 } from 'lucide-react'
 
+// Import official brand icons from React Icons (Simple Icons & FontAwesome)
+import { 
+  SiTiktok, 
+  SiTwitch, 
+  SiDiscord, 
+  SiSpotify, 
+  SiSnapchat, 
+  SiTelegram, 
+  SiSoundcloud, 
+  SiPaypal, 
+  SiPatreon, 
+  SiKofi, 
+  SiBuymeacoffee, 
+  SiOnlyfans, 
+  SiSteam, 
+  SiKick, 
+  SiReddit, 
+  SiPinterest,
+  SiLastdotfm,
+  SiCashapp,
+  SiRoblox,
+  SiGitlab,
+  SiX 
+} from 'react-icons/si'
+
 export const iconMap = {
+  // Generic
   Link,
-  Instagram,
-  Twitter,
-  Youtube,
-  Github,
   Mail,
   User,
-  Twitch,
+  Music,
+  MessageCircle,
+  CreditCard,
+  Gamepad2,
+  Coffee,
+  Heart,
+  DollarSign,
+  Play,
+  Camera,
+  Headphones,
+
+  // Socials (Lucide)
+  Instagram,
+  Youtube,
+  Github,
   Facebook,
-  Music, // For Spotify, SoundCloud, Last.fm
-  MessageCircle, // For Telegram, Snapchat
-  CreditCard, // For PayPal, CashApp
-  Gamepad2, // For Roblox, Steam, Kick
-  Coffee, // For Buy Me a Coffee
-  Heart, // For Ko-fi, OnlyFans
-  DollarSign, // For Patreon
-  Play, // For TikTok
-  Camera, // For Pinterest
-  Headphones // For SoundCloud, Last.fm
+
+  // Socials (Official Brands)
+  Twitter, // Keep Lucide Twitter bird as fallback or alternative
+  X: SiX,
+  Tiktok: SiTiktok,
+  Twitch: SiTwitch,
+  Discord: SiDiscord,
+  Spotify: SiSpotify,
+  Snapchat: SiSnapchat,
+  Telegram: SiTelegram,
+  Soundcloud: SiSoundcloud,
+  Paypal: SiPaypal,
+  Patreon: SiPatreon,
+  Kofi: SiKofi,
+  Buymecoffee: SiBuymeacoffee,
+  Onlyfans: SiOnlyfans,
+  Steam: SiSteam,
+  Kick: SiKick,
+  Reddit: SiReddit,
+  Pinterest: SiPinterest,
+  Lastfm: SiLastdotfm,
+  Cashapp: SiCashapp,
+  Roblox: SiRoblox,
+  Gitlab: SiGitlab
 }

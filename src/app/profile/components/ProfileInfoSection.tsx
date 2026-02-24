@@ -5,13 +5,18 @@ import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { User, Upload } from 'lucide-react'
 import Image from 'next/image'
+import { FontPicker } from './FontPicker'
 
 interface Profile {
   name: string | null
   bio: string | null
   avatar: string | null
   background: string
+  font: string
   blur?: number
+  buttonStyle: string
+  buttonRoundness: string
+  buttonLayout?: string
   customColor?: string
   links: {
     id: string
@@ -83,6 +88,16 @@ export const ProfileInfoSection = ({ profile, setProfile, handleAvatarUpload }: 
           placeholder="Tell people about yourself..."
           rows={3}
           className="w-full resize-none"
+        />
+      </div>
+
+      <div>
+        <label className="block text-sm font-medium text-muted-foreground mb-2">
+          Font
+        </label>
+        <FontPicker
+          value={profile.font || 'inter'}
+          onChange={(value) => setProfile((prev) => ({ ...prev, font: value }))}
         />
       </div>
     </div>

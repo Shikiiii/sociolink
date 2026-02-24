@@ -43,12 +43,29 @@ export async function POST(req: NextRequest) {
     const formData = await req.formData();
     const display_name = formData.get('display_name')?.toString();
     const bio = formData.get('bio')?.toString();
-    const background = formData.get('background')?.toString();
+    const backgroundInput = formData.get('background');
+    const blur = formData.get('blur')?.toString();
     const avatar = formData.get('avatar') as File | null;
+    const font = formData.get('font')?.toString();
+    const buttonStyle = formData.get('buttonStyle')?.toString();
+    const buttonRoundness = formData.get('buttonRoundness')?.toString();
+    const buttonLayout = formData.get('buttonLayout')?.toString();
 
     const validationError = validateInput(display_name, bio);
     if (validationError) {
         return NextResponse.json({ error: validationError }, { status: 400 });
+    }
+
+    let backgroundUrl: string | undefined;
+    if (backgroundInput instanceof File && backgroundInput.size > 0) {
+        try {
+            const url = await uploadToImgBB(backgroundInput);
+            backgroundUrl = `${url}|${blur || '0'}`;
+        } catch {
+            return NextResponse.json({ error: 'Failed to upload background' }, { status: 500 });
+        }
+    } else if (typeof backgroundInput === 'string') {
+        backgroundUrl = backgroundInput;
     }
 
     let avatarUrl: string | undefined;
@@ -74,16 +91,35 @@ export async function POST(req: NextRequest) {
         bio?: string;
         background?: string;
         avatar?: string;
+        font?: string;
+        buttonStyle?: string;
+        buttonRoundness?: string;
+        buttonLayout?: string;
     }
 
-    const updateData: WebsiteUpdateData = { display_name, bio, background };
+    const updateData: WebsiteUpdateData = { display_name, bio };
+    if (backgroundUrl !== undefined) {
+        updateData.background = backgroundUrl;
+    }
     if (avatarUrl !== undefined) {
         updateData.avatar = avatarUrl;
+    }
+    if (font !== undefined) {
+        updateData.font = font;
+    }
+    if (buttonStyle !== undefined) {
+        updateData.buttonStyle = buttonStyle;
+    }
+    if (buttonRoundness !== undefined) {
+        updateData.buttonRoundness = buttonRoundness;
+    }
+    if (buttonLayout !== undefined) {
+        updateData.buttonLayout = buttonLayout;
     }
     await prisma.website.update({
         where: { id: user.user_website_id },
         data: updateData
     });
 
-    return NextResponse.json({ success: true, avatar: avatarUrl });
+    return NextResponse.json({ success: true, avatar: avatarUrl, background: backgroundUrl });
 }

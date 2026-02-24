@@ -8,13 +8,15 @@ import {
   Settings,
   Share2,
   Check,
-  Link
+  Link,
 } from 'lucide-react'
+import { cn } from '@/lib/utils'
 import { useRouter } from 'next/navigation'
 import { backgroundPresets } from '@/app/components/backgrounds'
 import { backgroundComponents } from '@/app/components/animated-backgrounds'
 import { socialPlatforms } from '@/app/profile/constants'
 import { iconMap } from '@/app/profile/utils/icons'
+import { fontMap } from '@/lib/fonts'
 
 // Profile and Link interfaces
 interface ProfileLink {
@@ -30,6 +32,10 @@ interface Profile {
   bio: string
   avatar: string
   background: string
+  font: string
+  buttonStyle: string
+  buttonRoundness: string
+  buttonLayout?: string
   blur: number
   customColor?: string
   links: ProfileLink[]
@@ -90,7 +96,8 @@ const getTextColors = (profile: Profile) => {
       ? 'bg-white/75 border border-gray-200/60 shadow-sm hover:shadow-md' 
       : 'bg-black/20 border border-white/10',
     profileGlow: '',
-    linkGlow: ''
+    linkGlow: '',
+    isBright: isBright
   }
 }
 
@@ -101,6 +108,10 @@ const mockProfile: Profile = {
   bio: 'Digital creator and developer passionate about connecting people through technology.',
   avatar: '',
   background: 'custom-6366f1',
+  font: 'inter',
+  buttonStyle: 'fill',
+  buttonRoundness: 'rounded',
+  buttonLayout: 'list',
   blur: 20,
   customColor: '#6366f1', // Add a default customColor property
   links: [
@@ -158,7 +169,12 @@ export default function ProfilePage({ params }: { params: Promise<{ username: st
           bio: data.website.bio,
           avatar: data.website.avatar,
           background: background || 'solid-1',
+          font: data.website.font || 'inter',
+          buttonStyle: data.website.buttonStyle || 'fill',
+          buttonRoundness: data.website.buttonRoundness || 'rounded',
+          buttonLayout: data.website.buttonLayout || 'list',
           blur: Number(blur) || 0,
+          customColor: (background && background.startsWith('custom-')) ? '#' + background.split('custom-')[1] : undefined,
           links,
         });
 
@@ -209,6 +225,7 @@ export default function ProfilePage({ params }: { params: Promise<{ username: st
 
   const textColors = getTextColors(profile)
   const isBright = isBackgroundBright(profile)
+  const fontClass = fontMap[profile.font] || fontMap.inter
 
   const getBackgroundClass = (bgId: string) => {
     return backgroundPresets.find(bg => bg.id === bgId)?.class || backgroundPresets[0].class
@@ -220,6 +237,54 @@ export default function ProfilePage({ params }: { params: Promise<{ username: st
       return backgroundComponents[bg.component as keyof typeof backgroundComponents]
     }
     return null
+  }
+
+  const getButtonClass = () => {
+    // Note: 'profile' might have missing properties if loaded from API, so use safe access
+    const style = profile.buttonStyle || 'fill'
+    const roundness = profile.buttonRoundness || 'rounded'
+    const layout = profile.buttonLayout || 'list'
+    const isBright = textColors.isBright || false
+
+    const roundClass = {
+        'sharp': 'rounded-none',
+        'rounded': 'rounded-xl',
+        'pill': 'rounded-full'
+    }[roundness as string] || 'rounded-xl';
+
+    let colorClass = "";
+    switch (style) {
+        case 'fill':
+            colorClass = isBright 
+                ? "bg-white/80 hover:bg-white text-black border border-black/5 shadow-sm" 
+                : "bg-zinc-900/60 hover:bg-zinc-900/80 text-white border border-white/10 backdrop-blur-md";
+            break;
+        case 'outline':
+            colorClass = isBright 
+                ? "bg-transparent border-2 border-black/80 text-black hover:bg-black/5" 
+                : "bg-transparent border-2 border-white/80 text-white hover:bg-white/10";
+            break;
+        case 'soft':
+            colorClass = isBright 
+                ? "bg-black/5 hover:bg-black/10 text-black" 
+                : "bg-white/10 hover:bg-white/20 text-white backdrop-blur-md";
+            break;
+        case 'hard':
+            colorClass = isBright 
+                ? "bg-white border-2 border-black text-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(0,0,0,1)]" 
+                : "bg-black border-2 border-white text-white shadow-[4px_4px_0px_0px_rgba(255,255,255,1)] hover:translate-x-[2px] hover:translate-y-[2px] hover:shadow-[2px_2px_0px_0px_rgba(255,255,255,1)]";
+            break;
+        default:
+             colorClass = isBright 
+                ? "bg-white/50 text-black" 
+                : "bg-black/50 text-white";
+    }
+
+    if (layout === 'grid') {
+      return `${roundClass} ${colorClass} transition-all duration-200 flex flex-col items-center justify-center text-center h-36 w-full`;
+    }
+
+    return `${roundClass} ${colorClass} transition-all duration-200`;
   }
 
   const blurValue = profile.blur || 0
@@ -248,79 +313,64 @@ export default function ProfilePage({ params }: { params: Promise<{ username: st
 
   const [isCustomColor, setIsCustomColor] = useState<boolean>(false);
   const [whatCustomColor, setWhatCustomColor] = useState<string | null>(null);
+  
+  const backgroundPreset = backgroundPresets.find(bg => bg.id === profile.background)
+  const isExternalImage = profile.background && !backgroundPreset && !profile.background.startsWith('custom-') && !profile.background.startsWith('bg-')
+
   useEffect(() => {
     setIsCustomColor(profile.background.startsWith('custom-'));
-    setWhatCustomColor('#' + profile.background.split("custom-")[1]);
+    if (profile.background.startsWith('custom-')) {
+        setWhatCustomColor('#' + profile.background.split("custom-")[1]);
+    }
   }, [profile])
 
   useEffect(() => {
     console.log("Custom color useEffect:", whatCustomColor);
   }, [whatCustomColor]);
 
+
   return (
-    <div className="min-h-screen relative overflow-hidden">
+    <div className={`min-h-screen relative overflow-hidden bg-background ${fontClass}`}>
       {/* Background - update to handle custom colors and blur properly */}
-      {isCustomColor ? (
-        <div 
-          className="absolute inset-0" 
-          style={{ 
-            backgroundColor: whatCustomColor ? whatCustomColor : '#f0f0f0',
-            filter: profile.blur > 0 ? `blur(${profile.blur * 0.3}px)` : 'none',
-            transform: profile.blur > 0 ? 'scale(1.05)' : 'scale(1)',
-            transition: 'filter 0.2s ease, transform 0.2s ease'
-          }}
-        />
-      ) : (
-      <>
-      {/* Background Layer */}
-      {profile.background.startsWith('custom-') ? (
-        <div 
-          className="absolute inset-0 z-0" 
-          style={{ 
-            backgroundColor: profile.customColor || `#${profile.background.split("custom-")[1]}`,
-            filter: blurValue > 0 ? `blur(${blurValue * 0.3}px)` : 'none',
-            transform: blurValue > 0 ? 'scale(1.05)' : 'scale(1)',
-            transition: 'filter 0.2s ease, transform 0.2s ease'
-          }}
-        />
-      ) : BackgroundComponent ? (
-        <div className="absolute inset-0 z-0 overflow-hidden">
-          <div 
-            className="absolute inset-0"
-            style={{
-              filter: blurValue > 0 ? `blur(${blurValue * 0.3}px)` : 'none',
-              transform: blurValue > 0 ? 'scale(1.1)' : 'scale(1)',
-              transformOrigin: 'center',
-              transition: 'filter 0.2s ease, transform 0.2s ease'
+      <div className="absolute inset-0 z-0">
+        {isCustomColor ? (
+            <div 
+            className="w-full h-full" 
+            style={{ 
+                backgroundColor: whatCustomColor ? whatCustomColor : '#f0f0f0',
             }}
-          >
+            />
+        ) : isExternalImage ? (
+            <div className="relative w-full h-full">
+            <Image
+                src={profile.background}
+                alt="Profile Background"
+                fill
+                className="object-cover"
+                priority
+            />
+            </div>
+        ) : BackgroundComponent ? (
             <BackgroundComponent />
-          </div>
-        </div>
-      ) : (
+        ) : (
+            <div className={`w-full h-full ${getBackgroundClass(profile.background)}`} />
+        )}
+      </div>
+
+       {/* Blur Overlay - Applied separately to avoid blurring the container edges */}
+       {blurValue > 0 && (
         <div 
-          className={`absolute inset-0 z-0 ${getBackgroundClass(profile.background)}`}
-          style={{
-            filter: blurValue > 0 ? `blur(${blurValue * 0.3}px)` : 'none',
-            transform: blurValue > 0 ? 'scale(1.05)' : 'scale(1)',
-            transition: 'filter 0.2s ease, transform 0.2s ease'
-          }}
+          className="absolute inset-0 z-0 backdrop-blur-[var(--blur-amount)]"
+          style={{ '--blur-amount': `${blurValue * 0.5}px` } as React.CSSProperties}
         />
       )}
-      </>
-    )}
 
+      {/* Overlay for readability */}
       <div className={`absolute inset-0 pointer-events-none ${isBright ? 'bg-black/10' : 'bg-black/20'}`} />
 
-      {/* Content Container */}
-      <div className="relative z-20 min-h-screen p-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="max-w-6xl mx-auto"
-        >
-
+      {/* Content */}
+      <div className="relative z-10 w-full min-h-screen py-12 px-4 sm:px-6 lg:px-8">
+        <div className="relative z-20 w-full h-full max-w-6xl mx-auto">
           {isLoading && (
             <div className="flex flex-col items-center justify-center min-h-screen">
               {/* Mobile Skeleton */}
@@ -504,64 +554,75 @@ export default function ProfilePage({ params }: { params: Promise<{ username: st
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ delay: 1.0 }}
-                  className="w-full max-w-md space-y-4"
+                  className="w-full max-w-md flex flex-col gap-2"
                 >
-                  {profile.links.map((link, index) => {
-                    const platform = socialPlatforms.find(p => p.value === link.icon) || socialPlatforms[0]
-                    const IconComponent = iconMap[platform.icon as keyof typeof iconMap] || Link
+                  <div className={cn(
+                    "w-full",
+                    profile.buttonLayout === 'grid-icon' ? "grid grid-cols-3 gap-2" : "space-y-4"
+                  )}>
+                    {profile.links.map((link, index) => {
+                      const platform = socialPlatforms.find(p => p.value === link.icon) || socialPlatforms[0]
+                      const IconComponent = iconMap[platform.icon as keyof typeof iconMap] || Link
+                      const buttonClass = getButtonClass();
+                      const isIconGrid = profile.buttonLayout === 'grid-icon';
 
-                    return (
-                      <motion.button
-                        key={link.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 1.1 + index * 0.1 }}
-                        onClick={() => handleLinkClick(link.url)}
-                        className={`group w-full backdrop-blur-sm rounded-xl p-4 transition-all duration-200 relative overflow-hidden ${textColors.linkCard}`}
-                      >
-                        <div className="flex items-center gap-4">
-                          <div 
-                            className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md"
-                            style={{ 
-                              backgroundColor: platform.color,
-                              boxShadow: `0 4px 20px ${platform.color}40`
-                            }}
+                      if (isIconGrid) {
+                        return (
+                          <motion.button
+                            key={link.id}
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 1.1 + index * 0.1 }}
+                            onClick={() => handleLinkClick(link.url)}
+                            className={`cursor-pointer group flex flex-col items-center justify-center gap-1.5 p-3 ${buttonClass}`}
                           >
-                            <IconComponent className="w-6 h-6 text-white" />
-                          </div>
-
-                          <div className="flex-1 text-left">
-                            <h3 className={`font-semibold text-base mb-1 transition-colors duration-300 ${textColors.primary}`}>
+                            <IconComponent className="w-6 h-6" />
+                            <h3 className="font-semibold text-xs text-center leading-tight line-clamp-2 w-full">
                               {link.title}
                             </h3>
-                            <p className={`text-sm truncate transition-colors duration-300 ${textColors.muted}`}>
-                              {(() => {
-                                const cleanUrl = link.url.replace(/^https?:\/\//, '').replace(/^mailto:/, '')
-                                const limit = 20
-                                return cleanUrl.length > limit ? cleanUrl.substring(0, limit) + '...' : cleanUrl
-                              })()}
-                            </p>
-                          </div>
+                          </motion.button>
+                        )
+                      }
 
-                          <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors flex-shrink-0">
-                            <ExternalLink className={`w-4 h-4 transition-colors ${textColors.muted} group-hover:${textColors.primary}`} />
+                      return (
+                        <motion.button
+                          key={link.id}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 1.1 + index * 0.1 }}
+                          onClick={() => handleLinkClick(link.url)}
+                          className={`group w-full relative overflow-hidden flex items-center gap-3 p-4 text-left ${buttonClass}`}
+                        >
+                           <div className="w-12 h-12 flex items-center justify-center flex-shrink-0">
+                              <IconComponent className="w-6 h-6" />
+                           </div>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-semibold text-base mb-1 truncate">
+                                {link.title}
+                              </h3>
+                              <p className="text-sm truncate opacity-70">
+                                  {link.url.replace(/^https?:\/\//, '').replace(/^mailto:/, '')}
+                              </p>
+                            </div>
+                          <div className="flex items-center justify-center flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                               <ExternalLink className="w-4 h-4 opacity-70" />
                           </div>
-                        </div>
-                      </motion.button>
-                    )
-                  })}
-                </motion.div>
+                        </motion.button>
+                      )
+                    })}
+                  </div>
 
-                {/* Footer - Mobile */}
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 1.6 }}
-                  className="mt-8 text-center"
-                >
-                  <p className={`text-xs transition-colors duration-300 ${textColors.muted}`}>
-                    Powered by <span className={`font-semibold ${textColors.gradient}`}>SocioLink</span>
-                  </p>
+                  {/* Footer - always outside grid */}
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 1.6 }}
+                    className="mt-4 text-center"
+                  >
+                    <p className={`text-xs transition-colors duration-300 ${textColors.muted}`}>
+                      Powered by <span className={`font-semibold ${textColors.gradient}`}>SocioLink</span>
+                    </p>
+                  </motion.div>
                 </motion.div>
               </div>
 
@@ -655,58 +716,70 @@ export default function ProfilePage({ params }: { params: Promise<{ username: st
                   initial={{ opacity: 0, x: 50 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 1.0 }}
-                  className="w-full max-w-md mx-auto space-y-4"
+                  className="w-full max-w-md mx-auto flex flex-col gap-4"
                 >
-                  {profile.links.map((link, index) => {
-                    const platform = socialPlatforms.find(p => p.value === link.icon) || socialPlatforms[0]
-                    const IconComponent = iconMap[platform.icon as keyof typeof iconMap] || Link
+                  <div className={cn(
+                    "w-full",
+                    profile.buttonLayout === 'grid-icon' ? "grid grid-cols-3 gap-3" : "space-y-4"
+                  )}>
+                    {profile.links.map((link, index) => {
+                      const platform = socialPlatforms.find(p => p.value === link.icon) || socialPlatforms[0]
+                      const IconComponent = iconMap[platform.icon as keyof typeof iconMap] || Link
+                      const buttonClass = getButtonClass();
+                      const isIconGrid = profile.buttonLayout === 'grid-icon';
 
-                    return (
-                      <motion.button
-                        key={link.id}
-                        initial={{ opacity: 0, x: 20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 1.1 + index * 0.1 }}
-                        onClick={() => handleLinkClick(link.url)}
-                        className={`group w-full backdrop-blur-sm rounded-xl p-5 transition-all duration-200 relative overflow-hidden ${textColors.linkCard}`}
-                      >
-                        <div className="flex items-center gap-4">
-                          <div 
-                            className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md"
-                            style={{ 
-                              backgroundColor: platform.color,
-                              boxShadow: `0 4px 20px ${platform.color}40`
-                            }}
+                      if (isIconGrid) {
+                        return (
+                          <motion.button
+                            key={link.id}
+                            initial={{ opacity: 0, scale: 0.9 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 1.1 + index * 0.1 }}
+                            onClick={() => handleLinkClick(link.url)}
+                            className={`cursor-pointer group hover:scale-[1.02] flex flex-col items-center justify-center gap-1.5 p-4 ${buttonClass}`}
                           >
-                            <IconComponent className="w-7 h-7 text-white" />
-                          </div>
-
-                          <div className="flex-1 text-left">
-                            <h3 className={`font-semibold text-lg mb-1 transition-colors duration-300 ${textColors.primary}`}>
+                            <IconComponent className="w-7 h-7 transition-transform group-hover:scale-110" />
+                            <h3 className="font-semibold text-xs text-center leading-tight line-clamp-2 w-full">
                               {link.title}
                             </h3>
-                            <p className={`text-sm truncate transition-colors duration-300 ${textColors.muted}`}>
-                              {(() => {
-                                const cleanUrl = link.url.replace(/^https?:\/\//, '').replace(/^mailto:/, '')
-                                const limit = 30
-                                return cleanUrl.length > limit ? cleanUrl.substring(0, limit) + '...' : cleanUrl
-                              })()}
-                            </p>
-                          </div>
+                          </motion.button>
+                        )
+                      }
 
-                          <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center group-hover:bg-white/20 transition-colors flex-shrink-0">
-                            <ExternalLink className={`w-5 h-5 transition-colors ${textColors.muted} group-hover:${textColors.primary}`} />
+                      return (
+                        <motion.button
+                          key={link.id}
+                          initial={{ opacity: 0, x: 20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 1.1 + index * 0.1 }}
+                          onClick={() => handleLinkClick(link.url)}
+                          className={`group w-full relative overflow-hidden flex items-center gap-4 p-5 text-left ${buttonClass}`}
+                        >
+                           <div className="w-14 h-14 flex items-center justify-center flex-shrink-0">
+                              <IconComponent className="w-7 h-7" />
+                           </div>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-semibold text-lg mb-1 truncate">
+                                {link.title}
+                              </h3>
+                              <p className="text-sm truncate opacity-70">
+                                  {link.url.replace(/^https?:\/\//, '').replace(/^mailto:/, '')}
+                              </p>
+                            </div>
+                          <div className="flex items-center justify-center flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                               <ExternalLink className="w-5 h-5 opacity-70" />
                           </div>
-                        </div>
-                      </motion.button>
-                    )
-                  })}
-                  {/* Footer - Desktop */}
+                        </motion.button>
+                      )
+                    })}
+                  </div>
+
+                  {/* Footer - always outside the grid */}
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 1.6 }}
-                    className="pt-8 text-center"
+                    className="pt-4 text-center"
                   >
                     <p className={`text-sm transition-colors duration-300 ${textColors.muted}`}>
                       Powered by{' '}
@@ -723,7 +796,7 @@ export default function ProfilePage({ params }: { params: Promise<{ username: st
               </div>
             </div>
           )}
-        </motion.div>
+        </div>
       </div>
     </div>
   )
