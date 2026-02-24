@@ -6,16 +6,39 @@ import { Palette, ChevronUp, ChevronDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { backgroundPresets } from '@/app/components/backgrounds'
 
+interface Profile {
+  name: string | null
+  bio: string | null
+  avatar: string | null
+  background: string
+  blur?: number
+  customColor?: string
+  links: {
+    id: string
+    title: string
+    url: string
+    icon: string
+  }[]
+}
+
+interface BackgroundPreset {
+  id: string
+  name: string
+  class?: string
+  category: string
+  component?: string
+}
+
 interface BackgroundSectionProps {
-  profile: any
-  setProfile: (value: any) => void
+  profile: Profile
+  setProfile: React.Dispatch<React.SetStateAction<Profile>>
   showBackgrounds: boolean
   setShowBackgrounds: (value: boolean) => void
   compact?: boolean
 }
 
 // Background Thumbnail Component
-const BackgroundThumbnail = React.memo(({ background }: { background: any }) => {
+const BackgroundThumbnail = React.memo(({ background }: { background: BackgroundPreset }) => {
   // Static previews for animated components to save resources
   const staticPreviews: Record<string, string> = {
     'ParticleFloat': 'bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500',
@@ -54,14 +77,15 @@ BackgroundThumbnail.displayName = 'BackgroundThumbnail'
 export const BackgroundSection = ({ profile, setProfile, showBackgrounds, setShowBackgrounds, compact = false }: BackgroundSectionProps) => {
   const [customColor, setCustomColor] = useState('#667eea')
 
-  const categorizedBackgrounds = backgroundPresets.reduce((acc: any, bg: any) => {
-    if (!acc[bg.category]) acc[bg.category] = []
-    acc[bg.category].push(bg)
+  const categorizedBackgrounds = backgroundPresets.reduce((acc: Record<string, BackgroundPreset[]>, bg) => {
+    const category = bg.category || 'Other'
+    if (!acc[category]) acc[category] = []
+    acc[category].push(bg as BackgroundPreset)
     return acc
-  }, {} as Record<string, typeof backgroundPresets>)
+  }, {})
 
   const handleCustomColorApply = () => {
-    setProfile((prev: any) => ({ 
+    setProfile((prev) => ({ 
       ...prev, 
       background: `custom-${customColor.replace('#', '')}`,
       customColor: customColor
@@ -102,7 +126,7 @@ export const BackgroundSection = ({ profile, setProfile, showBackgrounds, setSho
                 min="0"
                 max="100"
                 value={profile.blur || 0}
-                onChange={(e) => setProfile((prev: any) => ({ ...prev, blur: parseInt(e.target.value) }))}
+                onChange={(e) => setProfile((prev) => ({ ...prev, blur: parseInt(e.target.value) }))}
                 className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer"
                 style={{
                   background: `linear-gradient(to right, #3b82f6 0%, #3b82f6 ${profile.blur || 0}%, #e5e7eb ${profile.blur || 0}%, #e5e7eb 100%)`
@@ -163,7 +187,7 @@ export const BackgroundSection = ({ profile, setProfile, showBackgrounds, setSho
                       Current: {profile.customColor || customColor}
                     </span>
                     <button
-                      onClick={() => setProfile((prev: any) => ({ 
+                      onClick={() => setProfile((prev) => ({ 
                         ...prev, 
                         background: 'gradient-1',
                         customColor: undefined
@@ -179,16 +203,16 @@ export const BackgroundSection = ({ profile, setProfile, showBackgrounds, setSho
 
             {/* Background Categories */}
             <div className="space-y-4 p-3">
-              {Object.entries(categorizedBackgrounds).map(([category, backgrounds]: [string, any]) => (
+              {Object.entries(categorizedBackgrounds).map(([category, backgrounds]) => (
                 <div key={category} className="space-y-2">
                   <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
                     {category}
                   </h4>
                   <div className={`grid ${compact ? 'grid-cols-4' : 'grid-cols-3'} gap-2`}>
-                    {backgrounds.map((bg: any) => (
+                    {backgrounds.map((bg) => (
                       <button
                         key={bg.id}
-                        onClick={() => setProfile((prev: any) => ({ 
+                        onClick={() => setProfile((prev) => ({ 
                           ...prev, 
                           background: bg.id,
                           customColor: undefined

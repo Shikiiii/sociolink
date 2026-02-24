@@ -6,16 +6,32 @@ import { backgroundPresets } from '@/app/components/backgrounds'
 import { backgroundComponents } from '@/app/components/animated-backgrounds'
 import { getTextColors } from '../utils/colors'
 import { socialPlatforms } from '../constants'
+import Image from 'next/image'
+
+interface Profile {
+  name: string | null
+  bio: string | null
+  avatar: string | null
+  background: string
+  blur?: number
+  customColor?: string
+  links: {
+    id: string
+    title: string
+    url: string
+    icon: string
+  }[]
+}
 
 interface ProfilePreviewProps {
-  profile: any
+  profile: Profile
   getBackgroundClass: (bgId: string) => string
-  iconMap: any
+  iconMap: Record<string, React.ComponentType<{ className?: string }>>
   isMobile: boolean
   isDesktopPreview?: boolean
 }
 
-export const ProfilePreview = ({ profile, getBackgroundClass, iconMap, isMobile, isDesktopPreview = false }: ProfilePreviewProps) => {
+export const ProfilePreview = ({ profile, getBackgroundClass, iconMap, isMobile }: ProfilePreviewProps) => {
   const backgroundPreset = backgroundPresets.find(bg => bg.id === profile.background)
   const BackgroundComponent = backgroundPreset?.component ? backgroundComponents[backgroundPreset.component as keyof typeof backgroundComponents] : null
   
@@ -47,7 +63,7 @@ export const ProfilePreview = ({ profile, getBackgroundClass, iconMap, isMobile,
             setUsername(decoded.user_name);
           }
         }
-      } catch (e) {
+      } catch {
         // ignore errors
       }
     }
@@ -102,9 +118,11 @@ export const ProfilePreview = ({ profile, getBackgroundClass, iconMap, isMobile,
               <div className="flex justify-center mb-4">
                 <div className="w-16 h-16 rounded-full bg-gradient-to-br from-white/20 to-white/10 border-2 border-white/30 flex items-center justify-center overflow-hidden shadow-2xl">
                   {profile.avatar ? (
-                    <img 
+                    <Image 
                       src={profile.avatar} 
-                      alt={profile.name}
+                      alt={profile.name || 'User'}
+                      width={64}
+                      height={64}
                       className="w-full h-full object-cover"
                     />
                   ) : (
@@ -145,7 +163,7 @@ export const ProfilePreview = ({ profile, getBackgroundClass, iconMap, isMobile,
 
           {/* Links Section */}
           <div className="w-full max-w-sm space-y-2 flex-1 pb-10">
-            {profile.links.length > 0 ? profile.links.map((link: any) => {
+            {profile.links.length > 0 ? profile.links.map((link) => {
               const platform = socialPlatforms.find(p => p.value === link.icon) || socialPlatforms[0]
               const IconComponent = iconMap[platform.icon as keyof typeof iconMap] || Link
 
@@ -210,9 +228,11 @@ export const ProfilePreview = ({ profile, getBackgroundClass, iconMap, isMobile,
                       <div className="flex justify-center mb-6">
                         <div className="w-24 h-24 rounded-full bg-gradient-to-br from-white/20 to-white/10 border-2 border-white/30 flex items-center justify-center overflow-hidden shadow-2xl">
                           {profile.avatar ? (
-                            <img 
+                            <Image 
                               src={profile.avatar} 
-                              alt={profile.name}
+                              alt={profile.name || 'User'}
+                              width={96}
+                              height={96}
                               className="w-full h-full object-cover"
                             />
                           ) : (
@@ -254,7 +274,7 @@ export const ProfilePreview = ({ profile, getBackgroundClass, iconMap, isMobile,
 
                 {/* Right Side - Links */}
                 <div className="w-full max-w-sm mx-auto space-y-3 pb-10">
-                  {profile.links.length > 0 ? profile.links.map((link: any) => {
+                  {profile.links.length > 0 ? profile.links.map((link) => {
                     const platform = socialPlatforms.find(p => p.value === link.icon) || socialPlatforms[0]
                     const IconComponent = iconMap[platform.icon as keyof typeof iconMap] || Link
 

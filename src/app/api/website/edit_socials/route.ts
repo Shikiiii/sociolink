@@ -4,8 +4,15 @@ import { PrismaClient } from '@/generated/prisma/client';
 
 const prisma = new PrismaClient();
 
+interface SocialItem {
+    type: string;
+    link: string;
+    text: string;
+    order: number;
+}
+
 export async function POST(req: NextRequest) {
-    const maybeAuthedReq = await authMiddleware(req as any);
+    const maybeAuthedReq = await authMiddleware(req);
     if (maybeAuthedReq instanceof NextResponse) return maybeAuthedReq;
 
     const userId = maybeAuthedReq.user.user_id;
@@ -16,7 +23,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Validate all inputs
-    for (const item of body.socials) {
+    for (const item of body.socials as SocialItem[]) {
         const { type, link, text, order } = item;
         if (typeof type !== 'string' || !type.trim()) {
             return NextResponse.json({ error: 'Invalid type' }, { status: 400 });
@@ -48,11 +55,11 @@ export async function POST(req: NextRequest) {
     const existingSocials = user.user_website.socials;
 
     // Prepare sets for comparison
-    const inputSet = new Set(body.socials.map((item: any) => `${item.type}|${item.link}|${item.text}`));
+    const inputSet = new Set((body.socials as SocialItem[]).map((item) => `${item.type}|${item.link}|${item.text}`));
     const existingSet = new Set(existingSocials.map(s => `${s.type}|${s.link}|${s.text}`));
 
     // Find socials to add (not in existing)
-    const toAdd = body.socials.filter((item: any) => !existingSet.has(`${item.type}|${item.link}|${item.text}`));
+    const toAdd = (body.socials as SocialItem[]).filter((item) => !existingSet.has(`${item.type}|${item.link}|${item.text}`));
 
     // Find socials to remove (not in input)
     const toRemove = existingSocials.filter(s => !inputSet.has(`${s.type}|${s.link}|${s.text}`));

@@ -1,87 +1,39 @@
 'use client'
 
 import React, { useEffect, useState, use } from 'react'
+import Image from 'next/image'
 import { motion } from 'framer-motion'
 import { 
-  Instagram, 
-  Twitter, 
-  Youtube, 
-  Github, 
-  Mail, 
-  Link,
-  Twitch,
-  Facebook,
-  Music,
-  MessageCircle,
-  CreditCard,
-  Gamepad2,
-  Coffee,
-  Heart,
-  DollarSign,
-  Play,
-  Camera,
-  Headphones,
   ExternalLink,
   Settings,
   Share2,
-  Check
+  Check,
+  Link
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { backgroundPresets } from '@/app/components/backgrounds'
 import { backgroundComponents } from '@/app/components/animated-backgrounds'
+import { socialPlatforms } from '@/app/profile/constants'
+import { iconMap } from '@/app/profile/utils/icons'
 
-// Icon mapping
-const iconMap = {
-  Link,
-  Instagram,
-  Twitter,
-  Youtube,
-  Github,
-  Mail,
-  Twitch,
-  Facebook,
-  Music,
-  MessageCircle,
-  CreditCard,
-  Gamepad2,
-  Coffee,
-  Heart,
-  DollarSign,
-  Play,
-  Camera,
-  Headphones
+// Profile and Link interfaces
+interface ProfileLink {
+  id: string
+  title: string
+  url: string
+  icon: string
 }
 
-// Social platforms data
-const socialPlatforms = [
-  { value: 'Link', label: 'Generic Link', icon: 'Link', color: '#6366f1' },
-  { value: 'Instagram', label: 'Instagram', icon: 'Instagram', color: '#E4405F' },
-  { value: 'Twitter', label: 'Twitter/X', icon: 'Twitter', color: '#1DA1F2' },
-  { value: 'Youtube', label: 'YouTube', icon: 'Youtube', color: '#FF0000' },
-  { value: 'Github', label: 'GitHub', icon: 'Github', color: '#333' },
-  { value: 'Mail', label: 'Email', icon: 'Mail', color: '#EA4335' },
-  { value: 'Twitch', label: 'Twitch', icon: 'Twitch', color: '#9146FF' },
-  { value: 'Facebook', label: 'Facebook', icon: 'Facebook', color: '#1877F2' },
-  { value: 'TikTok', label: 'TikTok', icon: 'Play', color: '#000000' },
-  { value: 'OnlyFans', label: 'OnlyFans', icon: 'Heart', color: '#00AFF0' },
-  { value: 'Spotify', label: 'Spotify', icon: 'Music', color: '#1DB954' },
-  { value: 'Snapchat', label: 'Snapchat', icon: 'Camera', color: '#FFFC00' },
-  { value: 'Telegram', label: 'Telegram', icon: 'MessageCircle', color: '#0088CC' },
-  { value: 'SoundCloud', label: 'SoundCloud', icon: 'Headphones', color: '#FF5500' },
-  { value: 'PayPal', label: 'PayPal', icon: 'CreditCard', color: '#00457C' },
-  { value: 'Roblox', label: 'Roblox', icon: 'Gamepad2', color: '#00A2FF' },
-  { value: 'CashApp', label: 'CashApp', icon: 'DollarSign', color: '#00D632' },
-  { value: 'GitLab', label: 'GitLab', icon: 'Github', color: '#FC6D26' },
-  { value: 'Reddit', label: 'Reddit', icon: 'MessageCircle', color: '#FF4500' },
-  { value: 'Steam', label: 'Steam', icon: 'Gamepad2', color: '#171A21' },
-  { value: 'Kick', label: 'Kick', icon: 'Play', color: '#53FC18' },
-  { value: 'Pinterest', label: 'Pinterest', icon: 'Camera', color: '#BD081C' },
-  { value: 'LastFM', label: 'Last.fm', icon: 'Headphones', color: '#D51007' },
-  { value: 'BuyMeACoffee', label: 'Buy Me a Coffee', icon: 'Coffee', color: '#FFDD00' },
-  { value: 'Kofi', label: 'Ko-fi', icon: 'Heart', color: '#FF5E5B' },
-  { value: 'Patreon', label: 'Patreon', icon: 'DollarSign', color: '#FF424D' },
-  { value: 'Discord', label: 'Discord', icon: 'MessageCircle', color: '#5865f2'}
-]
+interface Profile {
+  name: string
+  username: string
+  bio: string
+  avatar: string
+  background: string
+  blur: number
+  customColor?: string
+  links: ProfileLink[]
+}
 
 const hexToRgb = (hex: string) => {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
@@ -102,7 +54,7 @@ const getLuminance = (r: number, g: number, b: number) => {
 }
 
 // Determine if background is bright
-const isBackgroundBright = (profile: any) => {
+const isBackgroundBright = (profile: Profile) => {
   // Handle custom colors
   if (profile.background?.startsWith('custom-') && profile.customColor) {
     const rgb = hexToRgb(profile.customColor)
@@ -122,7 +74,7 @@ const isBackgroundBright = (profile: any) => {
 }
 
 // Get text colors based on background brightness
-const getTextColors = (profile: any) => {
+const getTextColors = (profile: Profile) => {
   const isBright = isBackgroundBright(profile)
   
   return {
@@ -140,25 +92,6 @@ const getTextColors = (profile: any) => {
     profileGlow: '',
     linkGlow: ''
   }
-}
-
-// Profile and Link interfaces
-interface ProfileLink {
-  id: string
-  title: string
-  url: string
-  icon: string
-}
-
-interface Profile {
-  name: string
-  username: string
-  bio: string
-  avatar: string
-  background: string
-  blur: number
-  customColor?: string
-  links: ProfileLink[]
 }
 
 // Mock profile data
@@ -200,14 +133,15 @@ export default function ProfilePage({ params }: { params: Promise<{ username: st
         const data = await res.json();
 
         // Parse background and blur
-        let [background, blur] = data.website.background
+        const [background, rawBlur] = data.website.background
           ? data.website.background.split('|')
           : [null, 0];
+        let blur = rawBlur;
         if (blur === 'null' || blur === undefined) blur = 0;
 
         // Map socials to links
         const socials = Array.isArray(data.socials) ? data.socials : [];
-        const links = socials.map((item: any, idx: number) => ({
+        const links = socials.map((item: { order?: number; text: string; link: string; type: string }, idx: number) => ({
             id: item.order?.toString() ?? idx.toString(),
             title: item.text,
             url: item.link,
@@ -258,12 +192,12 @@ export default function ProfilePage({ params }: { params: Promise<{ username: st
                 }
               }
             }
-          } catch (e) {
+          } catch {
             // ignore error
           }
         }
 
-      } catch (err) {
+      } catch {
         setIsProfileAvailable(true);
       } finally {
         setIsLoading(false);
@@ -502,9 +436,11 @@ export default function ProfilePage({ params }: { params: Promise<{ username: st
                     >
                       <div className="w-24 h-24 rounded-full bg-gradient-to-br from-white/20 to-white/10 border-2 border-white/30 flex items-center justify-center overflow-hidden shadow-2xl">
                         {profile.avatar ? (
-                          <img 
+                          <Image 
                             src={profile.avatar} 
                             alt={profile.name}
+                            width={96}
+                            height={96}
                             className="w-full h-full object-cover"
                           />
                         ) : (
@@ -646,9 +582,11 @@ export default function ProfilePage({ params }: { params: Promise<{ username: st
                       >
                         <div className="w-32 h-32 rounded-full bg-gradient-to-br from-white/20 to-white/10 border-2 border-white/30 flex items-center justify-center overflow-hidden shadow-2xl">
                           {profile.avatar ? (
-                            <img 
+                            <Image 
                               src={profile.avatar} 
                               alt={profile.name}
+                              width={128}
+                              height={128}
                               className="w-full h-full object-cover"
                             />
                           ) : (

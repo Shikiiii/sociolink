@@ -1,12 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { authMiddleware, AuthenticatedRequest } from '@/middleware/authMiddleware';
-import axios from 'axios';
+import { authMiddleware } from '@/middleware/authMiddleware';
 import { PrismaClient } from '@/generated/prisma/client';
 
 const prisma = new PrismaClient();
 
 export async function GET(req: NextRequest) {
-    const maybeAuthedReq = await authMiddleware(req as any);
+    const maybeAuthedReq = await authMiddleware(req);
     if (maybeAuthedReq instanceof NextResponse) return maybeAuthedReq;
     // take from maybeAuthedReq.user.user_id, return the website data
 

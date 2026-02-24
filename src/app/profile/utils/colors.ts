@@ -16,8 +16,13 @@ export const getLuminance = (r: number, g: number, b: number) => {
   return 0.2126 * rs + 0.7152 * gs + 0.0722 * bs
 }
 
+interface ProfileColorInfo {
+  background: string
+  customColor?: string
+}
+
 // Determine if background is bright
-export const isBackgroundBright = (profile: any) => {
+export const isBackgroundBright = (profile: ProfileColorInfo) => {
   // Handle custom colors
   if (profile.background?.startsWith('custom-') && profile.customColor) {
     const rgb = hexToRgb(profile.customColor)
@@ -42,7 +47,7 @@ export const isBackgroundBright = (profile: any) => {
 }
 
 // Get text colors based on background brightness
-export const getTextColors = (profile: any) => {
+export const getTextColors = (profile: ProfileColorInfo) => {
   const isBright = isBackgroundBright(profile)
   
   return {

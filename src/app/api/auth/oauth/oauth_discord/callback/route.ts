@@ -19,16 +19,6 @@ const {
 export async function GET(req: NextRequest) {
     const { searchParams } = new URL(req.url);
     const code = searchParams.get('code');
-    const rawState = searchParams.get('state');
-
-    let stateData: string = '';
-    if (rawState) {
-        try {
-            stateData = rawState
-        } catch (e) {
-            console.error('Failed to parse state:', e);
-        }
-    }
 
     if (!code) {
         return NextResponse.redirect(new URL(`/oauth/error?message=missing-code`, req.url));

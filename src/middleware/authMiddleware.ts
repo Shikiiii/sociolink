@@ -24,7 +24,7 @@ export async function authMiddleware(req: NextRequest): Promise<AuthenticatedReq
 
         const authReq = Object.assign(req, { user: payload });
         return authReq as AuthenticatedRequest;
-    } catch (err) {
+    } catch {
         return NextResponse.json({ message: 'Invalid token' }, { status: 401 });
     }
 }

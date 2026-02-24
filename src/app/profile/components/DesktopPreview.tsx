@@ -4,12 +4,33 @@ import React from 'react'
 import { Eye, Smartphone, Monitor } from 'lucide-react'
 import { ProfilePreview } from './ProfilePreview'
 
+interface MobilePreset {
+  name: string
+  width: number
+  height: number
+}
+
+interface Profile {
+  name: string | null
+  bio: string | null
+  avatar: string | null
+  background: string
+  blur?: number
+  customColor?: string
+  links: {
+    id: string
+    title: string
+    url: string
+    icon: string
+  }[]
+}
+
 interface DesktopPreviewProps {
-  profile: any
+  profile: Profile
   getBackgroundClass: (bgId: string) => string
-  iconMap: any
+  iconMap: Record<string, React.ComponentType<{ className?: string }>>
   isMobileView: boolean
-  selectedMobilePreset: any
+  selectedMobilePreset: MobilePreset
 }
 
 export const DesktopPreview = ({ profile, getBackgroundClass, iconMap, isMobileView, selectedMobilePreset }: DesktopPreviewProps) => {

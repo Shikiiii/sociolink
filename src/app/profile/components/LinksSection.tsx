@@ -8,15 +8,38 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { socialPlatforms } from '../constants'
 
+interface LinkItem {
+  id: string
+  title: string
+  url: string
+  icon: string
+}
+
+interface Profile {
+  name: string | null
+  bio: string | null
+  avatar: string | null
+  background: string
+  blur?: number
+  customColor?: string
+  links: LinkItem[]
+}
+
+interface NewLink {
+  title: string
+  url: string
+  icon: string
+}
+
 interface LinksSectionProps {
-  profile: any
-  setProfile: (value: any) => void
-  newLink: any
-  setNewLink: (value: any) => void
+  profile: Profile
+  setProfile: React.Dispatch<React.SetStateAction<Profile>>
+  newLink: NewLink
+  setNewLink: React.Dispatch<React.SetStateAction<NewLink>>
   addLink: () => void
   removeLink: (id: string) => void
-  handleDragEnd: (result: any) => void
-  iconMap: any
+  handleDragEnd: (result: { destination?: { index: number }; source: { index: number } }) => void
+  iconMap: Record<string, React.ComponentType<{ className?: string }>>
 }
 
 export const LinksSection = ({ profile, setProfile, newLink, setNewLink, addLink, removeLink, handleDragEnd, iconMap }: LinksSectionProps) => {
@@ -31,16 +54,16 @@ export const LinksSection = ({ profile, setProfile, newLink, setNewLink, addLink
 
   const selectedPlatform = socialPlatforms.find(p => p.value === newLink.icon) || socialPlatforms[0]
 
-  const startEditing = (link: any) => {
+  const startEditing = (link: LinkItem) => {
     setEditingLinkId(link.id)
     setEditingLink({ title: link.title, url: link.url, icon: link.icon })
   }
 
   const saveEdit = () => {
     if (editingLink.title && editingLink.url && editingLinkId) {
-      setProfile((prev: any) => ({
+      setProfile((prev) => ({
         ...prev,
-        links: prev.links.map((link: any) => 
+        links: prev.links.map((link) => 
           link.id === editingLinkId 
             ? { ...link, title: editingLink.title, url: editingLink.url, icon: editingLink.icon }
             : link
@@ -66,14 +89,14 @@ export const LinksSection = ({ profile, setProfile, newLink, setNewLink, addLink
         
         <Input
           value={newLink.title}
-          onChange={(e) => setNewLink((prev: any) => ({ ...prev, title: e.target.value }))}
+          onChange={(e) => setNewLink((prev) => ({ ...prev, title: e.target.value }))}
           placeholder="Link title"
           className="w-full"
         />
         
         <Input
           value={newLink.url}
-          onChange={(e) => setNewLink((prev: any) => ({ ...prev, url: e.target.value }))}
+          onChange={(e) => setNewLink((prev) => ({ ...prev, url: e.target.value }))}
           placeholder="https://example.com or username"
           className="w-full"
         />
@@ -148,7 +171,7 @@ export const LinksSection = ({ profile, setProfile, newLink, setNewLink, addLink
                       <button
                         key={platform.value}
                         onClick={() => {
-                          setNewLink((prev: any) => ({ ...prev, icon: platform.value }))
+                          setNewLink((prev) => ({ ...prev, icon: platform.value }))
                           setIsDropdownOpen(false)
                           setSearchTerm('')
                         }}
@@ -188,7 +211,7 @@ export const LinksSection = ({ profile, setProfile, newLink, setNewLink, addLink
             {(provided) => (
               <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-2">
                 <AnimatePresence mode="popLayout">
-                  {profile.links.map((link: any, index: number) => {
+                  {profile.links.map((link, index) => {
                     const platform = socialPlatforms.find(p => p.value === link.icon) || socialPlatforms[0]
                     const IconComponent = iconMap[platform.icon as keyof typeof iconMap] || Link
                     const isEditing = editingLinkId === link.id

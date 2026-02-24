@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle } from '@/components/ui/card'
@@ -24,9 +24,8 @@ const ERRORS = {
 const OAuthErrorPage = () => {
   const searchParams = useSearchParams()
   // take "error" from search params
-  const error = (searchParams.get('error') as keyof typeof ERRORS) || 'unexpected-error'
-
-  const [errorMessage, setErrorMessage] = useState<string>(ERRORS[error] || "Unexpected error happened. If this issue keeps happening, please contact support.");
+  const errorKey = (searchParams.get('error') as keyof typeof ERRORS) || 'unexpected-error'
+  const errorMessage = ERRORS[errorKey] || "Unexpected error happened. If this issue keeps happening, please contact support."
 
   const router = useRouter()
   const { theme, setTheme } = useTheme()

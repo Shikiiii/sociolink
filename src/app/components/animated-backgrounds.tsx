@@ -1,6 +1,5 @@
 'use client'
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react'
-import { motion } from 'framer-motion'
 
 // Optimized utility hook for animation frames with cleanup
 const useAnimationFrame = (callback: () => void, fps: number = 60) => {
@@ -140,6 +139,7 @@ export const ParticleFloat = React.memo(() => {
     />
   )
 })
+ParticleFloat.displayName = 'ParticleFloat'
 
 // Particle Web - Optimized with distance culling
 export const ParticleWeb = React.memo(() => {
@@ -276,6 +276,7 @@ export const ParticleWeb = React.memo(() => {
     />
   )
 })
+ParticleWeb.displayName = 'ParticleWeb'
 
 // Matrix Rain - Kept as is (User liked it)
 export const MatrixRain = React.memo(() => {
@@ -333,6 +334,7 @@ export const MatrixRain = React.memo(() => {
     />
   )
 })
+MatrixRain.displayName = 'MatrixRain'
 
 // Constellation - Simplified to Starfield
 export const Constellation = React.memo(() => {
@@ -389,6 +391,7 @@ export const Constellation = React.memo(() => {
     />
   )
 })
+Constellation.displayName = 'Constellation'
 
 // Liquid Morph - Kept as is
 export const LiquidMorph = React.memo(() => {
@@ -434,6 +437,7 @@ export const LiquidMorph = React.memo(() => {
     </div>
   )
 })
+LiquidMorph.displayName = 'LiquidMorph'
 
 // NEW: Wave Animation
 export const WaveAnimation = React.memo(() => {
@@ -466,6 +470,7 @@ export const WaveAnimation = React.memo(() => {
     </div>
   )
 })
+WaveAnimation.displayName = 'WaveAnimation'
 
 // Optimized Geometric Waves
 export const GeometricWaves = React.memo(() => {
@@ -502,6 +507,7 @@ export const GeometricWaves = React.memo(() => {
     </div>
   )
 })
+GeometricWaves.displayName = 'GeometricWaves'
 
 // Optimized Ripple Effect with object pooling
 export const RippleEffect = React.memo(() => {
@@ -566,6 +572,7 @@ export const RippleEffect = React.memo(() => {
     </div>
   )
 })
+RippleEffect.displayName = 'RippleEffect'
 
 export const backgroundComponents = {
   ParticleFloat,

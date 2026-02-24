@@ -28,7 +28,7 @@ const LoginPage = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [mounted, setMounted] = useState(false)
   const router = useRouter()
-  const { theme, setTheme } = useTheme()
+  const { theme } = useTheme()
   const [error, setError] = useState<string | null>(null)
 
   const isDark = theme === 'dark'
@@ -60,7 +60,7 @@ const LoginPage = () => {
         const data = await res.json()
         setError(data?.error || 'Login failed. Please try again.')
       }
-    } catch (err) {
+    } catch {
       setError('Network error. Please check your connection.')
     } finally {
       setIsLoading(false)
@@ -250,7 +250,7 @@ const LoginPage = () => {
 
               {/* Sign up link */}
               <div className="text-center text-sm">
-                <span className="text-muted-foreground">Don't have an account? </span>
+                <span className="text-muted-foreground">Don&apos;t have an account? </span>
                 <Button
                   variant="link"
                   className="p-0 h-auto font-medium text-sm hover:underline"

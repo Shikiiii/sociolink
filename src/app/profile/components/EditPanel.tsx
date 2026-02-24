@@ -8,22 +8,49 @@ import { ProfileInfoSection } from './ProfileInfoSection'
 import { BackgroundSection } from './BackgroundSection'
 import { LinksSection } from './LinksSection'
 
+interface MobilePreset {
+  name: string
+  width: number
+  height: number
+}
+
+interface Profile {
+  name: string | null
+  bio: string | null
+  avatar: string | null
+  background: string
+  blur?: number
+  customColor?: string
+  links: {
+    id: string
+    title: string
+    url: string
+    icon: string
+  }[]
+}
+
+interface NewLink {
+  title: string
+  url: string
+  icon: string
+}
+
 interface EditPanelProps {
-  profile: any
-  setProfile: (value: any) => void
-  newLink: any
-  setNewLink: (value: any) => void
+  profile: Profile
+  setProfile: React.Dispatch<React.SetStateAction<Profile>>
+  newLink: NewLink
+  setNewLink: React.Dispatch<React.SetStateAction<NewLink>>
   isMobileView: boolean
-  setIsMobileView: (value: boolean) => void
-  selectedMobilePreset: any
-  setSelectedMobilePreset: (value: any) => void
+  setIsMobileView: React.Dispatch<React.SetStateAction<boolean>>
+  selectedMobilePreset: MobilePreset
+  setSelectedMobilePreset: React.Dispatch<React.SetStateAction<MobilePreset>>
   showBackgrounds: boolean
-  setShowBackgrounds: (value: boolean) => void
+  setShowBackgrounds: React.Dispatch<React.SetStateAction<boolean>>
   addLink: () => void
   removeLink: (id: string) => void
-  handleDragEnd: (result: any) => void
+  handleDragEnd: (result: { destination?: { index: number }; source: { index: number } }) => void
   handleAvatarUpload: () => void
-  iconMap: any
+  iconMap: Record<string, React.ComponentType<{ className?: string }>>
   error: string | null
   isDirty: boolean
   saveChanges: () => void
@@ -125,17 +152,17 @@ export const EditPanel = ({
 )
 
 interface MobileEditPanelProps {
-  profile: any
-  setProfile: (value: any) => void
-  newLink: any
-  setNewLink: (value: any) => void
+  profile: Profile
+  setProfile: React.Dispatch<React.SetStateAction<Profile>>
+  newLink: NewLink
+  setNewLink: React.Dispatch<React.SetStateAction<NewLink>>
   showBackgrounds: boolean
-  setShowBackgrounds: (value: boolean) => void
+  setShowBackgrounds: React.Dispatch<React.SetStateAction<boolean>>
   addLink: () => void
   removeLink: (id: string) => void
-  handleDragEnd: (result: any) => void
+  handleDragEnd: (result: { destination?: { index: number }; source: { index: number } }) => void
   handleAvatarUpload: () => void
-  iconMap: any
+  iconMap: Record<string, React.ComponentType<{ className?: string }>>
   saveChanges: () => void
   error: string | null
   isDirty: boolean

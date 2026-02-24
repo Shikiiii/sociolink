@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { authMiddleware, AuthenticatedRequest } from '@/middleware/authMiddleware';
+import { authMiddleware } from '@/middleware/authMiddleware';
 import axios from 'axios';
 import { PrismaClient } from '@/generated/prisma/client';
 
@@ -37,7 +37,7 @@ function validateInput(display_name?: string, bio?: string): string | null {
 }
 
 export async function POST(req: NextRequest) {
-    const maybeAuthedReq = await authMiddleware(req as any);
+    const maybeAuthedReq = await authMiddleware(req);
     if (maybeAuthedReq instanceof NextResponse) return maybeAuthedReq;
 
     const formData = await req.formData();
@@ -69,7 +69,14 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: 'Website not found for user' }, { status: 404 });
     }
 
-    const updateData: any = { display_name, bio, background };
+    interface WebsiteUpdateData {
+        display_name?: string;
+        bio?: string;
+        background?: string;
+        avatar?: string;
+    }
+
+    const updateData: WebsiteUpdateData = { display_name, bio, background };
     if (avatarUrl !== undefined) {
         updateData.avatar = avatarUrl;
     }

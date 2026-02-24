@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { generateAccessToken, verifyRefreshToken } from '../token';
-import { PrismaClient } from '@/generated/prisma/client';
-
-const prisma = new PrismaClient();
 
 export async function GET(req: NextRequest) {
     const cookies = req.cookies;

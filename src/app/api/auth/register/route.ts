@@ -52,7 +52,7 @@ export async function POST(req: NextRequest) {
         // Create the user
         const userId = crypto.randomUUID();
 
-        const newUser = await prisma.user.create({
+        await prisma.user.create({
             data: {
                 user_id: userId,
                 user_email: email,

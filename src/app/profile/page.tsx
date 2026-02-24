@@ -12,7 +12,6 @@ import { EditPanel, MobileEditPanel } from './components/EditPanel'
 import { DesktopPreview } from './components/DesktopPreview'
 import { MobileFullPreview } from './components/MobileFullPreview'
 import { ProfileSkeleton } from './components/ProfileSkeleton'
-import { socialPlatforms } from './constants'
 import { iconMap } from './utils/icons'
 
 interface Profile {
@@ -88,7 +87,7 @@ const ProfilePage = () => {
 
   const saveChanges = async () => {
     // Save socials (links)
-    let s = await fetch('/api/website/edit_socials', {
+    const s = await fetch('/api/website/edit_socials', {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
@@ -126,7 +125,7 @@ const ProfilePage = () => {
       formData.append('avatar', profile.avatarFile);
     }
 
-    let e = await fetch('/api/website/edit', {
+    const e = await fetch('/api/website/edit', {
       method: 'POST',
       credentials: 'include',
       body: formData
@@ -185,8 +184,9 @@ const ProfilePage = () => {
 
           if (profileRes.ok) {
               const data = await profileRes.json();
-              let [background, blur] = data.data.background !== null && data.data.background !== undefined ? data.data.background.split("|") : [null, 0];
-              if (blur === 'null') blur = 0;
+              const [background, blur] = data.data.background !== null && data.data.background !== undefined ? data.data.background.split("|") : [null, 0];
+              let blurVal = blur;
+              if (blurVal === 'null') blurVal = 0;
               
               // Handle custom hex colors stored in background string
               let customColor = undefined;
@@ -207,12 +207,12 @@ const ProfilePage = () => {
 
           if (socialsRes.ok) {
               const socials = await socialsRes.json();
-              const links = socials.map((item: any, idx: number) => ({
+              const links = socials.map((item: { order: number; text: string; link: string; type: string }, idx: number) => ({
                 id: String(item.order) + "-" + idx, // Ensure unique ID even if order is duplicate temporarily
                 title: item.text,
                 url: item.link,
                 icon: item.type.charAt(0).toUpperCase() + item.type.slice(1)
-              })).sort((a: any, b: any) => {
+              })).sort((a: { id: string }, b: { id: string }) => {
                  // Try to sort by ID (order) if possible, otherwise keep index order
                  const idA = parseInt(a.id.split('-')[0]);
                  const idB = parseInt(b.id.split('-')[0]);
@@ -226,7 +226,7 @@ const ProfilePage = () => {
           setInitialProfile(finalProfile);
           setIsLoaded(true);
 
-        } catch (err) {
+        } catch {
           window.location.href = '/login';
         }
     })();
@@ -242,7 +242,7 @@ const ProfilePage = () => {
   // Auto-format URL logic
   useEffect(() => {
     if (newLink.icon !== prevIcon) {
-      setNewLink((prev: any) => ({ ...prev, url: '' }));
+      setNewLink((prev) => ({ ...prev, url: '' }));
       setPrevIcon(newLink.icon);
     }
 
@@ -294,7 +294,7 @@ const ProfilePage = () => {
       isSingleWord(newLink.url) &&
       usernameUrlPatterns[newLink.icon]
     ) {
-      setNewLink((prev: any) => ({
+      setNewLink((prev) => ({
         ...prev,
         url: usernameUrlPatterns[newLink.icon].replace("{username}", prev.url),
       }));
@@ -318,7 +318,7 @@ const ProfilePage = () => {
     }))
   }
 
-  const handleDragEnd = (result: any) => {
+  const handleDragEnd = (result: { destination?: { index: number }; source: { index: number } }) => {
     if (!result.destination) return
 
     const items = Array.from(profile.links)
@@ -333,8 +333,9 @@ const ProfilePage = () => {
     input.type = 'file';
     input.accept = 'image/*';
 
-    input.onchange = (e: any) => {
-      const file = e.target.files[0];
+    input.onchange = (e) => {
+      const target = e.target as HTMLInputElement;
+      const file = target.files?.[0];
       if (file) {
         const reader = new FileReader();
         reader.onload = (e) => {

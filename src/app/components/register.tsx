@@ -37,9 +37,8 @@ const RegisterPage = () => {
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [mounted, setMounted] = useState(false)
   const router = useRouter()
-  const { theme, setTheme } = useTheme()
+  const { theme } = useTheme()
   const [error, setError] = useState<string | null>(null)
-  const [focusedField, setFocusedField] = useState<string | null>(null)
 
   const isDark = theme === 'dark'
 
@@ -101,7 +100,7 @@ const RegisterPage = () => {
         const data = await res.json()
         setError(data?.error || 'Registration failed. Please try again.')
       }
-    } catch (err) {
+    } catch {
       setError('Network error. Please check your connection.')
     } finally {
       setIsLoading(false)

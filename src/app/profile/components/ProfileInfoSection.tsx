@@ -4,10 +4,26 @@ import React from 'react'
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { User, Upload } from 'lucide-react'
+import Image from 'next/image'
+
+interface Profile {
+  name: string | null
+  bio: string | null
+  avatar: string | null
+  background: string
+  blur?: number
+  customColor?: string
+  links: {
+    id: string
+    title: string
+    url: string
+    icon: string
+  }[]
+}
 
 interface ProfileInfoSectionProps {
-  profile: any
-  setProfile: (value: any) => void
+  profile: Profile
+  setProfile: React.Dispatch<React.SetStateAction<Profile>>
   handleAvatarUpload: () => void
 }
 
@@ -24,9 +40,15 @@ export const ProfileInfoSection = ({ profile, setProfile, handleAvatarUpload }: 
           onClick={handleAvatarUpload}
           className="flex items-center gap-3 w-full p-3 rounded-lg border border-border hover:border-accent/50 transition-colors"
         >
-          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-accent/20 to-accent/40 flex items-center justify-center border-2 border-accent/30 overflow-hidden">
+          <div className="w-12 h-12 rounded-full bg-gradient-to-br from-accent/20 to-accent/40 flex items-center justify-center border-2 border-accent/30 overflow-hidden relative">
             {profile.avatar ? (
-              <img src={profile.avatar} alt="Avatar" className="w-full h-full object-cover" />
+              <Image 
+                src={profile.avatar} 
+                alt="Avatar" 
+                width={48}
+                height={48}
+                className="w-full h-full object-cover" 
+              />
             ) : (
               <User className="w-5 h-5 text-accent" />
             )}
@@ -44,8 +66,8 @@ export const ProfileInfoSection = ({ profile, setProfile, handleAvatarUpload }: 
           Display Name
         </label>
         <Input
-          value={profile.name}
-          onChange={(e) => setProfile((prev: any) => ({ ...prev, name: e.target.value }))}
+          value={profile.name ?? ''}
+          onChange={(e) => setProfile((prev) => ({ ...prev, name: e.target.value }))}
           placeholder="Your display name"
           className="w-full"
         />
@@ -56,8 +78,8 @@ export const ProfileInfoSection = ({ profile, setProfile, handleAvatarUpload }: 
           Bio
         </label>
         <Textarea
-          value={profile.bio}
-          onChange={(e) => setProfile((prev: any) => ({ ...prev, bio: e.target.value }))}
+          value={profile.bio ?? ''}
+          onChange={(e) => setProfile((prev) => ({ ...prev, bio: e.target.value }))}
           placeholder="Tell people about yourself..."
           rows={3}
           className="w-full resize-none"

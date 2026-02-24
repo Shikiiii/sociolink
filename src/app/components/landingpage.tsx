@@ -1,17 +1,15 @@
 'use client'
 
-import React, { useState, useMemo, useEffect, useRef } from 'react'
+import React, { useState, useMemo, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { useRouter } from 'next/navigation'
 import { useTheme } from 'next-themes'
 import { 
-  ArrowRight,
   Sparkles, 
   Wind, 
-  Sun,
-  Moon
+  Sun
 } from 'lucide-react'
 
 // Smoother typewriter with natural pauses
@@ -56,9 +54,47 @@ const LandingPage = () => {
   const [isUsernameAvailable, setIsUsernameAvailable] = useState<boolean>(false)
   
   const router = useRouter()
-  const { theme, setTheme } = useTheme()
+  const { theme } = useTheme()
 
   console.log('Current state:', { isLoggedIn, loggedInUsername }); // Add this line
+
+  const isDark = theme === 'dark'
+  
+  // More human content with personality
+    const moods = useMemo(() => ({
+    zen: {
+        emoji: "🌱",
+        greeting: isLoggedIn ? `Welcome back, ${loggedInUsername}` : "Hey there, fellow human",
+        tagline: "One link. Zero chaos.",
+        subtitle: isLoggedIn ? "Your space awaits" : "Keep it simple, keep it you",
+        description: isLoggedIn 
+        ? "Ready to view your profile page?" 
+        : "Because your digital life doesn't need to be complicated. Just clean, focused connections.",
+        placeholder: "yourname",
+        cta: isLoggedIn ? "View Profile →" : "Let's go →",
+        colors: {
+        primary: isDark ? '#60a5fa' : '#2563eb',
+        secondary: isDark ? '#22d3ee' : '#0891b2'
+        }
+    },
+    vibrant: {
+        emoji: "⚡",
+        greeting: isLoggedIn ? `What's up, ${loggedInUsername}` : "What's up, creative soul",
+        tagline: "Link loud. Be bold.",
+        subtitle: isLoggedIn ? "Time to shine bright" : "Express yourself without limits",
+        description: isLoggedIn
+        ? "Check out how awesome your profile looks!"
+        : "Turn your link into a canvas. Bright, bold, and unapologetically you.",
+        placeholder: "superstar",
+        cta: isLoggedIn ? "See My Profile! →" : "Hell yes! →",
+        colors: {
+        primary: isDark ? '#f472b6' : '#ec4899',
+        secondary: isDark ? '#fb923c' : '#f97316'
+        }
+    }
+    }), [isDark, isLoggedIn, loggedInUsername])
+
+  const currentMood = isVibrant ? moods.vibrant : moods.zen
 
   // Check if user is logged in by looking for access_token cookie
   useEffect(() => {
@@ -127,51 +163,13 @@ const LandingPage = () => {
         .catch(() => setIsUsernameAvailable(false))
     }, 300)
     return () => clearTimeout(handler)
-  }, [username, isLoggedIn])
+  }, [username, isLoggedIn, currentMood])
 
 
   useEffect(() => {
     setMounted(true)
   }, [])
-
-  const isDark = theme === 'dark'
   
-  // More human content with personality
-    const moods = useMemo(() => ({
-    zen: {
-        emoji: "🌱",
-        greeting: isLoggedIn ? `Welcome back, ${loggedInUsername}` : "Hey there, fellow human",
-        tagline: "One link. Zero chaos.",
-        subtitle: isLoggedIn ? "Your space awaits" : "Keep it simple, keep it you",
-        description: isLoggedIn 
-        ? "Ready to view your profile page?" 
-        : "Because your digital life doesn't need to be complicated. Just clean, focused connections.",
-        placeholder: "yourname",
-        cta: isLoggedIn ? "View Profile →" : "Let's go →",
-        colors: {
-        primary: isDark ? '#60a5fa' : '#2563eb',
-        secondary: isDark ? '#22d3ee' : '#0891b2'
-        }
-    },
-    vibrant: {
-        emoji: "⚡",
-        greeting: isLoggedIn ? `What's up, ${loggedInUsername}` : "What's up, creative soul",
-        tagline: "Link loud. Be bold.",
-        subtitle: isLoggedIn ? "Time to shine bright" : "Express yourself without limits",
-        description: isLoggedIn
-        ? "Check out how awesome your profile looks!"
-        : "Turn your link into a canvas. Bright, bold, and unapologetically you.",
-        placeholder: "superstar",
-        cta: isLoggedIn ? "See My Profile! →" : "Hell yes! →",
-        colors: {
-        primary: isDark ? '#f472b6' : '#ec4899',
-        secondary: isDark ? '#fb923c' : '#f97316'
-        }
-    }
-    }), [isDark, isLoggedIn, loggedInUsername])
-
-  const currentMood = isVibrant ? moods.vibrant : moods.zen
-
   const handleMoodSwitch = () => {
     if (isTransitioning) return
     setIsTransitioning(true)

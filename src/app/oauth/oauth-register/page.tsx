@@ -104,7 +104,7 @@ const OAuthRegisterPage = () => {
         const data = await res.json()
         setError(data?.error || 'Registration failed. Please try again.')
       }
-    } catch (err) {
+    } catch {
       setError('An unexpected error occurred. Please try again.')
     } finally {
       setIsLoading(false)

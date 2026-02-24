@@ -1,9 +1,7 @@
-import type { NextApiRequest, NextApiResponse } from 'next';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { PrismaClient } from '@/generated/prisma/client';
 import { generateAccessToken, generateRefreshToken } from '@/app/api/auth/token';
-import cookie from 'cookie';
 import axios from 'axios';
 import { NextRequest, NextResponse } from 'next/server';
 
@@ -15,6 +13,14 @@ const {
 } = process.env;
 
 const IMGBB_API_KEY = process.env.IMGBB_API_KEY;
+
+interface DecodedToken {
+    provider: string;
+    external_id: string;
+    email: string;
+    name: string;
+    picture?: string;
+}
 
 async function uploadToImgBB__link(imageUrl: string): Promise<string> {
     const imageResponse = await axios.get(imageUrl, { responseType: 'arraybuffer' });
@@ -54,9 +60,10 @@ export async function POST(req: NextRequest) {
             return NextResponse.json({ message: 'Missing token.' }, { status: 400 });
         }
 
-        const decoded = jwt.verify(token, ACCESS_TOKEN_SECRET as string) as any;
+        const decoded = jwt.verify(token, ACCESS_TOKEN_SECRET as string) as DecodedToken;
 
-        let { provider, external_id, email, name, picture } = decoded;
+        const { provider, external_id, email } = decoded;
+        let { name, picture } = decoded;
 
         // Username validation
         const usernameRegex = /^[a-zA-Z0-9_]{3,20}$/;
@@ -122,7 +129,7 @@ export async function POST(req: NextRequest) {
         }
 
         // ALSO create website for user with example values
-        const website = await prisma.website.create({
+        await prisma.website.create({
             data: {
                 avatar: null,
                 display_name: name,
