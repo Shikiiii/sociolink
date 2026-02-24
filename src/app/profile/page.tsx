@@ -231,13 +231,17 @@ const ProfilePage = () => {
 
           if (socialsRes.ok) {
               const socials = await socialsRes.json();
-              const links = socials.map((item: { id: string; order: number; text: string; link: string; type: string }) => ({
-                id: item.id,
+              const links = socials.map((item: { order: number; text: string; link: string; type: string }, idx: number) => ({
+                id: String(item.order) + "-" + idx, // Ensure unique ID even if order is duplicate temporarily
                 title: item.text,
                 url: item.link,
-                icon: item.type.charAt(0).toUpperCase() + item.type.slice(1),
-                order: item.order
-              })).sort((a: any, b: any) => a.order - b.order);
+                icon: item.type.charAt(0).toUpperCase() + item.type.slice(1)
+              })).sort((a: { id: string }, b: { id: string }) => {
+                 // Try to sort by ID (order) if possible, otherwise keep index order
+                 const idA = parseInt(a.id.split('-')[0]);
+                 const idB = parseInt(b.id.split('-')[0]);
+                 return idA - idB;
+              });
 
               finalProfile.links = links;
           }

@@ -5,7 +5,6 @@ const projectRoot = process.cwd();
 
 const nextConfig: NextConfig = {
   /* config options here */
-  reactStrictMode: false,
   images: {
     remotePatterns: [
       {
