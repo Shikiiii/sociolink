@@ -1,562 +1,128 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import { useTheme } from 'next-themes'
-import { ArrowLeft, Scale, FileText, Shield, Users, AlertTriangle, CheckCircle, XCircle, Mail, Gavel } from 'lucide-react'
+import { ArrowLeft, Mail } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import Header from '@/app/components/header'
-import { useState, useEffect } from 'react'
 
 export default function TermsPage() {
-  const { theme } = useTheme()
-  const [mounted, setMounted] = useState(false)
-  const isDarkMode = theme === 'dark'
-
   const lastUpdated = "June 5, 2025"
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  // Prevent hydration mismatch
-  if (!mounted) {
-    return (
-      <>
-        <Header />
-        <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-background via-background to-muted/30">
-          <div className="relative z-10 container mx-auto px-6 py-16 pt-24">
-            <div className="max-w-5xl mx-auto">
-              <div className="text-center">
-                <h1 className="text-5xl sm:text-7xl font-bold mb-8 text-foreground tracking-tight">
-                  Terms of Service
-                </h1>
-              </div>
-            </div>
-          </div>
-        </div>
-      </>
-    )
-  }
 
   return (
     <>
       <Header />
-      <div className="min-h-screen relative overflow-hidden bg-gradient-to-br from-background via-background to-muted/30">
-        {/* Enhanced Neural Network Background */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden opacity-30">
-          <svg className="w-full h-full">
-            <motion.line
-              x1="10%" y1="30%" x2="90%" y2="40%"
-              stroke={isDarkMode ? '#60a5fa' : '#2563eb'}
-              strokeWidth="1"
-              opacity="0.4"
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: [0, 1, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-            />
-            <motion.line
-              x1="80%" y1="70%" x2="20%" y2="80%"
-              stroke={isDarkMode ? '#60a5fa' : '#2563eb'}
-              strokeWidth="1"
-              opacity="0.4"
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: [0, 1, 0] }}
-              transition={{ duration: 5, repeat: Infinity, delay: 1, ease: "easeInOut" }}
-            />
-            <motion.circle
-              cx="25%" cy="45%" r="2"
-              fill={isDarkMode ? '#60a5fa' : '#2563eb'}
-              opacity="0.6"
-              animate={{ scale: [1, 1.5, 1], opacity: [0.6, 0.2, 0.6] }}
-              transition={{ duration: 3, repeat: Infinity, delay: 0.5 }}
-            />
-            <motion.circle
-              cx="75%" cy="65%" r="1.5"
-              fill={isDarkMode ? '#22d3ee' : '#0891b2'}
-              opacity="0.5"
-              animate={{ scale: [1, 1.3, 1], opacity: [0.5, 0.1, 0.5] }}
-              transition={{ duration: 4, repeat: Infinity, delay: 1.5 }}
-            />
-          </svg>
-        </div>
+      <div className="min-h-screen bg-background">
+        <div className="max-w-3xl mx-auto px-6 py-16 pt-24">
 
-        {/* Floating glass orbs */}
-        <div className="absolute inset-0 pointer-events-none overflow-hidden">
-          <motion.div
-            className="absolute w-28 h-28 rounded-full opacity-10"
-            style={{
-              background: `radial-gradient(circle, ${isDarkMode ? '#60a5fa' : '#2563eb'}40, transparent)`,
-              filter: 'blur(20px)',
-              top: '25%',
-              left: '15%'
-            }}
-            animate={{
-              y: [0, -25, 0],
-              x: [0, 15, 0],
-            }}
-            transition={{ duration: 7, repeat: Infinity, ease: "easeInOut" }}
-          />
-          <motion.div
-            className="absolute w-20 h-20 rounded-full opacity-10"
-            style={{
-              background: `radial-gradient(circle, ${isDarkMode ? '#22d3ee' : '#0891b2'}40, transparent)`,
-              filter: 'blur(15px)',
-              top: '65%',
-              right: '20%'
-            }}
-            animate={{
-              y: [0, 20, 0],
-              x: [0, -20, 0],
-            }}
-            transition={{ duration: 9, repeat: Infinity, ease: "easeInOut", delay: 3 }}
-          />
-        </div>
+          <Link href="/" className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground mb-12 transition-colors">
+            <ArrowLeft className="w-4 h-4" />
+            Back
+          </Link>
 
-        {/* Content */}
-        <div className="relative z-10 container mx-auto px-6 py-16 pt-24">
-          {/* Enhanced Back Button */}
-          <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5 }}
-            className="mb-8"
-          >
-            <Link href="/">
-              <Button 
-                variant="ghost" 
-                className="flex items-center space-x-2 text-muted-foreground hover:text-foreground rounded-full px-6 py-3 backdrop-blur-xl bg-card/60 border border-border/50 hover:bg-card/80 transition-all duration-300 hover:scale-105"
-              >
-                <ArrowLeft className="w-4 h-4" />
-                <span>Back to Home</span>
-              </Button>
-            </Link>
-          </motion.div>
+          <header className="mb-16">
+            <p className="text-sm text-muted-foreground mb-3">Last updated {lastUpdated}</p>
+            <h1 className="text-4xl font-bold tracking-tight mb-4">Terms of Service</h1>
+            <p className="text-lg text-muted-foreground leading-relaxed">
+              The short version: use SocioLink responsibly, and we&apos;ll take care of the rest.
+            </p>
+          </header>
 
-          {/* Main Content */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-            className="max-w-5xl mx-auto"
-          >
-            {/* Enhanced Header */}
-            <div className="text-center mb-20 relative">
-              <motion.div
-                initial={{ opacity: 0, y: -20, scale: 0.8 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ duration: 0.6, delay: 0.3 }}
-                className="mb-8 flex items-center justify-center gap-4"
-              >
-                <motion.div
-                  className="p-4 rounded-2xl backdrop-blur-xl bg-card/60 border border-border/50"
-                  whileHover={{ scale: 1.05, rotate: 5 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <span className="text-4xl">⚖️</span>
-                </motion.div>
-                <span className="text-xl text-muted-foreground font-medium">
-                  The rules we play by
-                </span>
-              </motion.div>
-              
-              <motion.h1
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.4 }}
-                className="text-5xl sm:text-7xl font-bold mb-8 text-foreground tracking-tight bg-gradient-to-br from-foreground to-muted-foreground bg-clip-text text-transparent"
-              >
-                Terms of Service
-              </motion.h1>
-              
-              <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.5 }}
-                className="backdrop-blur-xl bg-card/60 border border-border/50 rounded-2xl p-8 max-w-3xl mx-auto"
-              >
-                <p className="text-xl text-muted-foreground leading-relaxed mb-4">
-                  Clear, fair terms that protect both you and SocioLink. No legal jargon, just honest guidelines.
-                </p>
-                <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                  <FileText className="w-4 h-4" />
-                  <span>Last updated: {lastUpdated}</span>
-                </div>
-              </motion.div>
-            </div>
+          <div className="space-y-12 text-[15px] leading-relaxed">
 
-            {/* Terms Overview Cards */}
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.6, delay: 0.7 }}
-              className="grid md:grid-cols-4 gap-6 mb-20"
-            >
-              {[
-                {
-                  icon: Scale,
-                  color: 'text-blue-500',
-                  title: 'Fair Use',
-                  description: 'Use SocioLink responsibly and respect others'
-                },
-                {
-                  icon: Shield,
-                  color: 'text-green-500',
-                  title: 'Your Rights',
-                  description: 'What you can expect from us'
-                },
-                {
-                  icon: Users,
-                  color: 'text-purple-500',
-                  title: 'Community',
-                  description: 'Guidelines for a positive environment'
-                },
-                {
-                  icon: Gavel,
-                  color: 'text-orange-500',
-                  title: 'Legal Stuff',
-                  description: 'The necessary legal protections'
-                }
-              ].map((item, index) => (
-                <motion.div
-                  key={index}
-                  className="text-center p-6 backdrop-blur-xl bg-card/60 border border-border/50 rounded-2xl hover-lift group"
-                  whileHover={{ scale: 1.03, y: -8 }}
-                  transition={{ duration: 0.3, delay: 0.8 + index * 0.1 }}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                >
-                  <motion.div
-                    className={`w-14 h-14 mx-auto mb-4 rounded-2xl backdrop-blur-xl bg-card/80 border border-border/50 flex items-center justify-center group-hover:scale-110 transition-transform duration-300`}
-                    whileHover={{ rotate: 10 }}
-                  >
-                    <item.icon className={`w-7 h-7 ${item.color}`} />
-                  </motion.div>
-                  <h3 className="text-lg font-semibold mb-3">{item.title}</h3>
-                  <p className="text-sm text-muted-foreground leading-relaxed">
-                    {item.description}
-                  </p>
-                </motion.div>
-              ))}
-            </motion.div>
+            <section>
+              <h2 className="text-xl font-semibold mb-4">Acceptance</h2>
+              <p className="text-muted-foreground">
+                By using SocioLink, you agree to these terms. If you disagree, please don&apos;t use the service. We&apos;ll notify you 30 days before any changes — continued use after that means you accept them.
+              </p>
+            </section>
 
-            {/* Main Terms Sections */}
-            <div className="space-y-16">
-              
-              {/* Acceptance of Terms */}
-              <motion.section
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.8 }}
-                className="backdrop-blur-xl bg-card/60 border border-border/50 p-10 rounded-3xl"
-              >
-                <div className="flex items-center mb-8">
-                  <div className="p-3 rounded-xl backdrop-blur-xl bg-card/80 border border-border/50 mr-4">
-                    <CheckCircle className="w-7 h-7 text-green-500" />
-                  </div>
-                  <h2 className="text-3xl font-bold">Acceptance of Terms</h2>
-                </div>
-                
-                <div className="backdrop-blur-xl bg-card/40 border border-border/30 p-8 rounded-2xl">
-                  <p className="text-lg text-muted-foreground leading-relaxed mb-6">
-                    By using SocioLink, you agree to these terms. It's that simple. If you don't agree, 
-                    please don't use our service.
-                  </p>
-                  
-                  <div className="grid md:grid-cols-2 gap-6">
-                    <div>
-                      <h3 className="text-xl font-semibold mb-4 flex items-center text-green-500">
-                        <CheckCircle className="w-5 h-5 mr-2" />
-                        What This Means
-                      </h3>
-                      <ul className="text-muted-foreground space-y-2">
-                        <li>• You're entering a fair agreement with us</li>
-                        <li>• We'll provide the service as described</li>
-                        <li>• You'll use it responsibly</li>
-                        <li>• Both parties are protected</li>
-                      </ul>
-                    </div>
-                    
-                    <div>
-                      <h3 className="text-xl font-semibold mb-4 flex items-center text-blue-500">
-                        <Scale className="w-5 h-5 mr-2" />
-                        Changes to Terms
-                      </h3>
-                      <ul className="text-muted-foreground space-y-2">
-                        <li>• We'll notify you 30 days before changes</li>
-                        <li>• Continued use means acceptance</li>
-                        <li>• You can always delete your account</li>
-                        <li>• No surprise changes, ever</li>
-                      </ul>
-                    </div>
-                  </div>
-                </div>
-              </motion.section>
+            <hr className="border-border" />
 
-              {/* Using SocioLink */}
-              <motion.section
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 0.9 }}
-                className="backdrop-blur-xl bg-card/60 border border-border/50 p-10 rounded-3xl"
-              >
-                <div className="flex items-center mb-8">
-                  <div className="p-3 rounded-xl backdrop-blur-xl bg-card/80 border border-border/50 mr-4">
-                    <Users className="w-7 h-7 text-purple-500" />
-                  </div>
-                  <h2 className="text-3xl font-bold">Using SocioLink</h2>
-                </div>
-                
-                <div className="grid lg:grid-cols-2 gap-8">
-                  <div className="backdrop-blur-xl bg-green-500/10 border border-green-500/20 p-8 rounded-2xl">
-                    <h3 className="text-2xl font-semibold mb-6 text-green-500 flex items-center">
-                      <CheckCircle className="w-6 h-6 mr-3" />
-                      You Can
-                    </h3>
-                    <ul className="text-muted-foreground space-y-4">
-                      {[
-                        'Create and customize your SocioLink profile',
-                        'Share your links across social platforms',
-                        'Use our analytics to track performance',
-                        'Connect multiple social media accounts',
-                        'Customize themes and appearance',
-                        'Use your SocioLink for personal or business'
-                      ].map((item, index) => (
-                        <motion.li
-                          key={index}
-                          className="flex items-start"
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 1.0 + index * 0.1 }}
-                        >
-                          <CheckCircle className="w-5 h-5 text-green-500 mr-3 mt-0.5 flex-shrink-0" />
-                          {item}
-                        </motion.li>
-                      ))}
-                    </ul>
-                  </div>
-                  
-                  <div className="backdrop-blur-xl bg-red-500/10 border border-red-500/20 p-8 rounded-2xl">
-                    <h3 className="text-2xl font-semibold mb-6 text-red-500 flex items-center">
-                      <XCircle className="w-6 h-6 mr-3" />
-                      You Cannot
-                    </h3>
-                    <ul className="text-muted-foreground space-y-4">
-                      {[
-                        'Share illegal, harmful, or offensive content',
-                        'Impersonate others or create fake profiles',
-                        'Spam or harass other users',
-                        'Attempt to hack or compromise our service',
-                        'Violate copyright or intellectual property',
-                        'Use SocioLink for illegal activities'
-                      ].map((item, index) => (
-                        <motion.li
-                          key={index}
-                          className="flex items-start"
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 1.2 + index * 0.1 }}
-                        >
-                          <XCircle className="w-5 h-5 text-red-500 mr-3 mt-0.5 flex-shrink-0" />
-                          {item}
-                        </motion.li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-              </motion.section>
+            <section>
+              <h2 className="text-xl font-semibold mb-4">What you can do</h2>
+              <ul className="text-muted-foreground space-y-2 ml-4 list-disc list-inside">
+                <li>Create and customize your profile</li>
+                <li>Share your links across platforms</li>
+                <li>Use analytics to track performance</li>
+                <li>Connect multiple social accounts</li>
+                <li>Customize themes and appearance</li>
+                <li>Use SocioLink for personal or business</li>
+              </ul>
+            </section>
 
-              {/* Your Account */}
-              <motion.section
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 1.0 }}
-                className="backdrop-blur-xl bg-card/60 border border-border/50 p-10 rounded-3xl"
-              >
-                <div className="flex items-center mb-8">
-                  <div className="p-3 rounded-xl backdrop-blur-xl bg-card/80 border border-border/50 mr-4">
-                    <Shield className="w-7 h-7 text-blue-500" />
-                  </div>
-                  <h2 className="text-3xl font-bold">Your Account & Data</h2>
-                </div>
-                
-                <div className="grid lg:grid-cols-3 gap-8">
-                  <div className="backdrop-blur-xl bg-card/40 border border-border/30 p-6 rounded-2xl">
-                    <h3 className="text-xl font-semibold mb-4 flex items-center">
-                      <Users className="w-6 h-6 text-blue-500 mr-3" />
-                      Account Security
-                    </h3>
-                    <ul className="text-muted-foreground space-y-3">
-                      <li>• You're responsible for your account security</li>
-                      <li>• Keep your login credentials safe</li>
-                      <li>• Report suspicious activity immediately</li>
-                      <li>• We'll help with legitimate recovery requests</li>
-                    </ul>
-                  </div>
-                  
-                  <div className="backdrop-blur-xl bg-card/40 border border-border/30 p-6 rounded-2xl">
-                    <h3 className="text-xl font-semibold mb-4 flex items-center">
-                      <FileText className="w-6 h-6 text-green-500 mr-3" />
-                      Your Content
-                    </h3>
-                    <ul className="text-muted-foreground space-y-3">
-                      <li>• You own all content you upload</li>
-                      <li>• You grant us license to display it</li>
-                      <li>• You can delete your content anytime</li>
-                      <li>• We don't claim ownership of your data</li>
-                    </ul>
-                  </div>
-                  
-                  <div className="backdrop-blur-xl bg-card/40 border border-border/30 p-6 rounded-2xl">
-                    <h3 className="text-xl font-semibold mb-4 flex items-center">
-                      <AlertTriangle className="w-6 h-6 text-orange-500 mr-3" />
-                      Account Termination
-                    </h3>
-                    <ul className="text-muted-foreground space-y-3">
-                      <li>• You can delete your account anytime</li>
-                      <li>• We may suspend accounts for violations</li>
-                      <li>• 30-day notice for service termination</li>
-                      <li>• Data export available before deletion</li>
-                    </ul>
-                  </div>
-                </div>
-              </motion.section>
+            <hr className="border-border" />
 
-              {/* Service Availability */}
-              <motion.section
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 1.1 }}
-                className="backdrop-blur-xl bg-card/60 border border-border/50 p-10 rounded-3xl"
-              >
-                <div className="flex items-center mb-8">
-                  <div className="p-3 rounded-xl backdrop-blur-xl bg-card/80 border border-border/50 mr-4">
-                    <Gavel className="w-7 h-7 text-orange-500" />
-                  </div>
-                  <h2 className="text-3xl font-bold">Service & Liability</h2>
-                </div>
-                
-                <div className="backdrop-blur-xl bg-yellow-500/10 border border-yellow-500/20 p-8 rounded-2xl mb-8">
-                  <div className="flex items-start">
-                    <AlertTriangle className="w-6 h-6 text-yellow-500 mr-4 mt-1 flex-shrink-0" />
-                    <div>
-                      <h3 className="text-xl font-semibold mb-3 text-yellow-500">Service Availability</h3>
-                      <p className="text-muted-foreground leading-relaxed">
-                        We strive for 99.9% uptime, but like all online services, we can't guarantee 100% availability. 
-                        We'll communicate maintenance windows and work quickly to resolve any issues.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-                
-                <div className="grid md:grid-cols-2 gap-8">
-                  <div className="backdrop-blur-xl bg-card/40 border border-border/30 p-6 rounded-2xl">
-                    <h3 className="text-xl font-semibold mb-4">What We Promise</h3>
-                    <ul className="text-muted-foreground space-y-2">
-                      <li>• Best effort to maintain service quality</li>
-                      <li>• Regular backups of your data</li>
-                      <li>• Security measures to protect your info</li>
-                      <li>• Transparent communication about issues</li>
-                    </ul>
-                  </div>
-                  
-                  <div className="backdrop-blur-xl bg-card/40 border border-border/30 p-6 rounded-2xl">
-                    <h3 className="text-xl font-semibold mb-4">Limitation of Liability</h3>
-                    <ul className="text-muted-foreground space-y-2">
-                      <li>• Service provided "as is"</li>
-                      <li>• We're not liable for indirect damages</li>
-                      <li>• Maximum liability equals service fees paid</li>
-                      <li>• Users responsible for their content</li>
-                    </ul>
-                  </div>
-                </div>
-              </motion.section>
+            <section>
+              <h2 className="text-xl font-semibold mb-4">What you can&apos;t do</h2>
+              <ul className="text-muted-foreground space-y-2 ml-4 list-disc list-inside">
+                <li>Share illegal, harmful, or offensive content</li>
+                <li>Impersonate others or create fake profiles</li>
+                <li>Spam or harass other users</li>
+                <li>Attempt to hack or compromise the service</li>
+                <li>Violate copyright or intellectual property</li>
+              </ul>
+            </section>
 
-              {/* Contact & Disputes */}
-              <motion.section
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.6, delay: 1.2 }}
-                className="text-center backdrop-blur-xl bg-gradient-to-br from-card/80 to-card/60 border border-border/50 p-12 rounded-3xl relative overflow-hidden"
-              >
-                {/* Background gradient overlay */}
-                <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-blue-500/5 rounded-3xl"></div>
-                
-                <div className="relative z-10">
-                  <motion.div
-                    className="w-20 h-20 mx-auto mb-8 rounded-3xl backdrop-blur-xl bg-card/80 border border-border/50 flex items-center justify-center"
-                    whileHover={{ scale: 1.1, rotate: 10 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <Mail className="w-10 h-10 text-purple-500" />
-                  </motion.div>
-                  
-                  <h2 className="text-4xl font-bold mb-6">Questions or Disputes?</h2>
-                  
-                  <p className="text-xl text-muted-foreground mb-10 leading-relaxed max-w-2xl mx-auto">
-                    We prefer to resolve issues through friendly conversation. Reach out to us first before 
-                    considering any legal action.
-                  </p>
-                  
-                  <div className="grid md:grid-cols-2 gap-8 mb-10">
-                    <div className="backdrop-blur-xl bg-card/40 border border-border/30 p-6 rounded-2xl">
-                      <h3 className="text-lg font-semibold mb-3">Dispute Resolution</h3>
-                      <p className="text-sm text-muted-foreground">
-                        For any disputes, we'll first attempt resolution through good faith negotiation. 
-                        If needed, disputes will be resolved through binding arbitration.
-                      </p>
-                    </div>
-                    
-                    <div className="backdrop-blur-xl bg-card/40 border border-border/30 p-6 rounded-2xl">
-                      <h3 className="text-lg font-semibold mb-3">Governing Law</h3>
-                      <p className="text-sm text-muted-foreground">
-                        These terms are governed by the laws of [Your Jurisdiction]. 
-                        We're committed to fair and reasonable resolution of any issues.
-                      </p>
-                    </div>
-                  </div>
-                  
-                  <div className="flex flex-col sm:flex-row gap-6 justify-center">
-                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                      <Button 
-                        size="lg" 
-                        className="px-8 py-4 rounded-2xl text-lg font-medium hover-lift backdrop-blur-xl border-0"
-                        style={{
-                          background: `linear-gradient(135deg, ${isDarkMode ? '#60a5fa' : '#2563eb'}, ${isDarkMode ? '#22d3ee' : '#0891b2'})`,
-                          color: '#ffffff',
-                        }}
-                      >
-                        <Mail className="w-5 h-5 mr-3" />
-                        Contact Support
-                      </Button>
-                    </motion.div>
-                    
-                    <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-                      <Link href="/privacy">
-                        <Button 
-                          variant="ghost" 
-                          size="lg" 
-                          className="px-8 py-4 rounded-2xl text-lg font-medium backdrop-blur-xl bg-card/60 border border-border/50 hover:bg-card/80"
-                        >
-                          View Privacy Policy
-                        </Button>
-                      </Link>
-                    </motion.div>
-                  </div>
-                  
-                  <div className="mt-8 backdrop-blur-xl bg-card/40 border border-border/30 rounded-2xl p-6 max-w-md mx-auto">
-                    <p className="text-sm text-muted-foreground flex items-center justify-center gap-2">
-                      <Mail className="w-4 h-4" />
-                      legal@sociolink.com
-                    </p>
-                    <p className="text-xs text-muted-foreground mt-2">
-                      Response within 48 hours
-                    </p>
-                  </div>
-                </div>
-              </motion.section>
-            </div>
-          </motion.div>
+            <hr className="border-border" />
+
+            <section>
+              <h2 className="text-xl font-semibold mb-4">Your content</h2>
+              <p className="text-muted-foreground">
+                You own everything you upload. We don&apos;t claim ownership of your data. You grant us a license to display it on the platform, and you can delete it anytime.
+              </p>
+            </section>
+
+            <hr className="border-border" />
+
+            <section>
+              <h2 className="text-xl font-semibold mb-4">Account &amp; security</h2>
+              <p className="text-muted-foreground mb-4">
+                You&apos;re responsible for keeping your account secure. Report suspicious activity immediately and we&apos;ll help with legitimate recovery requests.
+              </p>
+              <ul className="text-muted-foreground space-y-2 ml-4 list-disc list-inside">
+                <li>You can delete your account anytime</li>
+                <li>We may suspend accounts that violate these terms</li>
+                <li>30-day notice before any service termination</li>
+                <li>Data export is always available before deletion</li>
+              </ul>
+            </section>
+
+            <hr className="border-border" />
+
+            <section>
+              <h2 className="text-xl font-semibold mb-4">Service availability</h2>
+              <p className="text-muted-foreground">
+                We aim for 99.9% uptime but can&apos;t guarantee 100%. The service is provided &quot;as is.&quot; We&apos;re not liable for indirect damages, and maximum liability equals any fees you&apos;ve paid.
+              </p>
+            </section>
+
+            <hr className="border-border" />
+
+            <section>
+              <h2 className="text-xl font-semibold mb-4">Disputes</h2>
+              <p className="text-muted-foreground">
+                We prefer resolving issues through conversation. If needed, disputes go through binding arbitration. Reach out before considering legal action.
+              </p>
+            </section>
+
+            <hr className="border-border" />
+
+            <section className="bg-muted/50 border border-border rounded-lg p-8">
+              <h2 className="text-xl font-semibold mb-3">Questions?</h2>
+              <p className="text-muted-foreground mb-6">
+                Contact us at <span className="text-foreground font-medium">legal@sociolink.com</span> — we respond within 48 hours.
+              </p>
+              <div className="flex gap-3">
+                <Button>
+                  <Mail className="w-4 h-4 mr-2" />
+                  Contact Support
+                </Button>
+                <Link href="/privacy">
+                  <Button variant="outline">Privacy Policy</Button>
+                </Link>
+              </div>
+            </section>
+          </div>
         </div>
       </div>
     </>

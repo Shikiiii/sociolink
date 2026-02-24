@@ -102,20 +102,17 @@ const Header = () => {
               animate={{ y: 0, opacity: 1 }}
               exit={{ y: -56, opacity: 0 }}
               transition={{ duration: 0.3, ease: "easeInOut" }}
-              className="w-full backdrop-blur-xl border-b border-border/50 bg-background/80"
+              className="w-full border-b border-border bg-background"
             >
               <div className="p-6 flex justify-between items-center relative z-20">
                 
                 {/* Logo - matching landing page exactly */}
-                <motion.div 
+                <div 
                   className="text-2xl font-bold cursor-pointer"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
                   onClick={() => router.push('/')}
-                  transition={{ duration: 0.5, ease: "easeInOut" }}
                 >
                   sociolink
-                </motion.div>
+                </div>
 
                 {/* Right side controls */}
                 <div className="flex items-center space-x-2">
@@ -138,9 +135,9 @@ const Header = () => {
                         onClick={handleProfileClick}
                         variant="ghost"
                         size="sm"
-                        className="w-9 h-9 p-0 rounded-full glass-effect transition-all duration-300"
+                        className="w-9 h-9 p-0 rounded-full transition-colors"
                       >
-                        <Avatar className="w-7 h-7 border border-border/50">
+                        <Avatar className="w-7 h-7 border border-border">
                           <div className="w-full h-full bg-muted flex items-center justify-center">
                             <User className="w-3.5 h-3.5 text-muted-foreground" />
                           </div>
@@ -152,7 +149,7 @@ const Header = () => {
                         onClick={handleLogout}
                         variant="ghost"
                         size="sm"
-                        className="w-9 h-9 rounded-full glass-effect hover:bg-red-500/10 hover:text-red-500 transition-all duration-300"
+                        className="w-9 h-9 rounded-full hover:bg-red-500/10 hover:text-red-500 transition-colors"
                       >
                         <LogOut className="w-4 h-4" />
                       </Button>
@@ -162,7 +159,7 @@ const Header = () => {
                       onClick={handleLogin}
                       variant="ghost"
                       size="sm"
-                      className="flex items-center space-x-2 h-9 px-3 rounded-full glass-effect transition-all duration-300"
+                      className="flex items-center space-x-2 h-9 px-3 transition-colors"
                     >
                       <LogIn className="w-4 h-4" />
                       <span className="text-sm font-medium">Sign in</span>

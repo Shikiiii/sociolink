@@ -5,7 +5,7 @@ export default function Footer() {
   const currentYear = new Date().getFullYear()
 
   return (
-    <footer className="relative z-10 backdrop-blur-xl border-t border-border/50 bg-background/80">
+    <footer className="relative z-10 border-t border-border bg-background">
       <div className="p-4 flex justify-between items-center relative z-10">
         
         {/* Left side - Logo and Copyright */}

@@ -1,5 +1,6 @@
 'use client'
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react'
+import { motion } from 'framer-motion'
 
 // Optimized utility hook for animation frames with cleanup
 const useAnimationFrame = (callback: () => void, fps: number = 60) => {
@@ -46,10 +47,17 @@ const useCanvasSetup = () => {
     if (!ctx) return false
 
     const updateSize = () => {
-      const { innerWidth, innerHeight } = window
-      canvas.width = innerWidth
-      canvas.height = innerHeight
-      dimensionsRef.current = { width: innerWidth, height: innerHeight }
+      // Use clientWidth/clientHeight to avoid scrollbar issues/mobile bar issues
+      const parent = canvas.parentElement
+      if (parent) {
+        canvas.width = parent.clientWidth
+        canvas.height = parent.clientHeight
+        dimensionsRef.current = { width: parent.clientWidth, height: parent.clientHeight }
+      } else {
+        canvas.width = window.innerWidth
+        canvas.height = window.innerHeight
+        dimensionsRef.current = { width: window.innerWidth, height: window.innerHeight }
+      }
     }
 
     updateSize()
@@ -64,7 +72,7 @@ const useCanvasSetup = () => {
   return { canvasRef, contextRef, dimensionsRef, setupCanvas }
 }
 
-// Floating Particles - Optimized with object pooling
+// Floating Particles - Simpler, more reliable
 export const ParticleFloat = React.memo(() => {
   const { canvasRef, contextRef, dimensionsRef, setupCanvas } = useCanvasSetup()
   const particlesRef = useRef<Array<{
@@ -79,23 +87,23 @@ export const ParticleFloat = React.memo(() => {
 
   const colors = useMemo(() => ['#60A5FA', '#A78BFA', '#FB7185', '#34D399', '#FBBF24'], [])
 
-    useEffect(() => {
+  useEffect(() => {
     const cleanup = setupCanvas()
     if (!contextRef.current) return
 
     // Initialize particles
-    particlesRef.current = Array.from({ length: 40 }, () => ({
-        x: Math.random() * dimensionsRef.current.width,
-        y: Math.random() * dimensionsRef.current.height,
-        vx: (Math.random() - 0.5) * 1.5,
-        vy: (Math.random() - 0.5) * 1.5,
-        size: Math.random() * 3 + 1.5,
-        opacity: Math.random() * 0.4 + 0.3,
-        color: colors[Math.floor(Math.random() * colors.length)]
+    particlesRef.current = Array.from({ length: 30 }, () => ({
+      x: Math.random() * dimensionsRef.current.width,
+      y: Math.random() * dimensionsRef.current.height,
+      vx: (Math.random() - 0.5) * 1,
+      vy: (Math.random() - 0.5) * 1,
+      size: Math.random() * 4 + 2,
+      opacity: Math.random() * 0.5 + 0.2,
+      color: colors[Math.floor(Math.random() * colors.length)]
     }))
 
     return typeof cleanup === 'function' ? cleanup : undefined
-    }, [setupCanvas, colors])
+  }, [setupCanvas, colors])
 
   const animate = useCallback(() => {
     const ctx = contextRef.current
@@ -108,11 +116,12 @@ export const ParticleFloat = React.memo(() => {
       particle.x += particle.vx
       particle.y += particle.vy
 
-      // Bounce off edges
-      if (particle.x < 0 || particle.x > width) particle.vx *= -1
-      if (particle.y < 0 || particle.y > height) particle.vy *= -1
+      // Wrap around edges
+      if (particle.x < 0) particle.x = width
+      if (particle.x > width) particle.x = 0
+      if (particle.y < 0) particle.y = height
+      if (particle.y > height) particle.y = 0
 
-      // Draw particle
       ctx.globalAlpha = particle.opacity
       ctx.fillStyle = particle.color
       ctx.beginPath()
@@ -127,7 +136,7 @@ export const ParticleFloat = React.memo(() => {
     <canvas
       ref={canvasRef}
       className="absolute inset-0 pointer-events-none"
-      style={{ background: 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)' }}
+      style={{ background: 'linear-gradient(135deg, #1e1e2e 0%, #2a2a3e 100%)' }}
     />
   )
 })
@@ -144,37 +153,35 @@ export const ParticleWeb = React.memo(() => {
   }>>([])
   const mouseRef = useRef({ x: 0, y: 0 })
 
-    useEffect(() => {
+  useEffect(() => {
     const cleanup = setupCanvas()
     if (!contextRef.current) return
 
     // Initialize particles
-    particlesRef.current = Array.from({ length: 25 }, () => ({
-        x: Math.random() * dimensionsRef.current.width,
-        y: Math.random() * dimensionsRef.current.height,
-        vx: (Math.random() - 0.5) * 0.8,
-        vy: (Math.random() - 0.5) * 0.8,
-        size: Math.random() * 2 + 1
+    particlesRef.current = Array.from({ length: 40 }, () => ({
+      x: Math.random() * dimensionsRef.current.width,
+      y: Math.random() * dimensionsRef.current.height,
+      vx: (Math.random() - 0.5) * 0.8,
+      vy: (Math.random() - 0.5) * 0.8,
+      size: Math.random() * 2 + 1
     }))
 
     const handleMouseMove = (e: MouseEvent) => {
-        const canvas = canvasRef.current
-        if (!canvas) return
-        const rect = canvas.getBoundingClientRect()
-        mouseRef.current.x = e.clientX - rect.left
-        mouseRef.current.y = e.clientY - rect.top
+      const canvas = canvasRef.current
+      if (!canvas) return
+      const rect = canvas.getBoundingClientRect()
+      mouseRef.current.x = e.clientX - rect.left
+      mouseRef.current.y = e.clientY - rect.top
     }
 
-    const canvas = canvasRef.current
-    if (canvas) {
-        canvas.addEventListener('mousemove', handleMouseMove, { passive: true })
-    }
+    // Listen on window so events are received even when content layers are on top
+    window.addEventListener('mousemove', handleMouseMove, { passive: true })
 
     return () => {
-        if (typeof cleanup === 'function') cleanup()
-        canvas?.removeEventListener('mousemove', handleMouseMove)
+      if (typeof cleanup === 'function') cleanup()
+      window.removeEventListener('mousemove', handleMouseMove)
     }
-    }, [setupCanvas, canvasRef])
+  }, [setupCanvas, canvasRef])
 
   const animate = useCallback(() => {
     const ctx = contextRef.current
@@ -183,11 +190,37 @@ export const ParticleWeb = React.memo(() => {
     const { width, height } = dimensionsRef.current
     ctx.clearRect(0, 0, width, height)
 
+    // Background gradient
+    const gradient = ctx.createLinearGradient(0, 0, width, height)
+    gradient.addColorStop(0, '#1e3c72')
+    gradient.addColorStop(1, '#2a5298')
+    ctx.fillStyle = gradient
+    ctx.fillRect(0, 0, width, height)
+
     const particles = particlesRef.current
     const connectionDistance = 120
-    const mouseDistance = 80
+    const mouseDistance = 150
+    const { x: mx, y: my } = mouseRef.current
 
     particles.forEach((particle, i) => {
+      // Mouse repulsion
+      const mdx = particle.x - mx
+      const mdy = particle.y - my
+      const md = Math.sqrt(mdx * mdx + mdy * mdy)
+      if (md < mouseDistance && md > 0) {
+        const force = (mouseDistance - md) / mouseDistance
+        particle.vx += (mdx / md) * force * 0.6
+        particle.vy += (mdy / md) * force * 0.6
+        // Clamp velocity
+        const maxV = 3
+        particle.vx = Math.max(-maxV, Math.min(maxV, particle.vx))
+        particle.vy = Math.max(-maxV, Math.min(maxV, particle.vy))
+      } else {
+        // Gradually restore original speed
+        particle.vx *= 0.99
+        particle.vy *= 0.99
+      }
+
       particle.x += particle.vx
       particle.y += particle.vy
 
@@ -195,14 +228,15 @@ export const ParticleWeb = React.memo(() => {
       if (particle.x < 0 || particle.x > width) particle.vx *= -1
       if (particle.y < 0 || particle.y > height) particle.vy *= -1
 
-      // Draw particle
-      ctx.fillStyle = '#ffffff'
-      ctx.globalAlpha = 0.8
+      // Draw particle (brighter when near mouse)
+      const glowFactor = md < mouseDistance ? 1 - md / mouseDistance : 0
+      ctx.fillStyle = glowFactor > 0.1 ? `rgba(150,200,255,1)` : '#ffffff'
+      ctx.globalAlpha = 0.8 + glowFactor * 0.2
       ctx.beginPath()
-      ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2)
+      ctx.arc(particle.x, particle.y, particle.size + glowFactor * 2, 0, Math.PI * 2)
       ctx.fill()
 
-      // Draw connections (optimized with distance culling)
+      // Draw connections
       for (let j = i + 1; j < particles.length; j++) {
         const other = particles[j]
         const dx = particle.x - other.x
@@ -211,7 +245,7 @@ export const ParticleWeb = React.memo(() => {
 
         if (distance < connectionDistance) {
           ctx.strokeStyle = '#ffffff'
-          ctx.globalAlpha = (connectionDistance - distance) / connectionDistance * 0.4
+          ctx.globalAlpha = (1 - distance / connectionDistance) * 0.4
           ctx.lineWidth = 1
           ctx.beginPath()
           ctx.moveTo(particle.x, particle.y)
@@ -220,18 +254,14 @@ export const ParticleWeb = React.memo(() => {
         }
       }
 
-      // Mouse interaction
-      const mouseDx = particle.x - mouseRef.current.x
-      const mouseDy = particle.y - mouseRef.current.y
-      const mouseDistanceActual = Math.sqrt(mouseDx * mouseDx + mouseDy * mouseDy)
-
-      if (mouseDistanceActual < mouseDistance) {
-        ctx.strokeStyle = '#ff6b6b'
-        ctx.globalAlpha = (mouseDistance - mouseDistanceActual) / mouseDistance * 0.8
-        ctx.lineWidth = 2
+      // Draw line from mouse to nearby particles
+      if (md < mouseDistance * 0.6) {
+        ctx.strokeStyle = 'rgba(150,200,255,0.6)'
+        ctx.globalAlpha = (1 - md / (mouseDistance * 0.6)) * 0.5
+        ctx.lineWidth = 1
         ctx.beginPath()
         ctx.moveTo(particle.x, particle.y)
-        ctx.lineTo(mouseRef.current.x, mouseRef.current.y)
+        ctx.lineTo(mx, my)
         ctx.stroke()
       }
     })
@@ -243,19 +273,18 @@ export const ParticleWeb = React.memo(() => {
     <canvas
       ref={canvasRef}
       className="absolute inset-0"
-      style={{ background: 'linear-gradient(135deg, #1e3c72 0%, #2a5298 100%)' }}
     />
   )
 })
 
-// Matrix Rain - Optimized with column pooling
+// Matrix Rain - Kept as is (User liked it)
 export const MatrixRain = React.memo(() => {
   const { canvasRef, contextRef, dimensionsRef, setupCanvas } = useCanvasSetup()
   const dropsRef = useRef<number[]>([])
   const columnsRef = useRef(0)
 
   const matrixChars = useMemo(() => 
-    "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789@#$%^&*()+-/~{[|`]}".split(""), 
+    "01".split(""), 
     []
   )
 
@@ -263,7 +292,7 @@ export const MatrixRain = React.memo(() => {
     const cleanup = setupCanvas()
     if (!contextRef.current) return
 
-    const fontSize = 12
+    const fontSize = 14
     columnsRef.current = Math.floor(dimensionsRef.current.width / fontSize)
     dropsRef.current = Array.from({ length: columnsRef.current }, () => 1)
 
@@ -275,9 +304,8 @@ export const MatrixRain = React.memo(() => {
     if (!ctx) return
 
     const { width, height } = dimensionsRef.current
-    const fontSize = 12
+    const fontSize = 14
 
-    // Semi-transparent background for trail effect
     ctx.fillStyle = 'rgba(0, 0, 0, 0.05)'
     ctx.fillRect(0, 0, width, height)
 
@@ -295,7 +323,7 @@ export const MatrixRain = React.memo(() => {
     })
   }, [matrixChars])
 
-  useAnimationFrame(animate, 30) // Lower FPS for matrix effect
+  useAnimationFrame(animate, 30)
 
   return (
     <canvas
@@ -306,28 +334,27 @@ export const MatrixRain = React.memo(() => {
   )
 })
 
-// Constellation - Optimized with reduced star count and line calculations
+// Constellation - Simplified to Starfield
 export const Constellation = React.memo(() => {
   const { canvasRef, contextRef, dimensionsRef, setupCanvas } = useCanvasSetup()
   const starsRef = useRef<Array<{
     x: number
     y: number
     size: number
-    twinkle: number
     twinkleSpeed: number
+    opacity: number
   }>>([])
 
   useEffect(() => {
     const cleanup = setupCanvas()
     if (!contextRef.current) return
 
-    // Reduced star count for better performance
-    starsRef.current = Array.from({ length: 80 }, () => ({
+    starsRef.current = Array.from({ length: 100 }, () => ({
       x: Math.random() * dimensionsRef.current.width,
       y: Math.random() * dimensionsRef.current.height,
-      size: Math.random() * 1.5 + 0.5,
-      twinkle: Math.random() * Math.PI * 2,
-      twinkleSpeed: Math.random() * 0.01 + 0.005
+      size: Math.random() * 2,
+      twinkleSpeed: Math.random() * 0.02 + 0.005,
+      opacity: Math.random()
     }))
 
     return typeof cleanup === 'function' ? cleanup : undefined
@@ -338,44 +365,21 @@ export const Constellation = React.memo(() => {
     if (!ctx) return
 
     const { width, height } = dimensionsRef.current
-    ctx.fillStyle = 'rgba(15, 23, 42, 1)'
-    ctx.fillRect(0, 0, width, height)
+    ctx.clearRect(0, 0, width, height)
 
-    const stars = starsRef.current
-
-    stars.forEach((star, i) => {
-      star.twinkle += star.twinkleSpeed
-      const alpha = (Math.sin(star.twinkle) + 1) / 2
-
-      ctx.globalAlpha = alpha * 0.8
+    starsRef.current.forEach(star => {
+      star.opacity += star.twinkleSpeed
+      if (star.opacity > 1 || star.opacity < 0) star.twinkleSpeed *= -1
+      
+      ctx.globalAlpha = Math.max(0, Math.min(1, star.opacity))
       ctx.fillStyle = '#ffffff'
       ctx.beginPath()
       ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2)
       ctx.fill()
-
-      // Optimized constellation lines - only check nearby stars
-      if (Math.random() > 0.995) { // Reduced frequency
-        for (let j = i + 1; j < Math.min(i + 10, stars.length); j++) {
-          const other = stars[j]
-          const dx = star.x - other.x
-          const dy = star.y - other.y
-          const distance = Math.sqrt(dx * dx + dy * dy)
-
-          if (distance < 80) {
-            ctx.globalAlpha = 0.2
-            ctx.strokeStyle = '#60A5FA'
-            ctx.lineWidth = 0.5
-            ctx.beginPath()
-            ctx.moveTo(star.x, star.y)
-            ctx.lineTo(other.x, other.y)
-            ctx.stroke()
-          }
-        }
-      }
     })
   }, [])
 
-  useAnimationFrame(animate, 60)
+  useAnimationFrame(animate, 30)
 
   return (
     <canvas
@@ -386,7 +390,7 @@ export const Constellation = React.memo(() => {
   )
 })
 
-// Liquid Morph - Pure CSS optimized version
+// Liquid Morph - Kept as is
 export const LiquidMorph = React.memo(() => {
   const morphShapes = useMemo(() => [
     { color: '#ff6b6b', delay: 0 },
@@ -402,34 +406,63 @@ export const LiquidMorph = React.memo(() => {
             key={i}
             className="absolute rounded-full opacity-60 mix-blend-screen will-change-transform"
             style={{
-              width: '35vw',
-              height: '35vw',
+              width: '45vw',
+              height: '45vw',
               background: `radial-gradient(circle, ${shape.color} 0%, transparent 65%)`,
-              animation: `morph${i + 1} ${10 + i * 2}s ease-in-out infinite`,
+              animation: `morph${i + 1} ${12 + i * 2}s ease-in-out infinite`,
               animationDelay: `${shape.delay}s`,
-              left: `${15 + i * 25}%`,
-              top: `${5 + i * 20}%`
+              left: `${10 + i * 20}%`,
+              top: `${10 + i * 15}%`
             }}
           />
         ))}
       </div>
       <style jsx>{`
         @keyframes morph1 {
-          0%, 100% { transform: scale(1) translate(0, 0) rotate(0deg); }
-          33% { transform: scale(1.2) translate(20px, -20px) rotate(120deg); }
-          66% { transform: scale(0.8) translate(-20px, 20px) rotate(240deg); }
+          0%, 100% { transform: scale(1) translate(0, 0); }
+          50% { transform: scale(1.2) translate(10%, -10%); }
         }
         @keyframes morph2 {
-          0%, 100% { transform: scale(1.1) translate(0, 0) rotate(0deg); }
-          33% { transform: scale(0.9) translate(-30px, 10px) rotate(-120deg); }
-          66% { transform: scale(1.3) translate(10px, -30px) rotate(-240deg); }
+          0%, 100% { transform: scale(1.1) translate(0, 0); }
+          50% { transform: scale(0.9) translate(-10%, 10%); }
         }
         @keyframes morph3 {
-          0%, 100% { transform: scale(0.9) translate(0, 0) rotate(0deg); }
-          33% { transform: scale(1.4) translate(15px, 25px) rotate(180deg); }
-          66% { transform: scale(1.1) translate(-25px, -15px) rotate(360deg); }
+          0%, 100% { transform: scale(0.9) translate(0, 0); }
+          50% { transform: scale(1.1) translate(5%, 5%); }
         }
       `}</style>
+    </div>
+  )
+})
+
+// NEW: Wave Animation
+export const WaveAnimation = React.memo(() => {
+  return (
+    <div className="absolute inset-0 overflow-hidden bg-gradient-to-b from-blue-900 to-black">
+       <svg className="absolute bottom-0 left-0 w-full h-[50vh]" viewBox="0 0 1440 320" preserveAspectRatio="none">
+          <path fill="#0099ff" fillOpacity="0.2" d="M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z">
+            <animate attributeName="d" 
+              dur="10s" 
+              repeatCount="indefinite"
+              values="
+                M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z;
+                M0,128L48,144C96,160,192,192,288,186.7C384,181,480,139,576,149.3C672,160,768,224,864,229.3C960,235,1056,181,1152,170.7C1248,160,1344,192,1392,208L1440,224L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z;
+                M0,192L48,197.3C96,203,192,213,288,229.3C384,245,480,267,576,250.7C672,235,768,181,864,181.3C960,181,1056,235,1152,234.7C1248,235,1344,181,1392,154.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z
+              "
+            />
+          </path>
+           <path fill="#0099ff" fillOpacity="0.4" d="M0,160L48,144C96,128,192,96,288,106.7C384,117,480,171,576,197.3C672,224,768,224,864,202.7C960,181,1056,139,1152,122.7C1248,107,1344,117,1392,122.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z">
+            <animate attributeName="d" 
+              dur="15s" 
+              repeatCount="indefinite"
+               values="
+                M0,160L48,144C96,128,192,96,288,106.7C384,117,480,171,576,197.3C672,224,768,224,864,202.7C960,181,1056,139,1152,122.7C1248,107,1344,117,1392,122.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z;
+                M0,192L48,208C96,224,192,256,288,245.3C384,235,480,181,576,154.7C672,128,768,128,864,149.3C960,171,1056,213,1152,229.3C1248,245,1344,235,1392,229.3L1440,224L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z;
+                M0,160L48,144C96,128,192,96,288,106.7C384,117,480,171,576,197.3C672,224,768,224,864,202.7C960,181,1056,139,1152,122.7C1248,107,1344,117,1392,122.7L1440,128L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z
+               "
+            />
+          </path>
+       </svg>
     </div>
   )
 })
@@ -473,59 +506,74 @@ export const GeometricWaves = React.memo(() => {
 // Optimized Ripple Effect with object pooling
 export const RippleEffect = React.memo(() => {
   const [ripples, setRipples] = useState<Array<{ x: number; y: number; id: number }>>([])
+  const containerRef = useRef<HTMLDivElement>(null)
 
-  const handleClick = useCallback((e: React.MouseEvent) => {
-    const rect = e.currentTarget.getBoundingClientRect()
-    const x = e.clientX - rect.left
-    const y = e.clientY - rect.top
+  useEffect(() => {
+    const handleClick = (e: MouseEvent) => {
+      // If the click originated from an interactive element (button, link, input), don't ripple
+      const target = e.target as HTMLElement;
+      if (target.closest('button, a, input, textarea, select')) return;
 
-    const newRipple = { x, y, id: Date.now() }
-    setRipples(prev => [...prev.slice(-3), newRipple]) // Limit to 3 ripples max
+      const container = containerRef.current
+      if (!container) return
+      const rect = container.getBoundingClientRect()
 
-    setTimeout(() => {
-      setRipples(prev => prev.filter(ripple => ripple.id !== newRipple.id))
-    }, 1000)
+      // Only ripple if click is within the background bounds
+      const x = e.clientX - rect.left
+      const y = e.clientY - rect.top
+      if (x < 0 || x > rect.width || y < 0 || y > rect.height) return
+
+      const newRipple = { x, y, id: Date.now() }
+      setRipples(prev => [...prev.slice(-4), newRipple])
+
+      setTimeout(() => {
+        setRipples(prev => prev.filter(ripple => ripple.id !== newRipple.id))
+      }, 1000)
+    }
+
+    // Listen on window so clicks are received even when content layers are on top
+    window.addEventListener('click', handleClick)
+    return () => window.removeEventListener('click', handleClick)
   }, [])
 
   return (
     <div
-      className="absolute inset-0 cursor-pointer overflow-hidden z-0"
-      onClick={handleClick}
+      ref={containerRef}
+      className="absolute inset-0 cursor-pointer overflow-hidden"
       style={{ background: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 50%, #fecfef 100%)' }}
     >
       {ripples.map(ripple => (
         <div
           key={ripple.id}
-          className="absolute rounded-full border-2 border-white/30 animate-ping pointer-events-none"
+          className="absolute rounded-full border-2 border-white/40 pointer-events-none"
           style={{
-            left: ripple.x - 25,
-            top: ripple.y - 25,
-            width: 50,
-            height: 50,
-            animationDuration: '1s'
+            left: ripple.x,
+            top: ripple.y,
+            width: 10,
+            height: 10,
+            transform: 'translate(-50%, -50%)',
+            animation: 'ripple 1s ease-out forwards'
           }}
         />
       ))}
+      <style jsx>{`
+        @keyframes ripple {
+          0% { width: 0px; height: 0px; opacity: 1; border-width: 0px; }
+          50% { opacity: 0.5; }
+          100% { width: 500px; height: 500px; opacity: 0; border-width: 2px; }
+        }
+      `}</style>
     </div>
   )
 })
 
-// Add display names for debugging
-ParticleFloat.displayName = 'ParticleFloat'
-ParticleWeb.displayName = 'ParticleWeb'
-MatrixRain.displayName = 'MatrixRain'
-Constellation.displayName = 'Constellation'
-LiquidMorph.displayName = 'LiquidMorph'
-GeometricWaves.displayName = 'GeometricWaves'
-RippleEffect.displayName = 'RippleEffect'
-
-// Export the optimized components
 export const backgroundComponents = {
   ParticleFloat,
   ParticleWeb,
   MatrixRain,
   Constellation,
   LiquidMorph,
+  WaveAnimation,
   GeometricWaves,
-  RippleEffect
+  RippleEffect,
 }

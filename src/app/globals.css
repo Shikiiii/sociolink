@@ -155,12 +155,6 @@
     font-feature-settings: "rlig" 1, "calt" 1;
   }
   
-  /* Remove the global transition that's causing issues */
-  button, input {
-    transition: none;
-  }
-  
-  /* Add specific transitions only where needed */
   .smooth-transition {
     transition: all 0.2s ease-in-out;
   }
@@ -213,17 +207,16 @@
   }
   
   .glass-card {
-    background: hsl(var(--card) / 0.8);
-    backdrop-filter: blur(8px);
-    border: 1px solid hsl(var(--border) / 0.5);
+    background: hsl(var(--card));
+    border: 1px solid hsl(var(--border));
   }
   
   .hover-lift {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.2s ease;
   }
   
   .hover-lift:hover {
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
   }
   
   /* Fix for button hover states */
@@ -241,17 +234,5 @@
   /* Prevent layout shifts during mood transitions */
   .stable-layout {
     contain: layout;
-  }
-  
-  /* Progress ring styles */
-  .progress-ring {
-    transform-origin: center;
-    transform: rotate(-90deg);
-  }
-  
-  .progress-circle {
-    stroke-dasharray: 160;
-    stroke-dashoffset: 160;
-    transition: stroke-dashoffset 0.1s linear;
   }
 }

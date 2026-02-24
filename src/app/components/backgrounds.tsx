@@ -102,6 +102,13 @@ export const backgroundPresets = [
     class: 'bg-liquid-morph',
     category: 'Animated',
     component: 'LiquidMorph'
+  },
+  {
+    id: 'animated-7',
+    name: 'Ocean Waves',
+    class: 'bg-wave-animation',
+    category: 'Animated',
+    component: 'WaveAnimation'
   }
 ]
 
@@ -120,7 +127,8 @@ export const staticPreviewMap: Record<string, string> = {
   'Constellation': 'bg-gradient-to-b from-indigo-900 via-purple-900 to-black',
   'LiquidMorph': 'bg-gradient-to-br from-pink-500 via-purple-500 to-indigo-600',
   'GeometricWaves': 'bg-gradient-to-br from-blue-500 via-purple-600 to-pink-500',
-  'RippleEffect': 'bg-gradient-to-br from-pink-400 via-rose-400 to-red-400'
+  'RippleEffect': 'bg-gradient-to-br from-pink-400 via-rose-400 to-red-400',
+  'WaveAnimation': 'bg-gradient-to-b from-blue-900 to-black'
 }
 
 // Categories for organized display

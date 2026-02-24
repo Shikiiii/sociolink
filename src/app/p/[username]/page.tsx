@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, use } from 'react'
 import { motion } from 'framer-motion'
 import { 
   Instagram, 
@@ -23,7 +23,8 @@ import {
   Headphones,
   ExternalLink,
   Settings,
-  Share2
+  Share2,
+  Check
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { backgroundPresets } from '@/app/components/backgrounds'
@@ -127,19 +128,17 @@ const getTextColors = (profile: any) => {
   return {
     primary: isBright ? 'text-gray-900' : 'text-white',
     secondary: isBright ? 'text-gray-700' : 'text-white/80',
-    muted: isBright ? 'text-gray-600' : 'text-white/60',
-    gradient: isBright 
-      ? 'bg-gradient-to-r from-gray-900 via-gray-800 to-gray-700 bg-clip-text text-transparent'
-      : 'bg-gradient-to-r from-white via-blue-100 to-purple-100 bg-clip-text text-transparent',
-    // Enhanced container styles
+    muted: isBright ? 'text-gray-500' : 'text-white/55',
+    gradient: isBright ? 'text-gray-900' : 'text-white',
+    // Container styles
     profileCard: isBright 
-      ? 'bg-white/10 backdrop-blur-xl border border-gray-500/30 shadow-2xl ring-1 ring-black/10' 
-      : 'bg-white/5 backdrop-blur-xl border border-white/10',
+      ? 'bg-white/80 backdrop-blur-xl border border-gray-200/80 shadow-xl' 
+      : 'bg-black/25 backdrop-blur-xl border border-white/10',
     linkCard: isBright 
-      ? 'bg-white/8 border border-gray-500/25 shadow-lg hover:shadow-xl ring-1 ring-black/5' 
-      : 'bg-white/5 border border-white/10',
-    profileGlow: isBright ? 'shadow-[0_0_50px_rgba(0,0,0,0.15)]' : '',
-    linkGlow: isBright ? 'hover:shadow-[0_8px_32px_rgba(0,0,0,0.12)]' : ''
+      ? 'bg-white/75 border border-gray-200/60 shadow-sm hover:shadow-md' 
+      : 'bg-black/20 border border-white/10',
+    profileGlow: '',
+    linkGlow: ''
   }
 }
 
@@ -181,17 +180,20 @@ const mockProfile: Profile = {
   ]
 }
 
-export default function ProfilePage({ params }: { params: { username: string } }) {
+export default function ProfilePage({ params }: { params: Promise<{ username: string }> }) {
+  const { username } = use(params);
   const router = useRouter()
   const [profile, setProfile] = useState<Profile>(mockProfile);
   const [isOwnProfile, setIsOwnProfile] = useState<boolean>(false);
   const [isProfileAvailable, setIsProfileAvailable] = useState<boolean>(false);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [isCopied, setIsCopied] = useState<boolean>(false);
 
   useEffect(() => {
     // Fetch profile data from /api/view using POST with username
     const fetchProfile = async () => {
       try {
-        const res = await fetch(`/api/view?username=${encodeURIComponent(params.username)}`, {
+        const res = await fetch(`/api/view?username=${encodeURIComponent(username)}`, {
           method: 'GET',
           headers: { 'Content-Type': 'application/json' },
         });
@@ -214,11 +216,11 @@ export default function ProfilePage({ params }: { params: { username: string } }
             : 'Link',
         }));
 
-        const temp_username = params.username;
+        const temp_username = username;
 
         setProfile({
           name: data.website.display_name,
-          username: params.username,
+          username: username,
           bio: data.website.bio,
           avatar: data.website.avatar,
           background: background || 'solid-1',
@@ -263,11 +265,13 @@ export default function ProfilePage({ params }: { params: { username: string } }
 
       } catch (err) {
         setIsProfileAvailable(true);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchProfile();
-  }, []);
+  }, [username]);
 
   const textColors = getTextColors(profile)
   const isBright = isBackgroundBright(profile)
@@ -284,24 +288,26 @@ export default function ProfilePage({ params }: { params: { username: string } }
     return null
   }
 
+  const blurValue = profile.blur || 0
+
   const handleLinkClick = (url: string) => {
     window.open(url, '_blank', 'noopener,noreferrer')
   }
 
   const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({
-          title: `${profile.name} - SocioLink`,
-          text: profile.bio,
-          url: window.location.href,
-        })
-      } catch (err) {
-        console.log('Error sharing:', err)
-      }
-    } else {
-      navigator.clipboard.writeText(window.location.href)
+    try {
+      await navigator.clipboard.writeText(window.location.href)
+    } catch {
+      // fallback for older browsers
+      const el = document.createElement('textarea')
+      el.value = window.location.href
+      document.body.appendChild(el)
+      el.select()
+      document.execCommand('copy')
+      document.body.removeChild(el)
     }
+    setIsCopied(true)
+    setTimeout(() => setIsCopied(false), 2000)
   }
 
   const BackgroundComponent = getBackgroundComponent(profile.background)
@@ -328,32 +334,49 @@ export default function ProfilePage({ params }: { params: { username: string } }
             filter: profile.blur > 0 ? `blur(${profile.blur * 0.3}px)` : 'none',
             transform: profile.blur > 0 ? 'scale(1.05)' : 'scale(1)',
             transition: 'filter 0.2s ease, transform 0.2s ease'
-            }}
+          }}
         />
-      ) : BackgroundComponent ? (
+      ) : (
+      <>
+      {/* Background Layer */}
+      {profile.background.startsWith('custom-') ? (
         <div 
-          className="absolute inset-0"
-          style={{
-            filter: profile.blur > 0 ? `blur(${profile.blur * 0.3}px)` : 'none',
-            transform: profile.blur > 0 ? 'scale(1.1)' : 'scale(1)',
-            transformOrigin: 'center',
+          className="absolute inset-0 z-0" 
+          style={{ 
+            backgroundColor: profile.customColor || `#${profile.background.split("custom-")[1]}`,
+            filter: blurValue > 0 ? `blur(${blurValue * 0.3}px)` : 'none',
+            transform: blurValue > 0 ? 'scale(1.05)' : 'scale(1)',
             transition: 'filter 0.2s ease, transform 0.2s ease'
           }}
-        >
-          <BackgroundComponent />
+        />
+      ) : BackgroundComponent ? (
+        <div className="absolute inset-0 z-0 overflow-hidden">
+          <div 
+            className="absolute inset-0"
+            style={{
+              filter: blurValue > 0 ? `blur(${blurValue * 0.3}px)` : 'none',
+              transform: blurValue > 0 ? 'scale(1.1)' : 'scale(1)',
+              transformOrigin: 'center',
+              transition: 'filter 0.2s ease, transform 0.2s ease'
+            }}
+          >
+            <BackgroundComponent />
+          </div>
         </div>
       ) : (
         <div 
-          className={`absolute inset-0 ${getBackgroundClass(profile.background)}`}
+          className={`absolute inset-0 z-0 ${getBackgroundClass(profile.background)}`}
           style={{
-            filter: profile.blur > 0 ? `blur(${profile.blur * 0.3}px)` : 'none',
-            transform: profile.blur > 0 ? 'scale(1.05)' : 'scale(1)',
+            filter: blurValue > 0 ? `blur(${blurValue * 0.3}px)` : 'none',
+            transform: blurValue > 0 ? 'scale(1.05)' : 'scale(1)',
             transition: 'filter 0.2s ease, transform 0.2s ease'
           }}
         />
       )}
+      </>
+    )}
 
-      <div className="absolute inset-0 bg-gradient-to-br from-black/30 via-transparent to-black/30" />
+      <div className={`absolute inset-0 pointer-events-none ${isBright ? 'bg-black/10' : 'bg-black/20'}`} />
 
       {/* Content Container */}
       <div className="relative z-20 min-h-screen p-6">
@@ -364,14 +387,76 @@ export default function ProfilePage({ params }: { params: { username: string } }
           className="max-w-6xl mx-auto"
         >
 
-          {isProfileAvailable && (
+          {isLoading && (
+            <div className="flex flex-col items-center justify-center min-h-screen">
+              {/* Mobile Skeleton */}
+              <div className="lg:hidden w-full max-w-md">
+                <div className="backdrop-blur-xl rounded-3xl p-8 bg-black/25 border border-white/10 animate-pulse mb-6">
+                  <div className="flex justify-center mb-6">
+                    <div className="w-24 h-24 rounded-full bg-white/20" />
+                  </div>
+                  <div className="flex flex-col items-center gap-3 mb-6">
+                    <div className="h-6 w-36 rounded-full bg-white/20" />
+                    <div className="h-4 w-24 rounded-full bg-white/15" />
+                    <div className="h-4 w-48 rounded-full bg-white/15" />
+                    <div className="h-4 w-40 rounded-full bg-white/10" />
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex-1 h-11 rounded-xl bg-white/15" />
+                  </div>
+                </div>
+                <div className="w-full space-y-4 animate-pulse">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="rounded-xl p-4 bg-black/20 border border-white/10 flex items-center gap-4">
+                      <div className="w-12 h-12 rounded-xl bg-white/20 flex-shrink-0" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-4 w-24 rounded-full bg-white/20" />
+                        <div className="h-3 w-36 rounded-full bg-white/15" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+              {/* Desktop Skeleton */}
+              <div className="hidden lg:grid lg:grid-cols-2 lg:gap-12 lg:items-center w-full max-w-6xl">
+                <div className="flex justify-center">
+                  <div className="w-full max-w-md backdrop-blur-xl rounded-3xl p-8 bg-black/25 border border-white/10 animate-pulse">
+                    <div className="flex justify-center mb-8">
+                      <div className="w-32 h-32 rounded-full bg-white/20" />
+                    </div>
+                    <div className="flex flex-col items-center gap-3 mb-8">
+                      <div className="h-7 w-44 rounded-full bg-white/20" />
+                      <div className="h-4 w-28 rounded-full bg-white/15" />
+                      <div className="h-4 w-56 rounded-full bg-white/15" />
+                      <div className="h-4 w-48 rounded-full bg-white/10" />
+                    </div>
+                    <div className="flex gap-4">
+                      <div className="flex-1 h-14 rounded-xl bg-white/15" />
+                    </div>
+                  </div>
+                </div>
+                <div className="w-full max-w-md mx-auto space-y-4 animate-pulse">
+                  {[...Array(4)].map((_, i) => (
+                    <div key={i} className="rounded-xl p-5 bg-black/20 border border-white/10 flex items-center gap-4">
+                      <div className="w-14 h-14 rounded-xl bg-white/20 flex-shrink-0" />
+                      <div className="flex-1 space-y-2">
+                        <div className="h-5 w-28 rounded-full bg-white/20" />
+                        <div className="h-3 w-40 rounded-full bg-white/15" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          )}
+          {!isLoading && isProfileAvailable && (
             <div className="flex flex-col items-center justify-center py-24">
               <h2 className="text-3xl font-bold mb-6 text-center text-white">
                 This username is available.
               </h2>
               <button
                 className="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white font-semibold px-8 py-3 rounded-xl shadow-lg transition-all duration-200 text-lg"
-                onClick={() => router.push(`/register?username=${encodeURIComponent(params.username)}`)}
+                onClick={() => router.push(`/register?username=${encodeURIComponent(username)}`)}
               >
                 Claim it now
               </button>
@@ -395,7 +480,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
               </motion.div>
             </div>
           )}
-          {!isProfileAvailable && (
+          {!isLoading && !isProfileAvailable && (
             <div>
               {/* Mobile Layout */}
               <div className="flex flex-col items-center justify-center min-h-screen lg:hidden">
@@ -404,11 +489,8 @@ export default function ProfilePage({ params }: { params: { username: string } }
                   initial={{ opacity: 0, y: 50 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.6, delay: 0.2 }}
-                  className={`w-full max-w-md backdrop-blur-xl rounded-3xl p-8 relative overflow-hidden mb-6 transition-all duration-300 ${textColors.profileCard} ${textColors.profileGlow}`}
+                  className={`w-full max-w-md backdrop-blur-xl rounded-3xl p-8 relative overflow-hidden mb-6 transition-all duration-300 ${textColors.profileCard}`}
                 >
-                  {/* Conditional gradient effects */}
-                  <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent rounded-3xl" />
-                  <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 rounded-3xl blur-xl opacity-50" />
                   
                   <div className="relative z-10">
                     {/* Avatar - same as before */}
@@ -460,24 +542,22 @@ export default function ProfilePage({ params }: { params: { username: string } }
                     >
                       {isOwnProfile && (
                         <motion.button
-                          whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                           onClick={() => router.push('/profile')}
-                          className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-xl px-4 py-3 transition-all duration-300 flex items-center justify-center gap-2"
+                          className={`flex-1 border rounded-xl px-4 py-3 transition-all duration-200 flex items-center justify-center gap-2 ${isBright ? 'bg-black/10 hover:bg-black/20 border-black/15 text-gray-900' : 'bg-white/15 hover:bg-white/25 border-white/20 text-white'}`}
                         >
-                          <Settings className="w-4 h-4 text-white" />
-                          <span className="text-white font-medium text-sm">Edit</span>
+                          <Settings className="w-4 h-4" />
+                          <span className="font-medium text-sm">Edit</span>
                         </motion.button>
                       )}
                       
                       <motion.button
-                        whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         onClick={handleShare}
-                        className="flex-1 bg-white/10 hover:bg-white/20 backdrop-blur-lg border border-white/20 rounded-xl px-4 py-3 transition-all duration-300 flex items-center justify-center gap-2"
+                        className={`flex-1 border rounded-xl px-4 py-3 transition-all duration-200 flex items-center justify-center gap-2 ${isCopied ? (isBright ? 'bg-green-500/20 border-green-500/40 text-green-700' : 'bg-green-500/20 border-green-500/40 text-green-400') : (isBright ? 'bg-transparent hover:bg-black/10 border-black/15 text-gray-900' : 'bg-transparent hover:bg-white/10 border-white/20 text-white')}`}
                       >
-                        <Share2 className="w-4 h-4 text-white" />
-                        <span className="text-white font-medium text-sm">Share</span>
+                        {isCopied ? <Check className="w-4 h-4" /> : <Share2 className="w-4 h-4" />}
+                        <span className="font-medium text-sm">{isCopied ? 'Copied!' : 'Share'}</span>
                       </motion.button>
                     </motion.div>
                   </div>
@@ -501,18 +581,11 @@ export default function ProfilePage({ params }: { params: { username: string } }
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 1.1 + index * 0.1 }}
                         onClick={() => handleLinkClick(link.url)}
-                        className={`group w-full backdrop-blur-sm rounded-2xl p-4 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl relative overflow-hidden ${textColors.linkCard} ${textColors.linkGlow}`}
+                        className={`group w-full backdrop-blur-sm rounded-xl p-4 transition-all duration-200 relative overflow-hidden ${textColors.linkCard}`}
                       >
-                        {!isBright && (
+                        <div className="flex items-center gap-4">
                           <div 
-                            className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded-2xl"
-                            style={{ background: `linear-gradient(135deg, ${platform.color}40, transparent)` }}
-                          />
-                        )}
-                        
-                        <div className="relative flex items-center gap-4">
-                          <div 
-                            className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-110 shadow-lg"
+                            className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md"
                             style={{ 
                               backgroundColor: platform.color,
                               boxShadow: `0 4px 20px ${platform.color}40`
@@ -561,9 +634,7 @@ export default function ProfilePage({ params }: { params: { username: string } }
                   transition={{ duration: 0.6, delay: 0.2 }}
                   className="flex justify-center"
                 >
-                  <div className={`w-full max-w-md backdrop-blur-xl rounded-3xl p-8 relative overflow-hidden transition-all duration-300 ${textColors.profileCard} ${textColors.profileGlow}`}>
-                    <div className="absolute inset-0 bg-gradient-to-br from-white/5 via-transparent to-transparent rounded-3xl" />
-                    <div className="absolute -inset-1 bg-gradient-to-r from-blue-500/20 via-purple-500/20 to-pink-500/20 rounded-3xl blur-xl opacity-50" />
+                  <div className={`w-full max-w-md backdrop-blur-xl rounded-3xl p-8 relative overflow-hidden transition-all duration-300 ${textColors.profileCard}`}>
                     
                     <div className="relative z-10">
                       {/* Avatar - same as before */}
@@ -615,24 +686,22 @@ export default function ProfilePage({ params }: { params: { username: string } }
                       >
                         {isOwnProfile && (
                           <motion.button
-                            whileHover={{ scale: 1.05 }}
                             whileTap={{ scale: 0.95 }}
                             onClick={() => router.push('/profile')}
-                            className="flex-1 bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 rounded-xl px-6 py-4 transition-all duration-300 flex items-center justify-center gap-2"
+                            className={`flex-1 border rounded-xl px-6 py-4 transition-all duration-200 flex items-center justify-center gap-2 ${isBright ? 'bg-black/10 hover:bg-black/20 border-black/15 text-gray-900' : 'bg-white/15 hover:bg-white/25 border-white/20 text-white'}`}
                           >
-                            <Settings className="w-5 h-5 text-white" />
-                            <span className="text-white font-medium">Edit</span>
+                            <Settings className="w-5 h-5" />
+                            <span className="font-medium">Edit</span>
                           </motion.button>
                         )}
                         
                         <motion.button
-                          whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
                           onClick={handleShare}
-                          className="flex-1 bg-white/10 hover:bg-white/20 backdrop-blur-lg border border-white/20 rounded-xl px-6 py-4 transition-all duration-300 flex items-center justify-center gap-2"
+                          className={`flex-1 border rounded-xl px-6 py-4 transition-all duration-200 flex items-center justify-center gap-2 ${isCopied ? (isBright ? 'bg-green-500/20 border-green-500/40 text-green-700' : 'bg-green-500/20 border-green-500/40 text-green-400') : (isBright ? 'bg-transparent hover:bg-black/10 border-black/15 text-gray-900' : 'bg-transparent hover:bg-white/10 border-white/20 text-white')}`}
                         >
-                          <Share2 className="w-5 h-5 text-white" />
-                          <span className="text-white font-medium">Share</span>
+                          {isCopied ? <Check className="w-5 h-5" /> : <Share2 className="w-5 h-5" />}
+                          <span className="font-medium">{isCopied ? 'Copied!' : 'Share'}</span>
                         </motion.button>
                       </motion.div>
                     </div>
@@ -657,18 +726,11 @@ export default function ProfilePage({ params }: { params: { username: string } }
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: 1.1 + index * 0.1 }}
                         onClick={() => handleLinkClick(link.url)}
-                        className={`group w-full backdrop-blur-sm rounded-2xl p-5 transition-all duration-300 hover:scale-[1.02] hover:shadow-xl relative overflow-hidden ${textColors.linkCard} ${textColors.linkGlow}`}
+                        className={`group w-full backdrop-blur-sm rounded-xl p-5 transition-all duration-200 relative overflow-hidden ${textColors.linkCard}`}
                       >
-                        {!isBright && (
+                        <div className="flex items-center gap-4">
                           <div 
-                            className="absolute inset-0 opacity-0 group-hover:opacity-20 transition-opacity duration-300 rounded-2xl"
-                            style={{ background: `linear-gradient(135deg, ${platform.color}40, transparent)` }}
-                          />
-                        )}
-                        
-                        <div className="relative flex items-center gap-4">
-                          <div 
-                            className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 transition-all duration-300 group-hover:scale-110 shadow-lg"
+                            className="w-14 h-14 rounded-xl flex items-center justify-center flex-shrink-0 shadow-md"
                             style={{ 
                               backgroundColor: platform.color,
                               boxShadow: `0 4px 20px ${platform.color}40`
