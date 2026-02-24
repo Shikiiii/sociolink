@@ -110,7 +110,7 @@ export default function TermsPage() {
             <section className="bg-muted/50 border border-border rounded-lg p-8">
               <h2 className="text-xl font-semibold mb-3">Questions?</h2>
               <p className="text-muted-foreground mb-6">
-                Contact us at <span className="text-foreground font-medium">legal@sociolink.com</span> — we respond within 48 hours.
+                Contact us at <span className="text-foreground font-medium">anikuro@proton.me</span> — we respond within 48 hours.
               </p>
               <div className="flex gap-3">
                 <Button>

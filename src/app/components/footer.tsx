@@ -52,7 +52,7 @@ export default function Footer() {
             <span className="absolute bottom-0 left-1/2 w-0 h-px bg-foreground transition-all duration-300 group-hover:w-full group-hover:left-0"></span>
           </a>
           <a
-            href="https://discord.gg/sociolink"
+            href="https://discord.gg/anikuro"
             target="_blank"
             rel="noopener noreferrer"
             className="text-muted-foreground hover:text-foreground transition-colors relative group p-1"
