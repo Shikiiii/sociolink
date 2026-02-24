@@ -26,12 +26,11 @@ async function uploadToImgBB(file: Blob): Promise<string> {
 }
 
 function validateInput(display_name?: string, bio?: string): string | null {
-    const nameRegex = /^[A-Za-z0-9!@#$%^&*()_\-+=\[\]{};:'",.<>/?\\|`~ ]+$/;
-    if (display_name && (display_name.length < 3 || display_name.length > 60 || !nameRegex.test(display_name))) {
-        return 'Invalid display_name';
+    if (display_name && (display_name.length < 3 || display_name.length > 60)) {
+        return 'Invalid display_name: length must be between 3 and 60 characters';
     }
-    if (bio && (bio.length < 3 || bio.length > 300 || !nameRegex.test(bio))) {
-        return 'Invalid bio';
+    if (bio && (bio.length < 3 || bio.length > 300)) {
+        return 'Invalid bio: length must be between 3 and 300 characters';
     }
     return null;
 }

@@ -15,20 +15,20 @@ import {
   Bangers
 } from 'next/font/google';
 
-const inter = Inter({ subsets: ['latin'], display: 'swap' });
-const roboto = Roboto({ subsets: ['latin'], weight: ['400', '500', '700'], display: 'swap' });
-const playfair = Playfair_Display({ subsets: ['latin'], display: 'swap' });
-const poppins = Poppins({ subsets: ['latin'], weight: ['400', '500', '600', '700'], display: 'swap' });
-const lora = Lora({ subsets: ['latin'], display: 'swap' });
-const oswald = Oswald({ subsets: ['latin'], display: 'swap' });
-const montserrat = Montserrat({ subsets: ['latin'], display: 'swap' });
-const merriweather = Merriweather({ subsets: ['latin'], weight: ['300', '400', '700'], display: 'swap' });
-const inconsolata = Inconsolata({ subsets: ['latin'], display: 'swap' });
-const lobster = Lobster({ subsets: ['latin'], weight: ['400'], display: 'swap' });
-const pacifico = Pacifico({ subsets: ['latin'], weight: ['400'], display: 'swap' });
-const fredoka = Fredoka({ subsets: ['latin'], display: 'swap' });
-const dancingScript = Dancing_Script({ subsets: ['latin'], display: 'swap' });
-const bangers = Bangers({ subsets: ['latin'], weight: ['400'], display: 'swap' });
+const inter = Inter({ subsets: ['latin', 'latin-ext'], display: 'swap' });
+const roboto = Roboto({ subsets: ['latin', 'latin-ext'], weight: ['400', '500', '700'], display: 'swap' });
+const playfair = Playfair_Display({ subsets: ['latin', 'latin-ext'], display: 'swap' });
+const poppins = Poppins({ subsets: ['latin', 'latin-ext'], weight: ['400', '500', '600', '700'], display: 'swap' });
+const lora = Lora({ subsets: ['latin', 'latin-ext'], display: 'swap' });
+const oswald = Oswald({ subsets: ['latin', 'latin-ext'], display: 'swap' });
+const montserrat = Montserrat({ subsets: ['latin', 'latin-ext'], display: 'swap' });
+const merriweather = Merriweather({ subsets: ['latin', 'latin-ext'], weight: ['300', '400', '700'], display: 'swap' });
+const inconsolata = Inconsolata({ subsets: ['latin', 'latin-ext'], display: 'swap' });
+const lobster = Lobster({ subsets: ['latin', 'latin-ext'], weight: ['400'], display: 'swap' });
+const pacifico = Pacifico({ subsets: ['latin', 'latin-ext'], weight: ['400'], display: 'swap' });
+const fredoka = Fredoka({ subsets: ['latin', 'latin-ext'], display: 'swap' });
+const dancingScript = Dancing_Script({ subsets: ['latin', 'latin-ext'], display: 'swap' });
+const bangers = Bangers({ subsets: ['latin', 'latin-ext'], weight: ['400'], display: 'swap' });
 
 export const fontMap: Record<string, string> = {
   inter: inter.className,
