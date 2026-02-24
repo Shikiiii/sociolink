@@ -214,109 +214,108 @@ export const LinksSection = ({ profile, setProfile, newLink, setNewLink, addLink
           <Droppable droppableId="links">
             {(provided) => (
               <div {...provided.droppableProps} ref={provided.innerRef} className="space-y-2">
-                <AnimatePresence mode="popLayout">
-                  {profile.links.map((link, index) => {
-                    const platform = socialPlatforms.find(p => p.value === link.icon) || socialPlatforms[0]
-                    const IconComponent = iconMap[platform.icon as keyof typeof iconMap] || Link
-                    const isEditing = editingLinkId === link.id
-                    
-                    return (
-                      <Draggable key={String(link.id)} draggableId={String(link.id)} index={index} isDragDisabled={isEditing}>
-                        {(provided, snapshot) => (
-                          <motion.div
-                            layout
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            exit={{ opacity: 0, scale: 0.9 }}
-                            ref={provided.innerRef}
-                            {...provided.draggableProps}
-                            className={`border border-border rounded-md transition-all ${
-                              snapshot.isDragging ? 'shadow-lg scale-105' : ''
-                            } ${isEditing ? 'bg-muted/40 ring-2 ring-accent/30' : 'bg-muted/20'}`}
-                            // Style handling to coexist with DnD
-                            style={{ ...provided.draggableProps.style }} 
-                          >
-                            {isEditing ? (
-                              // Edit Mode
-                              <div className="p-3 space-y-3">
-                                <Input
-                                  value={editingLink.title}
-                                  onChange={(e) => setEditingLink(prev => ({ ...prev, title: e.target.value }))}
-                                  placeholder="Link title"
-                                  className="w-full"
-                                  autoFocus
-                                />
-                                <Input
-                                  value={editingLink.url}
-                                  onChange={(e) => setEditingLink(prev => ({ ...prev, url: e.target.value }))}
-                                  placeholder="https://example.com"
-                                  className="w-full"
-                                />
-                                
-                                {/* Platform selector for editing */}
-                                <div className="relative">
-                                  <select
-                                    value={editingLink.icon}
-                                    onChange={(e) => setEditingLink(prev => ({ ...prev, icon: e.target.value }))}
-                                    className="w-full p-2 rounded-md border border-border bg-background text-foreground text-sm"
-                                  >
-                                    {socialPlatforms.map((platform) => (
-                                      <option key={platform.value} value={platform.value}>
-                                        {platform.label}
-                                      </option>
-                                    ))}
-                                  </select>
-                                </div>
-                                
-                                <div className="flex gap-2">
-                                  <Button onClick={saveEdit} size="sm" className="flex-1">
-                                    Save
-                                  </Button>
-                                  <Button onClick={cancelEdit} variant="outline" size="sm" className="flex-1">
-                                    Cancel
-                                  </Button>
-                                </div>
-                              </div>
-                            ) : (
-                              // View Mode
-                              <div className="flex items-center gap-2 p-2">
-                                <div {...provided.dragHandleProps} className="cursor-grab active:cursor-grabbing">
-                                  <GripVertical className="w-4 h-4 text-muted-foreground" />
-                                </div>
-                                <div 
-                                  className="w-6 h-6 rounded-sm flex items-center justify-center flex-shrink-0"
-                                  style={{ backgroundColor: platform.color }}
+                {profile.links.map((link, index) => {
+                  const platform = socialPlatforms.find(p => p.value === link.icon) || socialPlatforms[0]
+                  const IconComponent = iconMap[platform.icon as keyof typeof iconMap] || Link
+                  const isEditing = editingLinkId === link.id
+                  
+                  return (
+                    <Draggable key={String(link.id)} draggableId={String(link.id)} index={index} isDragDisabled={isEditing}>
+                      {(provided, snapshot) => (
+                        <div
+                          ref={provided.innerRef}
+                          {...provided.draggableProps}
+                          className={`border border-border rounded-md transition-all ${
+                            snapshot.isDragging ? 'shadow-lg scale-105 z-50 bg-card' : ''
+                          } ${isEditing ? 'bg-muted/40 ring-2 ring-accent/30' : 'bg-muted/20'}`}
+                          style={{ 
+                            ...provided.draggableProps.style,
+                            // Ensure the item stays on top while dragging
+                            zIndex: snapshot.isDragging ? 9999 : 1
+                          }} 
+                        >
+                          {isEditing ? (
+                            // Edit Mode
+                            <div className="p-3 space-y-3">
+                              <Input
+                                value={editingLink.title}
+                                onChange={(e) => setEditingLink(prev => ({ ...prev, title: e.target.value }))}
+                                placeholder="Link title"
+                                className="w-full"
+                                autoFocus
+                              />
+                              <Input
+                                value={editingLink.url}
+                                onChange={(e) => setEditingLink(prev => ({ ...prev, url: e.target.value }))}
+                                placeholder="https://example.com"
+                                className="w-full"
+                              />
+                              
+                              {/* Platform selector for editing */}
+                              <div className="relative">
+                                <select
+                                  value={editingLink.icon}
+                                  onChange={(e) => setEditingLink(prev => ({ ...prev, icon: e.target.value }))}
+                                  className="w-full p-2 rounded-md border border-border bg-background text-foreground text-sm"
                                 >
-                                  <IconComponent className="w-4 h-4 text-white" />
-                                </div>
-                                <div className="flex-1 min-w-0">
-                                  <p className="text-sm font-medium text-foreground truncate">{link.title}</p>
-                                  <p className="text-xs text-muted-foreground truncate">{link.url}</p>
-                                </div>
+                                  {socialPlatforms.map((platform) => (
+                                    <option key={platform.value} value={platform.value}>
+                                      {platform.label}
+                                    </option>
+                                  ))}
+                                </select>
+                              </div>
+                              
+                              <div className="flex gap-2">
+                                <Button onClick={saveEdit} size="sm" className="flex-1">
+                                  Save
+                                </Button>
+                                <Button onClick={cancelEdit} variant="outline" size="sm" className="flex-1">
+                                  Cancel
+                                </Button>
+                              </div>
+                            </div>
+                          ) : (
+                            // View Mode
+                            <div className="flex items-center gap-2 p-2">
+                              <div {...provided.dragHandleProps} className="p-1 -ml-1 cursor-grab active:cursor-grabbing hover:bg-muted/50 rounded transition-colors group">
+                                <GripVertical className="w-4 h-4 text-muted-foreground group-hover:text-foreground" />
+                              </div>
+                              <div 
+                                className="w-6 h-6 rounded-sm flex items-center justify-center flex-shrink-0"
+                                style={{ backgroundColor: platform.color }}
+                              >
+                                <IconComponent className="w-4 h-4 text-white" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-foreground truncate">{link.title}</p>
+                                <p className="text-xs text-muted-foreground truncate">{link.url}</p>
+                              </div>
+                              <div className="flex items-center gap-1">
                                 <Button
                                   onClick={() => startEditing(link)}
                                   variant="ghost"
                                   size="sm"
-                                  className="text-muted-foreground hover:text-foreground"
+                                  className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground"
                                 >
-                                  <Edit className="w-3 h-3" />
+                                  <Edit className="w-3.5 h-3.5" />
                                 </Button>
                                 <Button
                                   onClick={() => removeLink(link.id)}
                                   variant="ghost"
                                   size="sm"
-                                  className="text-destructive hover:text-destructive"
+                                  className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
                                 >
-                                  <Trash2 className="w-3 h-3" />
+                                  <Trash2 className="w-3.5 h-3.5" />
                                 </Button>
                               </div>
-                            )}
-                          </motion.div>
-                        )}
-                      </Draggable>
-                    )
-                  })}
-                </AnimatePresence>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </Draggable>
+                  )
+                })}
                 {provided.placeholder}
               </div>
             )}
