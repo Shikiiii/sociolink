@@ -102,6 +102,7 @@ export const ParticleFloat = React.memo(() => {
     }))
 
     return typeof cleanup === 'function' ? cleanup : undefined
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setupCanvas, colors])
 
   const animate = useCallback(() => {
@@ -127,6 +128,7 @@ export const ParticleFloat = React.memo(() => {
       ctx.arc(particle.x, particle.y, particle.size, 0, Math.PI * 2)
       ctx.fill()
     })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useAnimationFrame(animate, 60)
@@ -181,6 +183,7 @@ export const ParticleWeb = React.memo(() => {
       if (typeof cleanup === 'function') cleanup()
       window.removeEventListener('mousemove', handleMouseMove)
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setupCanvas, canvasRef])
 
   const animate = useCallback(() => {
@@ -265,6 +268,7 @@ export const ParticleWeb = React.memo(() => {
         ctx.stroke()
       }
     })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useAnimationFrame(animate, 60)
@@ -298,6 +302,7 @@ export const MatrixRain = React.memo(() => {
     dropsRef.current = Array.from({ length: columnsRef.current }, () => 1)
 
     return typeof cleanup === 'function' ? cleanup : undefined
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setupCanvas])
 
   const animate = useCallback(() => {
@@ -322,6 +327,7 @@ export const MatrixRain = React.memo(() => {
       }
       dropsRef.current[i]++
     })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [matrixChars])
 
   useAnimationFrame(animate, 30)
@@ -360,6 +366,7 @@ export const Constellation = React.memo(() => {
     }))
 
     return typeof cleanup === 'function' ? cleanup : undefined
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [setupCanvas])
 
   const animate = useCallback(() => {
@@ -379,6 +386,7 @@ export const Constellation = React.memo(() => {
       ctx.arc(star.x, star.y, star.size, 0, Math.PI * 2)
       ctx.fill()
     })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   useAnimationFrame(animate, 30)

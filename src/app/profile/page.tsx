@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
+import { DropResult } from '@hello-pangea/dnd'
 import { Eye, Edit, Save, AlertTriangle, ExternalLink } from 'lucide-react'
 
 import Header from '@/app/components/header'
@@ -299,7 +300,7 @@ const ProfilePage = () => {
         url: usernameUrlPatterns[newLink.icon].replace("{username}", prev.url),
       }));
     }
-  }, [newLink]);
+  }, [newLink, prevIcon]);
 
   const addLink = () => {
     if (newLink.title && newLink.url) {
@@ -318,7 +319,7 @@ const ProfilePage = () => {
     }))
   }
 
-  const handleDragEnd = (result: { destination?: { index: number }; source: { index: number } }) => {
+  const handleDragEnd = (result: DropResult<string>) => {
     if (!result.destination) return
 
     const items = Array.from(profile.links)

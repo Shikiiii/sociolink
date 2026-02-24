@@ -1,3 +1,5 @@
+export const dynamic = 'force-dynamic'
+
 import RegisterPage from '../components/register'
 import Header from '../components/header'
 

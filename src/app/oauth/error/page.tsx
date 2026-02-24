@@ -4,7 +4,7 @@ import React from 'react'
 import { motion } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle } from '@/components/ui/card'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { useTheme } from 'next-themes'
 import { 
   Link,
@@ -22,9 +22,12 @@ const ERRORS = {
 }
 
 const OAuthErrorPage = () => {
-  const searchParams = useSearchParams()
-  // take "error" from search params
-  const errorKey = (searchParams.get('error') as keyof typeof ERRORS) || 'unexpected-error'
+  // take "error" from search params manually (avoid useSearchParams hook)
+  const errorKey = (() => {
+    if (typeof window === 'undefined') return 'unexpected-error'
+    const params = new URLSearchParams(window.location.search)
+    return (params.get('error') as keyof typeof ERRORS) || 'unexpected-error'
+  })()
   const errorMessage = ERRORS[errorKey] || "Unexpected error happened. If this issue keeps happening, please contact support."
 
   const router = useRouter()

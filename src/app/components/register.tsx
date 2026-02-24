@@ -36,6 +36,8 @@ const RegisterPage = () => {
   const [isLoading, setIsLoading] = useState(false)
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [mounted, setMounted] = useState(false)
+  // track which field is currently focused (used for UI effects)
+  const [focusedField, setFocusedField] = useState<'username' | 'email' | 'password' | 'confirmPassword' | null>(null)
   const router = useRouter()
   const { theme } = useTheme()
   const [error, setError] = useState<string | null>(null)
@@ -211,7 +213,7 @@ const RegisterPage = () => {
                       onChange={(e) => handleInputChange('username', e.target.value)}
                       onFocus={() => setFocusedField('username')}
                       onBlur={() => setFocusedField(null)}
-                      className="pl-10"
+                      className={`pl-10 ${focusedField === 'username' ? 'ring-2 ring-indigo-500' : ''}`}
                       required
                     />
                   </div>
@@ -240,7 +242,7 @@ const RegisterPage = () => {
                       onChange={(e) => handleInputChange('email', e.target.value)}
                       onFocus={() => setFocusedField('email')}
                       onBlur={() => setFocusedField(null)}
-                      className="pl-10"
+                      className={`pl-10 ${focusedField === 'email' ? 'ring-2 ring-indigo-500' : ''}`}
                       required
                     />
                   </div>
@@ -261,7 +263,7 @@ const RegisterPage = () => {
                       onChange={(e) => handleInputChange('password', e.target.value)}
                       onFocus={() => setFocusedField('password')}
                       onBlur={() => setFocusedField(null)}
-                      className="pl-10 pr-10"
+                      className={`pl-10 pr-10 ${focusedField === 'password' ? 'ring-2 ring-indigo-500' : ''}`}
                       required
                     />
                     <Button
@@ -295,7 +297,7 @@ const RegisterPage = () => {
                         passwordsDontMatch ? 'border-red-500/50' : 
                         passwordsMatch ? 'border-green-500/50' : 
                         ''
-                      }`}
+                      } ${focusedField === 'confirmPassword' ? 'ring-2 ring-indigo-500' : ''}`}
                       required
                     />
                     <div className="absolute right-1 top-1/2 -translate-y-1/2 flex items-center space-x-1">

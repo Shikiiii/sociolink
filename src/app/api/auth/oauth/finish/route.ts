@@ -1,6 +1,6 @@
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { PrismaClient } from '@/generated/prisma/client';
+import { PrismaClient, Provider } from '@/generated/prisma/client';
 import { generateAccessToken, generateRefreshToken } from '@/app/api/auth/token';
 import axios from 'axios';
 import { NextRequest, NextResponse } from 'next/server';
@@ -108,7 +108,7 @@ export async function POST(req: NextRequest) {
         // Create OAuth record
         await prisma.oAuth.create({
             data: {
-                provider,
+                provider: provider as Provider,
                 user_id: newUser.user_id,
                 external_id,
                 email,

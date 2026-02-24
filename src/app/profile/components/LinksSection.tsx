@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
-import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd'
+import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd'
 import { Search, ChevronDown, Plus, GripVertical, Link, Edit, Trash2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -38,7 +38,7 @@ interface LinksSectionProps {
   setNewLink: React.Dispatch<React.SetStateAction<NewLink>>
   addLink: () => void
   removeLink: (id: string) => void
-  handleDragEnd: (result: { destination?: { index: number }; source: { index: number } }) => void
+  handleDragEnd: (result: DropResult<string>) => void
   iconMap: Record<string, React.ComponentType<{ className?: string }>>
 }
 

@@ -1,12 +1,14 @@
 'use client'
 
+export const dynamic = 'force-dynamic'
+
 import React, { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useRouter } from 'next/navigation'
 import { useTheme } from 'next-themes'
 import { 
   Eye,
@@ -22,7 +24,7 @@ import {
 } from 'lucide-react'
 
 const OAuthRegisterPage = () => {
-  const searchParams = useSearchParams()
+  // We'll parse query parameters manually since useSearchParams causes SSR issues
   const [formData, setFormData] = useState({
     password: '',
     confirmPassword: ''
@@ -43,13 +45,14 @@ const OAuthRegisterPage = () => {
 
   useEffect(() => {
     setMounted(true)
-    const token = searchParams.get('token')
-    const provider = searchParams.get('provider') as 'google' | 'discord'
+    const params = new URLSearchParams(typeof window !== 'undefined' ? window.location.search : '')
+    const token = params.get('token')
+    const provider = params.get('provider') as 'google' | 'discord'
 
     if (token && provider) {
       setUserInfo({ token, provider })
     }
-  }, [searchParams])
+  }, [])
 
   const handleThemeToggle = () => {
     setTheme(isDark ? 'light' : 'dark')

@@ -3,6 +3,7 @@
 import React from 'react'
 import { Settings, Monitor, Smartphone } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { DropResult } from '@hello-pangea/dnd'
 import { mobilePresets } from '@/app/components/backgrounds'
 import { ProfileInfoSection } from './ProfileInfoSection'
 import { BackgroundSection } from './BackgroundSection'
@@ -48,7 +49,7 @@ interface EditPanelProps {
   setShowBackgrounds: React.Dispatch<React.SetStateAction<boolean>>
   addLink: () => void
   removeLink: (id: string) => void
-  handleDragEnd: (result: { destination?: { index: number }; source: { index: number } }) => void
+  handleDragEnd: (result: DropResult<string>) => void
   handleAvatarUpload: () => void
   iconMap: Record<string, React.ComponentType<{ className?: string }>>
   error: string | null
@@ -160,7 +161,7 @@ interface MobileEditPanelProps {
   setShowBackgrounds: React.Dispatch<React.SetStateAction<boolean>>
   addLink: () => void
   removeLink: (id: string) => void
-  handleDragEnd: (result: { destination?: { index: number }; source: { index: number } }) => void
+  handleDragEnd: (result: DropResult<string>) => void
   handleAvatarUpload: () => void
   iconMap: Record<string, React.ComponentType<{ className?: string }>>
   saveChanges: () => void
